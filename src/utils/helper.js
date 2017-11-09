@@ -98,7 +98,8 @@ function createBoolQuery(operation, query) {
 	return null;
 }
 
-export function pushToAndClause(react, component) {
+export function pushToAndClause(reactProp, component) {
+	const react = Object.assign({}, reactProp);
 	if (react.and) {
 		if (Array.isArray(react.and)) {
 			react.and.push(component);
