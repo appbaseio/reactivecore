@@ -3,6 +3,9 @@
 	"version": "0.1.0",
 	"description": "Core architecture of reactive UI libraries",
 	"main": "lib/index.js",
+	"files": [
+		"lib/"
+	],
 	"scripts": {
 		"lint": "eslint .",
 		"build": "babel src --out-dir lib",
