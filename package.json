@@ -1,5 +1,5 @@
 {
-	"name": "reactivecore",
+	"name": "@appbaseio/reactivecore",
 	"version": "0.1.0",
 	"description": "Core architecture of reactive UI libraries",
 	"main": "lib/index.js",
