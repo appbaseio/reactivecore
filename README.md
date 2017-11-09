@@ -44,7 +44,7 @@ import { <actionName> } from "@appbaseio/reactivecore/lib/actions"
 Import via:
 
 ```
-import { <methodName> } from "@appbaseio/reactivecode/lib/utils"
+import { <methodName> } from "@appbaseio/reactivecore/lib/utils"
 ```
 
 | Method				| Usage														|
