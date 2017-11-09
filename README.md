@@ -22,7 +22,7 @@ import configureStore from "@appbaseio/reactivecore";
 Import via:
 
 ```
-import { <actionName> } from "@appbaseio/reactivecore/actions"
+import { <actionName> } from "@appbaseio/reactivecore/lib/actions"
 ```
 
 | Action					| Usage													|
@@ -44,7 +44,7 @@ import { <actionName> } from "@appbaseio/reactivecore/actions"
 Import via:
 
 ```
-import { <methodName> } from "@appbaseio/reactivecode/utils"
+import { <methodName> } from "@appbaseio/reactivecode/lib/utils"
 ```
 
 | Method				| Usage														|
