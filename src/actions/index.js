@@ -147,7 +147,11 @@ export function updateAggs(component, aggregations) {
 
 export function updateQuery(componentId, query, onQueryChange) {
 	return (dispatch, getState) => {
-		dispatch(setQuery(componentId, query));
+		let queryToDispatch = query;
+		if (query && query.query) {
+			queryToDispatch = query.query;
+		}
+		dispatch(setQuery(componentId, queryToDispatch));
 
 		const store = getState();
 		const watchList = store.watchMan[componentId];
