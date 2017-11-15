@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 
-import dateFormats from "../dateFormats";
+import dateFormats from "./dateFormats";
 
 const reactKeyType = PropTypes.oneOfType([
 	PropTypes.string,
