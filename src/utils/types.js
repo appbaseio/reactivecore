@@ -18,6 +18,7 @@ const types = {
 	children: PropTypes.any,
 	componentId: PropTypes.string.isRequired,
 	credentials: PropTypes.string,
+	title: PropTypes.string,
 	customQuery: PropTypes.func,
 	data: PropTypes.arrayOf(PropTypes.object),
 	dataField: PropTypes.string.isRequired,
