@@ -46,6 +46,7 @@ const types = {
 	options: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
 	paddingHorizontal: PropTypes.number.isRequired,
 	pagination: PropTypes.bool,
+	paginationAt: PropTypes.oneOf(["top", "bottom", "both"]),
 	pages: PropTypes.number,
 	placeholder: PropTypes.string,
 	pressColor: PropTypes.string,
