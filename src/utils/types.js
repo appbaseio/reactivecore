@@ -41,6 +41,7 @@ const types = {
 	onData: PropTypes.func,
 	onEndReached: PropTypes.func.isRequired,
 	onValueChange: PropTypes.func,
+	onSuggestions: PropTypes.func,
 	onPress: PropTypes.func.isRequired,
 	onQueryChange: PropTypes.func,
 	options: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.object), PropTypes.object]),
@@ -79,7 +80,13 @@ const types = {
 	total: PropTypes.number,
 	type: PropTypes.string,
 	updateQuery: PropTypes.func.isRequired,
-	url: PropTypes.string
+	url: PropTypes.string,
+	onBlur: PropTypes.func,
+	onFocus: PropTypes.func,
+	onKeyPress: PropTypes.func,
+	onKeyDown: PropTypes.func,
+	onKeyUp: PropTypes.func,
+	autoFocus: PropTypes.bool
 }
 
 export default types;
