@@ -86,7 +86,15 @@ const types = {
 	onKeyPress: PropTypes.func,
 	onKeyDown: PropTypes.func,
 	onKeyUp: PropTypes.func,
-	autoFocus: PropTypes.bool
+	autoFocus: PropTypes.bool,
+	selectedValues: PropTypes.object,
+	selectedValue: PropTypes.oneOfType([
+		PropTypes.string,
+		PropTypes.arrayOf(PropTypes.string),
+		PropTypes.object
+	]),
+	setValue: PropTypes.func,
+	clearValues: PropTypes.func
 }
 
 export default types;
