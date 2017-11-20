@@ -10,6 +10,7 @@ import appbaseRefReducer from "./appbaseRefReducer";
 import hitsReducer from "./hitsReducer";
 import aggsReducer from "./aggsReducer";
 import logsReducer from "./logsReducer";
+import valueReducer from "./valueReducer";
 
 export default combineReducers({
 	components: componentsReducer,
@@ -21,5 +22,6 @@ export default combineReducers({
 	config: configReducer,
 	hits: hitsReducer,
 	aggregations: aggsReducer,
-	queryLog: logsReducer
+	queryLog: logsReducer,
+	selectedValues: valueReducer
 });

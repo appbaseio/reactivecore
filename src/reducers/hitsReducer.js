@@ -15,7 +15,7 @@ export default function hitsReducer(state = {}, action) {
 			...state,
 			[action.component]: { hits: action.hits, total: action.total }
 		};
-	} else if (action.type == REMOVE_COMPONENT) {
+	} else if (action.type === REMOVE_COMPONENT) {
 		const { [action.component]: del, ...obj } = state;
 		return obj;
 	}

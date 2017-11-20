@@ -7,7 +7,9 @@ import {
 	UPDATE_HITS,
 	UPDATE_AGGS,
 	SET_QUERY_OPTIONS,
-	LOG_QUERY
+	LOG_QUERY,
+	SET_VALUE,
+	CLEAR_VALUES
 } from "../constants";
 
 import { buildQuery, isEqual } from "../utils/helper";
@@ -177,4 +179,19 @@ export function loadMore(component, newOptions, append = true) {
 		options = { ...options, ...newOptions };
 		dispatch(executeQuery(component, queryObj, options, append));
 	}
+}
+
+export function setValue(component, value, label = null) {
+	return {
+		type: SET_VALUE,
+		component,
+		value,
+		label
+	};
+}
+
+export function clearValues() {
+	return {
+		type: CLEAR_VALUES
+	};
 }
