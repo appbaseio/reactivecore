@@ -96,7 +96,7 @@ const types = {
 	]),
 	setValue: PropTypes.func,
 	clearValues: PropTypes.func,
-	params: PropTypes.func.isRequired
+	params: PropTypes.object.isRequired
 }
 
 export default types;
