@@ -16,6 +16,7 @@ const types = {
 	beforeValueChange: PropTypes.func,
 	checked: PropTypes.bool.isRequired,
 	children: PropTypes.any,
+	components: PropTypes.arrayOf(PropTypes.string),
 	componentId: PropTypes.string.isRequired,
 	credentials: PropTypes.string,
 	title: PropTypes.string,
@@ -94,7 +95,8 @@ const types = {
 		PropTypes.object
 	]),
 	setValue: PropTypes.func,
-	clearValues: PropTypes.func
+	clearValues: PropTypes.func,
+	params: PropTypes.func.isRequired
 }
 
 export default types;
