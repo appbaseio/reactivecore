@@ -1,3 +1,4 @@
+// when we want to perform deep equality check, especially in objects
 export function isEqual(x, y) {
 	if ( x === y ) return true;
 	if ( ! ( x instanceof Object ) || ! ( y instanceof Object ) ) return false;
@@ -171,3 +172,18 @@ function getExternalQueryOptions(react, options, component) {
 	}
 	return queryOptions;
 }
+
+// checks for props changes that would need to update the query via callback
+export const checkPropChange = (prevProp, nextProp, callback) => {
+	if (prevProp !== nextProp) {
+		callback();
+		return true;
+	}
+	return false;
+}
+
+// checks for any prop change in the propsList and invokes the callback
+export const checkSomePropChange = (prevProps, nextProps, propsList, callback) => {
+	propsList.some(prop => checkPropChange(prevProps[prop], nextProps[prop], callback));
+}
+
