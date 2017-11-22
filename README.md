@@ -58,3 +58,5 @@ import { <methodName> } from "@appbaseio/reactivecore/lib/utils"
 | `pushToAndClause`		| Pushes component to leaf `and` node. Handy for internal component registration |
 | `checkValueChange`	| checks and executes before/onValueChange for sensors		|
 | `getAggsOrder`		| returns aggs order query based on `sortBy` prop			|
+| `checkPropChange`	| checks for props changes that would need to update the query via callback		|
+| `checkSomePropChange`		| checks for any prop change in the propsList and invokes the callback			|
