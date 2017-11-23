@@ -31,6 +31,7 @@ const types = {
 	}),
 	defaultQuery: PropTypes.func,
 	fieldWeights: PropTypes.arrayOf(PropTypes.number),
+	filterLabel: PropTypes.string,
 	fuzziness: PropTypes.oneOf([0, 1, 2, "AUTO"]),
 	highlight: PropTypes.bool,
 	highlightField: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
