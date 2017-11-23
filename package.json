@@ -10,7 +10,8 @@
 		"lint": "eslint .",
 		"start": "yarn run build -w",
 		"build": "babel src --out-dir lib",
-		"precommit": "eslint ."
+		"precommit": "eslint .",
+		"prepublish": "yarn run build"
 	},
 	"repository": {
 		"type": "git",
