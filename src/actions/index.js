@@ -147,12 +147,13 @@ export function updateAggs(component, aggregations) {
 	}
 }
 
-export function updateQuery(componentId, query, onQueryChange) {
+export function updateQuery(componentId, query, value, label = null, onQueryChange) {
 	return (dispatch, getState) => {
 		let queryToDispatch = query;
 		if (query && query.query) {
 			queryToDispatch = query.query;
 		}
+		dispatch(setValue(componentId, value, label));
 		dispatch(setQuery(componentId, queryToDispatch));
 
 		const store = getState();
@@ -181,7 +182,7 @@ export function loadMore(component, newOptions, append = true) {
 	}
 }
 
-export function setValue(component, value, label = null) {
+function setValue(component, value, label) {
 	return {
 		type: SET_VALUE,
 		component,
