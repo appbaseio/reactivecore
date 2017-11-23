@@ -153,7 +153,10 @@ export function updateQuery(componentId, query, value, label = null, onQueryChan
 		if (query && query.query) {
 			queryToDispatch = query.query;
 		}
-		dispatch(setValue(componentId, value, label));
+		// don't set filters for internal components
+		if (!componentId.endsWith("__internal")) {
+			dispatch(setValue(componentId, value, label));
+		}
 		dispatch(setQuery(componentId, queryToDispatch));
 
 		const store = getState();
