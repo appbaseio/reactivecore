@@ -147,7 +147,7 @@ export function updateAggs(component, aggregations) {
 	}
 }
 
-export function updateQuery(componentId, query, value, label = null, onQueryChange) {
+export function updateQuery(componentId, query, value, label = null, onQueryChange, URLParams = false) {
 	return (dispatch, getState) => {
 		let queryToDispatch = query;
 		if (query && query.query) {
@@ -155,7 +155,7 @@ export function updateQuery(componentId, query, value, label = null, onQueryChan
 		}
 		// don't set filters for internal components
 		if (!componentId.endsWith("__internal")) {
-			dispatch(setValue(componentId, value, label));
+			dispatch(setValue(componentId, value, label, URLParams));
 		}
 		dispatch(setQuery(componentId, queryToDispatch));
 
@@ -185,12 +185,13 @@ export function loadMore(component, newOptions, append = true) {
 	}
 }
 
-export function setValue(component, value, label) {
+export function setValue(component, value, label, URLParams) {
 	return {
 		type: SET_VALUE,
 		component,
 		value,
-		label
+		label,
+		URLParams
 	};
 }
 

@@ -6,7 +6,8 @@ export default function valueReducer(state = {}, action) {
 			...state,
 			[action.component]: {
 				value: action.value,
-				label: action.label || action.component
+				label: action.label || action.component,
+				URLParams: action.URLParams
 			}
 		};
 	} else if (action.type === CLEAR_VALUES) {
