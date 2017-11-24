@@ -185,7 +185,7 @@ export function loadMore(component, newOptions, append = true) {
 	}
 }
 
-function setValue(component, value, label) {
+export function setValue(component, value, label) {
 	return {
 		type: SET_VALUE,
 		component,
