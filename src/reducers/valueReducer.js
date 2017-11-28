@@ -7,6 +7,7 @@ export default function valueReducer(state = {}, action) {
 			[action.component]: {
 				value: action.value,
 				label: action.label || action.component,
+				showFilter: action.showFilter,
 				URLParams: action.URLParams
 			}
 		};
