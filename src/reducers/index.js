@@ -14,7 +14,7 @@ import valueReducer from "./valueReducer";
 
 export default combineReducers({
 	components: componentsReducer,
-	watchMan: watchManReducer,
+	watchMan: watchManReducer, // contains the list of subscribers
 	queryList: queryReducer,
 	queryOptions: queryOptionsReducer,
 	dependencyTree: dependencyTreeReducer,

@@ -69,6 +69,15 @@ export function setQueryOptions(component, queryOptions) {
 			(options && "aggs" in options)) {
 			dispatch(executeQuery(component, queryObj, options));
 		}
+
+		const watchList = store.watchMan[component];
+
+		if (Array.isArray(watchList)) {
+			watchList.forEach(subscriber => {
+				const { queryObj: queryObject, options: queryOptions } = buildQuery(subscriber, store.dependencyTree, store.queryList, store.queryOptions);
+				dispatch(executeQuery(subscriber, queryObject, queryOptions, false));
+			});
+		}
 	}
 }
 
