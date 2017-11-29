@@ -24,6 +24,11 @@ const types = {
 	data: PropTypes.arrayOf(PropTypes.object),
 	dataField: PropTypes.string.isRequired,
 	dataFieldArray: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]).isRequired,
+	dataNumberBox: PropTypes.shape({
+		label: PropTypes.string,
+		start: PropTypes.number.isRequired,
+		end: PropTypes.number.isRequired
+	}).isRequired,
 	date: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
 	dateRange: PropTypes.shape({
 		start: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
@@ -38,7 +43,9 @@ const types = {
 	hits: PropTypes.arrayOf(PropTypes.object),
 	interval: PropTypes.number,
 	label: PropTypes.string.isRequired,
+	labelPosition: PropTypes.oneOf(["left", "right", "top", "bottom"]),
 	loadMore: PropTypes.func.isRequired,
+	number: PropTypes.number,
 	onAllData: PropTypes.func,
 	onData: PropTypes.func,
 	onEndReached: PropTypes.func.isRequired,
@@ -81,6 +88,7 @@ const types = {
 	style: PropTypes.object,
 	queryFormatDate: PropTypes.oneOf(Object.keys(dateFormats)),
 	queryFormatSearch: PropTypes.oneOf(["and", "or"]),
+	queryFormatNumberBox: PropTypes.oneOf(["exact", "lte", "gte"]),
 	total: PropTypes.number,
 	type: PropTypes.string,
 	updateQuery: PropTypes.func.isRequired,
