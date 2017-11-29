@@ -66,6 +66,8 @@ const types = {
 	removeComponent: PropTypes.func.isRequired,
 	setQueryOptions: PropTypes.func.isRequired,
 	setRef: PropTypes.func.isRequired,
+	showCount: PropTypes.bool,
+	showFilter: PropTypes.bool,
 	showHistogram: PropTypes.bool,
 	size: PropTypes.number,
 	suggestions: PropTypes.arrayOf(PropTypes.object),
