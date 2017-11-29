@@ -101,7 +101,8 @@ const types = {
 	clearValues: PropTypes.func,
 	params: PropTypes.object.isRequired,
 	showInputControl: PropTypes.bool.isRequired,
-	URLParams: PropTypes.bool.isRequired
+	URLParams: PropTypes.bool.isRequired,
+	multiSelect: PropTypes.bool
 }
 
 export default types;
