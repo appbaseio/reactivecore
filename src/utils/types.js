@@ -110,7 +110,8 @@ const types = {
 	params: PropTypes.object.isRequired,
 	showInputControl: PropTypes.bool.isRequired,
 	URLParams: PropTypes.bool.isRequired,
-	multiSelect: PropTypes.bool
+	multiSelect: PropTypes.bool,
+	func: PropTypes.func
 }
 
 export default types;
