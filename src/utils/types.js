@@ -103,6 +103,7 @@ const types = {
 	selectedValue: PropTypes.oneOfType([
 		PropTypes.string,
 		PropTypes.arrayOf(PropTypes.string),
+		PropTypes.arrayOf(PropTypes.object),
 		PropTypes.object
 	]),
 	setValue: PropTypes.func,
@@ -111,7 +112,8 @@ const types = {
 	showInputControl: PropTypes.bool.isRequired,
 	URLParams: PropTypes.bool.isRequired,
 	multiSelect: PropTypes.bool,
-	func: PropTypes.func
+	func: PropTypes.func,
+	bool: PropTypes.bool
 }
 
 export default types;
