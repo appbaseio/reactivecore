@@ -122,7 +122,7 @@ export function checkValueChange(componentId, value, beforeValueChange, onValueC
 	let selectedValue = value;
 	// To ensure that the returned values are consistent across all the components
 	// null is returned in case of an empty array
-	if (Array.isArray(value), value.length) {
+	if (Array.isArray(value) && value.length) {
 		selectedValue = null;
 	}
 	const executeUpdate = () => {
