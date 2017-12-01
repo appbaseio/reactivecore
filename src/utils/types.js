@@ -104,7 +104,8 @@ const types = {
 		PropTypes.string,
 		PropTypes.arrayOf(PropTypes.string),
 		PropTypes.arrayOf(PropTypes.object),
-		PropTypes.object
+		PropTypes.object,
+		PropTypes.number
 	]),
 	setValue: PropTypes.func,
 	clearValues: PropTypes.func,
