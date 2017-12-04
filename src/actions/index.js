@@ -125,7 +125,7 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 				body: finalQuery
 			})
 				.on("data", response => {
-					dispatch(updateHits(component, response.hits, appendToHits))
+					dispatch(updateHits(component, response.hits, response.took, appendToHits))
 
 					if ("aggregations" in response) {
 						dispatch(updateAggs(component, response.aggregations));
@@ -138,12 +138,13 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 	}
 }
 
-export function updateHits(component, hits, append = false) {
+export function updateHits(component, hits, time, append = false) {
 	return {
 		type: UPDATE_HITS,
 		component,
 		hits: hits.hits,
 		total: hits.total,
+		time,
 		append
 	}
 }

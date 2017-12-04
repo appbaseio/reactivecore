@@ -7,13 +7,14 @@ export default function hitsReducer(state = {}, action) {
 				...state,
 				[action.component]: {
 					hits: [...state[action.component].hits, ...action.hits],
-					total: action.total
+					total: action.total,
+					time: action.time
 				}
 			}
 		}
 		return {
 			...state,
-			[action.component]: { hits: action.hits, total: action.total }
+			[action.component]: { hits: action.hits, total: action.total, time: action.time }
 		};
 	} else if (action.type === REMOVE_COMPONENT) {
 		const { [action.component]: del, ...obj } = state;
