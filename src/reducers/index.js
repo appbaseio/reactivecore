@@ -11,6 +11,7 @@ import hitsReducer from "./hitsReducer";
 import aggsReducer from "./aggsReducer";
 import logsReducer from "./logsReducer";
 import valueReducer from "./valueReducer";
+import loadingReducer from "./loadingReducer";
 
 export default combineReducers({
 	components: componentsReducer,
@@ -23,5 +24,6 @@ export default combineReducers({
 	hits: hitsReducer,
 	aggregations: aggsReducer,
 	queryLog: logsReducer,
-	selectedValues: valueReducer
+	selectedValues: valueReducer,
+	isLoading: loadingReducer
 });

@@ -9,7 +9,8 @@ import {
 	SET_QUERY_OPTIONS,
 	LOG_QUERY,
 	SET_VALUE,
-	CLEAR_VALUES
+	CLEAR_VALUES,
+	IS_LOADING
 } from "../constants";
 
 import { buildQuery, isEqual } from "../utils/helper";
@@ -119,13 +120,15 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 				onQueryChange(queryLog[component], finalQuery);
 			}
 			dispatch(logQuery(component, finalQuery));
+			dispatch(setLoading(component, true));
 
 			appbaseRef.search({
 				type: config.type === "*" ? null : config.type,
 				body: finalQuery
 			})
 				.on("data", response => {
-					dispatch(updateHits(component, response.hits, response.took, appendToHits))
+					dispatch(updateHits(component, response.hits, response.took, appendToHits));
+					dispatch(setLoading(component, false));
 
 					if ("aggregations" in response) {
 						dispatch(updateAggs(component, response.aggregations));
@@ -133,6 +136,7 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 				})
 				.on("error", e => {
 					console.log(e);
+					dispatch(setLoading(component, false));
 				});
 		}
 	}
@@ -217,5 +221,13 @@ export function setValue(component, value, label, showFilter, URLParams) {
 export function clearValues() {
 	return {
 		type: CLEAR_VALUES
+	};
+}
+
+function setLoading(component, isLoading) {
+	return {
+		type: IS_LOADING,
+		component,
+		isLoading
 	};
 }
