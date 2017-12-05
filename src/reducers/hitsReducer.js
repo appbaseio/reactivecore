@@ -25,7 +25,7 @@ export default function hitsReducer(state = {}, action) {
 			hits = [{ ...action.hit, stream: true }, ...hits];
 
 			return {
-			...state,
+				...state,
 				[action.component]: {
 					...state[action.component],
 					hits
@@ -35,7 +35,7 @@ export default function hitsReducer(state = {}, action) {
 			hits = hits.filter(item => item._id !== action.hit._id);
 
 			return {
-			...state,
+				...state,
 				[action.component]: {
 					hits,
 					total: state[action.component].total - 1,
