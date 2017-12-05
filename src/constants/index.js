@@ -11,4 +11,6 @@ export const ADD_APPBASE_REF = "ADD_APPBASE_REF";
 export const LOG_QUERY = "LOG_QUERY";
 export const SET_VALUE = "SET_VALUE";
 export const CLEAR_VALUES = "CLEAR_VALUES";
-export const IS_LOADING = "IS_LOADING";
+export const SET_LOADING = "SET_LOADING";
+export const SET_STREAMING = "SET_STREAMING";
+export const SHIFT_HITS = "SHIFT_HITS";

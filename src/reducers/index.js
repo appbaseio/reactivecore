@@ -12,6 +12,7 @@ import aggsReducer from "./aggsReducer";
 import logsReducer from "./logsReducer";
 import valueReducer from "./valueReducer";
 import loadingReducer from "./loadingReducer";
+import streamingReducer from "./streamingReducer";
 
 export default combineReducers({
 	components: componentsReducer,
@@ -25,5 +26,6 @@ export default combineReducers({
 	aggregations: aggsReducer,
 	queryLog: logsReducer,
 	selectedValues: valueReducer,
-	isLoading: loadingReducer
+	isLoading: loadingReducer,
+	stream: streamingReducer
 });

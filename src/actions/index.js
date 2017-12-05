@@ -10,7 +10,9 @@ import {
 	LOG_QUERY,
 	SET_VALUE,
 	CLEAR_VALUES,
-	IS_LOADING
+	SET_LOADING,
+	SET_STREAMING,
+	SHIFT_HITS
 } from "../constants";
 
 import { buildQuery, isEqual } from "../utils/helper";
@@ -100,7 +102,7 @@ export function logQuery(component, query) {
 
 export function executeQuery(component, query, options = {}, appendToHits = false, onQueryChange) {
 	return (dispatch, getState) => {
-		const { appbaseRef, config, queryLog } = getState();
+		const { appbaseRef, config, queryLog, stream } = getState();
 		let mainQuery = null;
 
 		if (query) {
@@ -122,22 +124,45 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 			dispatch(logQuery(component, finalQuery));
 			dispatch(setLoading(component, true));
 
-			appbaseRef.search({
-				type: config.type === "*" ? null : config.type,
-				body: finalQuery
-			})
-				.on("data", response => {
+			const handleResponse = response => {
+				if (response.hits) {
 					dispatch(updateHits(component, response.hits, response.took, appendToHits));
 					dispatch(setLoading(component, false));
 
 					if ("aggregations" in response) {
 						dispatch(updateAggs(component, response.aggregations));
 					}
+				} else {
+					dispatch(shiftHits(component, response, response._deleted, response._updated));
+				}
+			};
+
+			const handleError = error => {
+				console.error(error);
+				dispatch(setLoading(component, false));
+			};
+
+			if (stream[component] && stream[component].status) {
+				if (stream[component].ref) {
+					stream[component].ref.stop();
+				}
+
+				const ref = appbaseRef.searchStream({
+					type: config.type === "*" ? null : config.type,
+					body: finalQuery
 				})
-				.on("error", e => {
-					console.log(e);
-					dispatch(setLoading(component, false));
-				});
+					.on("data", handleResponse)
+					.on("error", handleError);
+
+				dispatch(setStreaming(component, true, ref));
+			}
+
+			appbaseRef.search({
+				type: config.type === "*" ? null : config.type,
+				body: finalQuery
+			})
+				.on("data", handleResponse)
+				.on("error", handleError);
 		}
 	}
 }
@@ -226,8 +251,27 @@ export function clearValues() {
 
 function setLoading(component, isLoading) {
 	return {
-		type: IS_LOADING,
+		type: SET_LOADING,
 		component,
 		isLoading
 	};
+}
+
+export function setStreaming(component, status = false, ref = null) {
+	return {
+		type: SET_STREAMING,
+		component,
+		status,
+		ref
+	}
+}
+
+function shiftHits(component, hit, deleted = false, updated = false) {
+	return {
+		type: SHIFT_HITS,
+		component,
+		hit,
+		deleted,
+		updated
+	}
 }
