@@ -181,7 +181,7 @@ function getExternalQueryOptions(react, options, component) {
 
 // checks for props changes that would need to update the query via callback
 export const checkPropChange = (prevProp, nextProp, callback) => {
-	if (prevProp !== nextProp) {
+	if (!isEqual(prevProp, nextProp)) {
 		callback();
 		return true;
 	}
