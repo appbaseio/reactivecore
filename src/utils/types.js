@@ -84,8 +84,7 @@ const types = {
 	queryFormatNumberBox: oneOf(["exact", "lte", "gte"]),
 	params: object.isRequired,
 	rangeLabelsAlign: oneOf(["left", "right"]),
-	title: oneOfType([string, any]),
-	style: object
+	title: oneOfType([string, any])
 };
 
 export default types;
