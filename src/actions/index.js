@@ -147,6 +147,12 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 					stream[component].ref.stop();
 				}
 
+				if (!finalQuery.query) {
+					finalQuery.query = {
+						match_all: {}
+					}
+				}
+
 				const ref = appbaseRef.searchStream({
 					type: config.type === "*" ? null : config.type,
 					body: finalQuery
