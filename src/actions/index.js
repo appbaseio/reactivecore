@@ -61,25 +61,27 @@ export function setQuery(component, query) {
 	};
 }
 
-export function setQueryOptions(component, queryOptions) {
+export function setQueryOptions(component, queryOptions, execute = true) {
 	return (dispatch, getState) => {
 		dispatch(updateQueryOptions(component, queryOptions));
 
-		const store = getState();
-		const { queryObj, options } = buildQuery(component, store.dependencyTree, store.queryList, store.queryOptions);
+		if (execute) {
+			const store = getState();
+			const { queryObj, options } = buildQuery(component, store.dependencyTree, store.queryList, store.queryOptions);
 
-		if ((queryObj && Object.keys(queryObj).length) ||
-			(options && "aggs" in options)) {
-			dispatch(executeQuery(component, queryObj, options));
-		}
+			if ((queryObj && Object.keys(queryObj).length) ||
+				(options && "aggs" in options)) {
+				dispatch(executeQuery(component, queryObj, options));
+			}
 
-		const watchList = store.watchMan[component];
+			const watchList = store.watchMan[component];
 
-		if (Array.isArray(watchList)) {
-			watchList.forEach(subscriber => {
-				const { queryObj: queryObject, options: queryOptions } = buildQuery(subscriber, store.dependencyTree, store.queryList, store.queryOptions);
-				dispatch(executeQuery(subscriber, queryObject, queryOptions, false));
-			});
+			if (Array.isArray(watchList)) {
+				watchList.forEach(subscriber => {
+					const { queryObj: queryObject, options: queryOptions } = buildQuery(subscriber, store.dependencyTree, store.queryList, store.queryOptions);
+					dispatch(executeQuery(subscriber, queryObject, queryOptions, false));
+				});
+			}
 		}
 	}
 }
