@@ -44,6 +44,7 @@ const types = {
 	fuzziness: oneOf([0, 1, 2, "AUTO"]),
 	highlightField: oneOfType([string, arrayOf(string)]),
 	hits: arrayOf(object),
+	iconPosition: oneOf(["left", "right"]),
 	labelPosition: oneOf(["left", "right", "top", "bottom"]),
 	number: number,
 	options: oneOfType([arrayOf(object), object]),
