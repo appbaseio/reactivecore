@@ -4,9 +4,14 @@ export default function watchManReducer(state = {}, action) {
 	if (action.type === WATCH_COMPONENT) {
 		const watchList = getWatchList(action.react);
 		const newState = { ...state };
+
+		Object.keys(newState).forEach(key => {
+			newState[key] = newState[key].filter(value => value !== action.component);
+		});
+
 		watchList.forEach(item => {
 			if (Array.isArray(newState[item])) {
-				newState[item].push(action.component);
+				newState[item] = [...newState[item], action.component];
 			} else {
 				newState[item] = [action.component];
 			}
