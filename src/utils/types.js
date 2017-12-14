@@ -33,6 +33,7 @@ const types = {
 		end: number.isRequired
 	}).isRequired,
 	date: oneOfType([string, arrayOf(string)]),
+	dateObject: object,
 	dateRange: shape({
 		start: oneOfType([string, arrayOf(string)]),
 		end: oneOfType([string, arrayOf(string)])
@@ -84,6 +85,7 @@ const types = {
 	queryFormatSearch: oneOf(["and", "or"]),
 	queryFormatNumberBox: oneOf(["exact", "lte", "gte"]),
 	params: object.isRequired,
+	props: object,
 	rangeLabelsAlign: oneOf(["left", "right"]),
 	title: oneOfType([string, any])
 };
