@@ -193,4 +193,4 @@ export const checkSomePropChange = (prevProps, nextProps, propsList, callback) =
 	propsList.some(prop => checkPropChange(prevProps[prop], nextProps[prop], callback));
 }
 
-export const getClassName = (classMap, component) => classMap ? classMap[component] : "";
+export const getClassName = (classMap, component) => classMap && classMap[component] || "";
