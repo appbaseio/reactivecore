@@ -166,7 +166,8 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 
 			appbaseRef.search({
 				type: config.type === "*" ? null : config.type,
-				body: finalQuery
+				body: finalQuery,
+				preference: component
 			})
 				.on("data", handleResponse)
 				.on("error", handleError);
