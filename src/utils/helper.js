@@ -55,7 +55,7 @@ export function buildQuery(component, dependencyTree, queryList, queryOptions) {
 
 function getQuery(react, queryList) {
 	let query = {};
-	for (conjunction in react) {
+	for (let conjunction in react) {
 		if (Array.isArray(react[conjunction])) {
 			const operation = getOperation(conjunction);
 			const queryArr = react[conjunction].map(comp => {
@@ -156,7 +156,7 @@ export function getAggsOrder(sortBy) {
 function getExternalQueryOptions(react, options, component) {
 	let queryOptions = {};
 
-	for (conjunction in react) {
+	for (let conjunction in react) {
 		if (Array.isArray(react[conjunction])) {
 			react[conjunction].forEach(comp => {
 				if (options[comp]) {
