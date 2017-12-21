@@ -43,13 +43,17 @@ export function watchComponent(component, react) {
 		dispatch(updateWatchman(component, react));
 
 		const store = getState();
-		const { queryObj, options } = buildQuery(component, store.dependencyTree, store.queryList, store.queryOptions);
+		const { queryObj, options } = buildQuery(
+			component,
+			store.dependencyTree,
+			store.queryList,
+			store.queryOptions
+		);
 
-		if ((queryObj && Object.keys(queryObj).length) ||
-			(options && "aggs" in options)) {
+		if ((queryObj && Object.keys(queryObj).length) || (options && "aggs" in options)) {
 			dispatch(executeQuery(component, queryObj, options));
 		}
-	}
+	};
 }
 
 export function setQuery(component, query) {
@@ -66,10 +70,14 @@ export function setQueryOptions(component, queryOptions, execute = true) {
 
 		if (execute) {
 			const store = getState();
-			const { queryObj, options } = buildQuery(component, store.dependencyTree, store.queryList, store.queryOptions);
+			const { queryObj, options } = buildQuery(
+				component,
+				store.dependencyTree,
+				store.queryList,
+				store.queryOptions
+			);
 
-			if ((queryObj && Object.keys(queryObj).length) ||
-				(options && "aggs" in options)) {
+			if ((queryObj && Object.keys(queryObj).length) || (options && "aggs" in options)) {
 				dispatch(executeQuery(component, queryObj, options));
 			}
 
@@ -77,12 +85,17 @@ export function setQueryOptions(component, queryOptions, execute = true) {
 
 			if (Array.isArray(watchList)) {
 				watchList.forEach(subscriber => {
-					const { queryObj: queryObject, options: queryOptions } = buildQuery(subscriber, store.dependencyTree, store.queryList, store.queryOptions);
+					const { queryObj: queryObject, options: queryOptions } = buildQuery(
+						subscriber,
+						store.dependencyTree,
+						store.queryList,
+						store.queryOptions
+					);
 					dispatch(executeQuery(subscriber, queryObject, queryOptions, false));
 				});
 			}
 		}
-	}
+	};
 }
 
 function updateQueryOptions(component, options) {
@@ -109,7 +122,7 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 		if (query) {
 			mainQuery = {
 				query
-			}
+			};
 		}
 
 		const finalQuery = {
@@ -151,28 +164,30 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 				if (!finalQuery.query) {
 					finalQuery.query = {
 						match_all: {}
-					}
+					};
 				}
 
-				const ref = appbaseRef.searchStream({
-					type: config.type === "*" ? null : config.type,
-					body: finalQuery
-				})
+				const ref = appbaseRef
+					.searchStream({
+						type: config.type === "*" ? null : config.type,
+						body: finalQuery
+					})
 					.on("data", handleResponse)
 					.on("error", handleError);
 
 				dispatch(setStreaming(component, true, ref));
 			}
 
-			appbaseRef.search({
-				type: config.type === "*" ? null : config.type,
-				body: finalQuery,
-				preference: component
-			})
+			appbaseRef
+				.search({
+					type: config.type === "*" ? null : config.type,
+					body: finalQuery,
+					preference: component
+				})
 				.on("data", handleResponse)
 				.on("error", handleError);
 		}
-	}
+	};
 }
 
 export function updateHits(component, hits, time, append = false) {
@@ -183,7 +198,7 @@ export function updateHits(component, hits, time, append = false) {
 		total: hits.total,
 		time,
 		append
-	}
+	};
 }
 
 export function updateAggs(component, aggregations) {
@@ -191,7 +206,7 @@ export function updateAggs(component, aggregations) {
 		type: UPDATE_AGGS,
 		component,
 		aggregations
-	}
+	};
 }
 
 export function updateQuery({
@@ -219,17 +234,27 @@ export function updateQuery({
 
 		if (Array.isArray(watchList)) {
 			watchList.forEach(component => {
-				const { queryObj, options } = buildQuery(component, store.dependencyTree, store.queryList, store.queryOptions);
+				const { queryObj, options } = buildQuery(
+					component,
+					store.dependencyTree,
+					store.queryList,
+					store.queryOptions
+				);
 				dispatch(executeQuery(component, queryObj, options, false, onQueryChange));
 			});
 		}
-	}
+	};
 }
 
 export function loadMore(component, newOptions, append = true) {
 	return (dispatch, getState) => {
 		const store = getState();
-		let { queryObj, options } = buildQuery(component, store.dependencyTree, store.queryList, store.queryOptions);
+		let { queryObj, options } = buildQuery(
+			component,
+			store.dependencyTree,
+			store.queryList,
+			store.queryOptions
+		);
 
 		if (!options) {
 			options = {};
@@ -237,7 +262,7 @@ export function loadMore(component, newOptions, append = true) {
 
 		options = { ...options, ...newOptions };
 		dispatch(executeQuery(component, queryObj, options, append));
-	}
+	};
 }
 
 export function setValue(component, value, label, showFilter, URLParams) {
@@ -271,7 +296,7 @@ export function setStreaming(component, status = false, ref = null) {
 		component,
 		status,
 		ref
-	}
+	};
 }
 
 function shiftHits(component, hit, deleted = false, updated = false) {
@@ -281,5 +306,5 @@ function shiftHits(component, hit, deleted = false, updated = false) {
 		hit,
 		deleted,
 		updated
-	}
+	};
 }

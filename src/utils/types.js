@@ -13,11 +13,7 @@ import {
 
 import dateFormats from "./dateFormats";
 
-const reactKeyType = oneOfType([
-	string,
-	arrayOf(string),
-	object
-]);
+const reactKeyType = oneOfType([string, arrayOf(string), object]);
 
 const types = {
 	any,
@@ -73,7 +69,13 @@ const types = {
 		arrayOf(number)
 	]),
 	suggestions: arrayOf(object),
-	supportedOrientations: oneOf(["portrait", "portrait-upside-down", "landscape", "landscape-left", "landscape-right"]),
+	supportedOrientations: oneOf([
+		"portrait",
+		"portrait-upside-down",
+		"landscape",
+		"landscape-left",
+		"landscape-right"
+	]),
 	sortBy: oneOf(["asc", "desc"]),
 	sortByWithCount: oneOf(["asc", "desc", "count"]),
 	stats: arrayOf(object),
