@@ -118,7 +118,7 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 		};
 
 		if (!isEqual(finalQuery, queryLog[component])) {
-			console.log("Executing for", component, finalQuery);
+			// console.log("Executing for", component, finalQuery);
 			if (onQueryChange) {
 				onQueryChange(queryLog[component], finalQuery);
 			}
