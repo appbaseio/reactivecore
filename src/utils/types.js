@@ -47,7 +47,7 @@ const types = {
 	hits: arrayOf(object),
 	iconPosition: oneOf(["left", "right"]),
 	labelPosition: oneOf(["left", "right", "top", "bottom"]),
-	number: number,
+	number,
 	options: oneOfType([arrayOf(object), object]),
 	paginationAt: oneOf(["top", "bottom", "both"]),
 	range: shape({

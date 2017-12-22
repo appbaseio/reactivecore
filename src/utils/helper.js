@@ -55,7 +55,7 @@ export function buildQuery(component, dependencyTree, queryList, queryOptions) {
 
 function getQuery(react, queryList) {
 	let query = {};
-	for (let conjunction in react) {
+	for (const conjunction in react) {
 		if (Array.isArray(react[conjunction])) {
 			const operation = getOperation(conjunction);
 			const queryArr = react[conjunction].map(comp => {
@@ -108,13 +108,13 @@ export function pushToAndClause(reactProp, component) {
 		} else if (typeof react.and === "string") {
 			react.and = [react.and, component]
 			return react;
-		} else {
-			react.and = this.pushToAndClause(react.and, component);
-			return react;
-		}
-	} else {
-		return { ...react, and: component }
-	}
+		} 
+		react.and = this.pushToAndClause(react.and, component);
+		return react;
+		
+	} 
+	return { ...react, and: component }
+	
 }
 
 // checks and executes before/onValueChange for sensors
@@ -156,7 +156,7 @@ export function getAggsOrder(sortBy) {
 function getExternalQueryOptions(react, options, component) {
 	let queryOptions = {};
 
-	for (let conjunction in react) {
+	for (const conjunction in react) {
 		if (Array.isArray(react[conjunction])) {
 			react[conjunction].forEach(comp => {
 				if (options[comp]) {

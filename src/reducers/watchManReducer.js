@@ -19,7 +19,7 @@ export default function watchManReducer(state = {}, action) {
 		return newState;
 	} else if (action.type === REMOVE_COMPONENT) {
 		const newState = { ...state };
-		for (let component in newState) {
+		for (const component in newState) {
 			if (component === action.component) {
 				delete newState[component];
 			} else {
