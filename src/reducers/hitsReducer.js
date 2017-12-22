@@ -10,14 +10,14 @@ export default function hitsReducer(state = {}, action) {
 					total: action.total,
 					time: action.time
 				}
-			};
+			}
 		}
 		return {
 			...state,
 			[action.component]: { hits: action.hits, total: action.total, time: action.time }
 		};
 	} else if (action.type === SHIFT_HITS) {
-		let hits = (state[action.component] && state[action.component].hits) || [];
+		let hits = state[action.component] && state[action.component].hits || [];
 
 		if (action.updated) {
 			hits = hits.filter(item => item._id !== action.hit._id);
