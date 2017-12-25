@@ -108,13 +108,13 @@ export function pushToAndClause(reactProp, component) {
 		} else if (typeof react.and === "string") {
 			react.and = [react.and, component]
 			return react;
-		} 
+		}
 		react.and = this.pushToAndClause(react.and, component);
 		return react;
-		
-	} 
+
+	}
 	return { ...react, and: component }
-	
+
 }
 
 // checks and executes before/onValueChange for sensors
@@ -194,3 +194,10 @@ export const checkSomePropChange = (prevProps, nextProps, propsList, callback) =
 }
 
 export const getClassName = (classMap, component) => classMap && classMap[component] || "";
+
+export const handleA11yAction = (e, callback) => {
+	if (e.key === 'Enter' || e.key === ' ') {
+		e.preventDefault();
+		callback();
+	}
+}
