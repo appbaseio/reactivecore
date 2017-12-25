@@ -11,22 +11,22 @@ import {
 	CLEAR_VALUES,
 	SET_LOADING,
 	SET_STREAMING,
-	SHIFT_HITS
-} from "../constants";
+	SHIFT_HITS,
+} from '../constants';
 
-import { buildQuery, isEqual } from "../utils/helper";
+import { buildQuery, isEqual } from '../utils/helper';
 
 export function addComponent(component) {
 	return {
 		type: ADD_COMPONENT,
-		component
+		component,
 	};
 }
 
 export function removeComponent(component) {
 	return {
 		type: REMOVE_COMPONENT,
-		component
+		component,
 	};
 }
 
@@ -34,7 +34,7 @@ function updateWatchman(component, react) {
 	return {
 		type: WATCH_COMPONENT,
 		component,
-		react
+		react,
 	};
 }
 
@@ -45,18 +45,18 @@ export function watchComponent(component, react) {
 		const store = getState();
 		const { queryObj, options } = buildQuery(component, store.dependencyTree, store.queryList, store.queryOptions);
 
-		if ((queryObj && Object.keys(queryObj).length) ||
-			(options && "aggs" in options)) {
+		if ((queryObj && Object.keys(queryObj).length)
+			|| (options && 'aggs' in options)) {
 			dispatch(executeQuery(component, queryObj, options));
 		}
-	}
+	};
 }
 
 export function setQuery(component, query) {
 	return {
 		type: SET_QUERY,
 		component,
-		query
+		query,
 	};
 }
 
@@ -68,28 +68,28 @@ export function setQueryOptions(component, queryOptions, execute = true) {
 			const store = getState();
 			const { queryObj, options } = buildQuery(component, store.dependencyTree, store.queryList, store.queryOptions);
 
-			if ((queryObj && Object.keys(queryObj).length) ||
-				(options && "aggs" in options)) {
+			if ((queryObj && Object.keys(queryObj).length)
+				|| (options && 'aggs' in options)) {
 				dispatch(executeQuery(component, queryObj, options));
 			}
 
 			const watchList = store.watchMan[component];
 
 			if (Array.isArray(watchList)) {
-				watchList.forEach(subscriber => {
+				watchList.forEach((subscriber) => {
 					const { queryObj: queryObject, options: queryOptions } = buildQuery(subscriber, store.dependencyTree, store.queryList, store.queryOptions);
 					dispatch(executeQuery(subscriber, queryObject, queryOptions, false));
 				});
 			}
 		}
-	}
+	};
 }
 
 function updateQueryOptions(component, options) {
 	return {
 		type: SET_QUERY_OPTIONS,
 		component,
-		options
+		options,
 	};
 }
 
@@ -97,24 +97,26 @@ export function logQuery(component, query) {
 	return {
 		type: LOG_QUERY,
 		component,
-		query
+		query,
 	};
 }
 
 export function executeQuery(component, query, options = {}, appendToHits = false, onQueryChange) {
 	return (dispatch, getState) => {
-		const { appbaseRef, config, queryLog, stream } = getState();
+		const {
+			appbaseRef, config, queryLog, stream,
+		} = getState();
 		let mainQuery = null;
 
 		if (query) {
 			mainQuery = {
-				query
-			}
+				query,
+			};
 		}
 
 		const finalQuery = {
 			...mainQuery,
-			...options
+			...options,
 		};
 
 		if (!isEqual(finalQuery, queryLog[component])) {
@@ -125,12 +127,12 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 			dispatch(logQuery(component, finalQuery));
 			dispatch(setLoading(component, true));
 
-			const handleResponse = response => {
+			const handleResponse = (response) => {
 				if (response.hits) {
 					dispatch(updateHits(component, response.hits, response.took, appendToHits));
 					dispatch(setLoading(component, false));
 
-					if ("aggregations" in response) {
+					if ('aggregations' in response) {
 						dispatch(updateAggs(component, response.aggregations));
 					}
 				} else {
@@ -138,7 +140,7 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 				}
 			};
 
-			const handleError = error => {
+			const handleError = (error) => {
 				console.error(error);
 				dispatch(setLoading(component, false));
 			};
@@ -150,29 +152,29 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 
 				if (!finalQuery.query) {
 					finalQuery.query = {
-						match_all: {}
-					}
+						match_all: {},
+					};
 				}
 
 				const ref = appbaseRef.searchStream({
-					type: config.type === "*" ? null : config.type,
-					body: finalQuery
+					type: config.type === '*' ? null : config.type,
+					body: finalQuery,
 				})
-					.on("data", handleResponse)
-					.on("error", handleError);
+					.on('data', handleResponse)
+					.on('error', handleError);
 
 				dispatch(setStreaming(component, true, ref));
 			}
 
 			appbaseRef.search({
-				type: config.type === "*" ? null : config.type,
+				type: config.type === '*' ? null : config.type,
 				body: finalQuery,
-				preference: component
+				preference: component,
 			})
-				.on("data", handleResponse)
-				.on("error", handleError);
+				.on('data', handleResponse)
+				.on('error', handleError);
 		}
-	}
+	};
 }
 
 export function updateHits(component, hits, time, append = false) {
@@ -182,16 +184,16 @@ export function updateHits(component, hits, time, append = false) {
 		hits: hits.hits,
 		total: hits.total,
 		time,
-		append
-	}
+		append,
+	};
 }
 
 export function updateAggs(component, aggregations) {
 	return {
 		type: UPDATE_AGGS,
 		component,
-		aggregations
-	}
+		aggregations,
+	};
 }
 
 export function updateQuery({
@@ -201,7 +203,7 @@ export function updateQuery({
 	label = null,
 	showFilter = true,
 	onQueryChange,
-	URLParams = false
+	URLParams = false,
 }) {
 	return (dispatch, getState) => {
 		let queryToDispatch = query;
@@ -209,7 +211,7 @@ export function updateQuery({
 			queryToDispatch = query.query;
 		}
 		// don't set filters for internal components
-		if (!componentId.endsWith("__internal")) {
+		if (!componentId.endsWith('__internal')) {
 			dispatch(setValue(componentId, value, label, showFilter, URLParams));
 		}
 		dispatch(setQuery(componentId, queryToDispatch));
@@ -218,12 +220,12 @@ export function updateQuery({
 		const watchList = store.watchMan[componentId];
 
 		if (Array.isArray(watchList)) {
-			watchList.forEach(component => {
+			watchList.forEach((component) => {
 				const { queryObj, options } = buildQuery(component, store.dependencyTree, store.queryList, store.queryOptions);
 				dispatch(executeQuery(component, queryObj, options, false, onQueryChange));
 			});
 		}
-	}
+	};
 }
 
 export function loadMore(component, newOptions, append = true) {
@@ -237,7 +239,7 @@ export function loadMore(component, newOptions, append = true) {
 
 		options = { ...options, ...newOptions };
 		dispatch(executeQuery(component, queryObj, options, append));
-	}
+	};
 }
 
 export function setValue(component, value, label, showFilter, URLParams) {
@@ -247,13 +249,13 @@ export function setValue(component, value, label, showFilter, URLParams) {
 		value,
 		label,
 		showFilter,
-		URLParams
+		URLParams,
 	};
 }
 
 export function clearValues() {
 	return {
-		type: CLEAR_VALUES
+		type: CLEAR_VALUES,
 	};
 }
 
@@ -261,7 +263,7 @@ function setLoading(component, isLoading) {
 	return {
 		type: SET_LOADING,
 		component,
-		isLoading
+		isLoading,
 	};
 }
 
@@ -270,8 +272,8 @@ export function setStreaming(component, status = false, ref = null) {
 		type: SET_STREAMING,
 		component,
 		status,
-		ref
-	}
+		ref,
+	};
 }
 
 function shiftHits(component, hit, deleted = false, updated = false) {
@@ -280,6 +282,6 @@ function shiftHits(component, hit, deleted = false, updated = false) {
 		component,
 		hit,
 		deleted,
-		updated
-	}
+		updated,
+	};
 }

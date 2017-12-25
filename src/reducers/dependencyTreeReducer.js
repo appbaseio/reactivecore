@@ -1,4 +1,4 @@
-import { WATCH_COMPONENT, REMOVE_COMPONENT } from "../constants";
+import { WATCH_COMPONENT, REMOVE_COMPONENT } from '../constants';
 
 export default function dependencyTreeReducer(state = {}, action) {
 	if (action.type === WATCH_COMPONENT) {

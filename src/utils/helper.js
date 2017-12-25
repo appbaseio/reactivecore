@@ -1,19 +1,19 @@
 // when we want to perform deep equality check, especially in objects
 export function isEqual(x, y) {
-	if ( x === y ) return true;
-	if ( ! ( x instanceof Object ) || ! ( y instanceof Object ) ) return false;
-	if ( x.constructor !== y.constructor ) return false;
+	if (x === y) return true;
+	if (!(x instanceof Object) || !(y instanceof Object)) return false;
+	if (x.constructor !== y.constructor) return false;
 
-	for ( var p in x ) {
-		if ( ! x.hasOwnProperty( p ) ) continue;
-		if ( ! y.hasOwnProperty( p ) ) return false;
-		if ( x[ p ] === y[ p ] ) continue;
-		if ( typeof( x[ p ] ) !== "object" ) return false;
-		if ( ! isEqual( x[ p ],  y[ p ] ) ) return false;
+	for (var p in x) {
+		if (!x.hasOwnProperty(p)) continue;
+		if (!y.hasOwnProperty(p)) return false;
+		if (x[p] === y[p]) continue;
+		if (typeof (x[p]) !== 'object') return false;
+		if (!isEqual(x[p], y[p])) return false;
 	}
 
-	for ( p in y ) {
-		if ( y.hasOwnProperty( p ) && ! x.hasOwnProperty( p ) ) return false;
+	for (p in y) {
+		if (y.hasOwnProperty(p) && !x.hasOwnProperty(p)) return false;
 	}
 	return true;
 }
@@ -24,11 +24,11 @@ export function debounce(callback, wait, context = this) {
 
 	const later = () => callback.apply(context, callbackArgs);
 
-	return function() {
+	return function () {
 		callbackArgs = arguments;
 		clearTimeout(timeout);
 		timeout = setTimeout(later, wait);
-	}
+	};
 }
 
 export function getQueryOptions(props) {
@@ -58,7 +58,7 @@ function getQuery(react, queryList) {
 	for (const conjunction in react) {
 		if (Array.isArray(react[conjunction])) {
 			const operation = getOperation(conjunction);
-			const queryArr = react[conjunction].map(comp => {
+			const queryArr = react[conjunction].map((comp) => {
 				if (comp in queryList) {
 					return queryList[comp];
 				}
@@ -66,12 +66,12 @@ function getQuery(react, queryList) {
 			}).filter(item => item !== null);
 
 			query = createBoolQuery(operation, queryArr);
-		} else if (typeof react[conjunction] === "string") {
+		} else if (typeof react[conjunction] === 'string') {
 			const operation = getOperation(conjunction);
 			query = createBoolQuery(operation, queryList[react[conjunction]]);
-		} else if (typeof react[conjunction] === "object" &&
-			react[conjunction] !== null &&
-			!Array.isArray(react[conjunction])) {
+		} else if (typeof react[conjunction] === 'object'
+			&& react[conjunction] !== null
+			&& !Array.isArray(react[conjunction])) {
 			query = getQuery(react[conjunction], queryList);
 		}
 	}
@@ -79,21 +79,21 @@ function getQuery(react, queryList) {
 }
 
 function getOperation(conjunction) {
-	if (conjunction === "and") {
-		return "must";
+	if (conjunction === 'and') {
+		return 'must';
 	}
-	if (conjunction === "or") {
-		return "should";
+	if (conjunction === 'or') {
+		return 'should';
 	}
-	return "must_not";
+	return 'must_not';
 }
 
 function createBoolQuery(operation, query) {
 	if ((Array.isArray(query) && query.length) || (!Array.isArray(query) && query)) {
 		return {
 			bool: {
-				[operation]: query
-			}
+				[operation]: query,
+			},
 		};
 	}
 	return null;
@@ -105,16 +105,14 @@ export function pushToAndClause(reactProp, component) {
 		if (Array.isArray(react.and)) {
 			react.and.push(component);
 			return react;
-		} else if (typeof react.and === "string") {
-			react.and = [react.and, component]
+		} else if (typeof react.and === 'string') {
+			react.and = [react.and, component];
 			return react;
 		}
 		react.and = this.pushToAndClause(react.and, component);
 		return react;
-
 	}
-	return { ...react, and: component }
-
+	return { ...react, and: component };
 }
 
 // checks and executes before/onValueChange for sensors
@@ -130,7 +128,7 @@ export function checkValueChange(componentId, value, beforeValueChange, onValueC
 		if (onValueChange) {
 			onValueChange(selectedValue);
 		}
-	}
+	};
 	if (beforeValueChange) {
 		beforeValueChange(selectedValue)
 			.then(executeUpdate)
@@ -143,13 +141,13 @@ export function checkValueChange(componentId, value, beforeValueChange, onValueC
 }
 
 export function getAggsOrder(sortBy) {
-	if (sortBy === "count") {
+	if (sortBy === 'count') {
 		return {
-			_count: "desc"
+			_count: 'desc',
 		};
 	}
 	return {
-		_term: sortBy
+		_term: sortBy,
 	};
 }
 
@@ -158,19 +156,19 @@ function getExternalQueryOptions(react, options, component) {
 
 	for (const conjunction in react) {
 		if (Array.isArray(react[conjunction])) {
-			react[conjunction].forEach(comp => {
+			react[conjunction].forEach((comp) => {
 				if (options[comp]) {
 					queryOptions = { ...queryOptions, ...options[comp] };
 				}
 			});
-		} else if (typeof react[conjunction] === "string") {
+		} else if (typeof react[conjunction] === 'string') {
 			if (options[react[conjunction]]) {
 				queryOptions = { ...queryOptions, ...options[react[conjunction]] };
 			}
-		} else if (typeof react[conjunction] === "object" &&
-			react[conjunction] !== null &&
-			!Array.isArray(react[conjunction])) {
-			queryOptions = { ...queryOptions , ...getExternalQueryOptions(react[conjunction], options) };
+		} else if (typeof react[conjunction] === 'object'
+			&& react[conjunction] !== null
+			&& !Array.isArray(react[conjunction])) {
+			queryOptions = { ...queryOptions, ...getExternalQueryOptions(react[conjunction], options) };
 		}
 	}
 	if (options[component]) {
@@ -186,18 +184,18 @@ export const checkPropChange = (prevProp, nextProp, callback) => {
 		return true;
 	}
 	return false;
-}
+};
 
 // checks for any prop change in the propsList and invokes the callback
 export const checkSomePropChange = (prevProps, nextProps, propsList, callback) => {
 	propsList.some(prop => checkPropChange(prevProps[prop], nextProps[prop], callback));
-}
+};
 
-export const getClassName = (classMap, component) => classMap && classMap[component] || "";
+export const getClassName = (classMap, component) => classMap && classMap[component] || '';
 
 export const handleA11yAction = (e, callback) => {
 	if (e.key === 'Enter' || e.key === ' ') {
 		e.preventDefault();
 		callback();
 	}
-}
+};

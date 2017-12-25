@@ -1,4 +1,4 @@
-import { SET_LOADING, REMOVE_COMPONENT } from "../constants";
+import { SET_LOADING, REMOVE_COMPONENT } from '../constants';
 
 export default function loadingReducer(state = {}, action) {
 	if (action.type === SET_LOADING) {

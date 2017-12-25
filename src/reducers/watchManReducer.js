@@ -1,15 +1,15 @@
-import { WATCH_COMPONENT, REMOVE_COMPONENT } from "../constants";
+import { WATCH_COMPONENT, REMOVE_COMPONENT } from '../constants';
 
 export default function watchManReducer(state = {}, action) {
 	if (action.type === WATCH_COMPONENT) {
 		const watchList = getWatchList(action.react);
 		const newState = { ...state };
 
-		Object.keys(newState).forEach(key => {
+		Object.keys(newState).forEach((key) => {
 			newState[key] = newState[key].filter(value => value !== action.component);
 		});
 
-		watchList.forEach(item => {
+		watchList.forEach((item) => {
 			if (Array.isArray(newState[item])) {
 				newState[item] = [...newState[item], action.component];
 			} else {
@@ -35,12 +35,12 @@ function getWatchList(depTree) {
 	const list = Object.values(depTree);
 	const components = [];
 
-	list.forEach(item => {
-		if (typeof item === "string") {
+	list.forEach((item) => {
+		if (typeof item === 'string') {
 			components.push(item);
 		} else if (Array.isArray(item)) {
 			components.push(...item);
-		} else if (typeof item === "object" && item !== null) {
+		} else if (typeof item === 'object' && item !== null) {
 			components.push(...getWatchList(item));
 		}
 	});

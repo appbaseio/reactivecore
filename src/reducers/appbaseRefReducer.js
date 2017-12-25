@@ -1,4 +1,4 @@
-import { ADD_APPBASE_REF } from "../constants";
+import { ADD_APPBASE_REF } from '../constants';
 
 export default function appbaseRefReducer(state = {}, action) {
 	if (action.type === ADD_APPBASE_REF) {

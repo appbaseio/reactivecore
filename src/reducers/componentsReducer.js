@@ -1,4 +1,4 @@
-import { ADD_COMPONENT, REMOVE_COMPONENT } from "../constants";
+import { ADD_COMPONENT, REMOVE_COMPONENT } from '../constants';
 
 export default function componentsReducer(state = [], action) {
 	if (action.type === ADD_COMPONENT) {

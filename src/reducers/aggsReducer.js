@@ -1,4 +1,4 @@
-import { UPDATE_AGGS, REMOVE_COMPONENT } from "../constants";
+import { UPDATE_AGGS, REMOVE_COMPONENT } from '../constants';
 
 export default function aggsReducer(state = {}, action) {
 	if (action.type === UPDATE_AGGS) {

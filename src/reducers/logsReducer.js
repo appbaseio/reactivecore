@@ -1,4 +1,4 @@
-import { LOG_QUERY, REMOVE_COMPONENT } from "../constants";
+import { LOG_QUERY, REMOVE_COMPONENT } from '../constants';
 
 export default function logsReducer(state = {}, action) {
 	if (action.type === LOG_QUERY) {
