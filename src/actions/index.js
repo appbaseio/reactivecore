@@ -38,50 +38,11 @@ function updateWatchman(component, react) {
 	};
 }
 
-export function watchComponent(component, react) {
-	return (dispatch, getState) => {
-		dispatch(updateWatchman(component, react));
-
-		const store = getState();
-		const { queryObj, options } = buildQuery(component, store.dependencyTree, store.queryList, store.queryOptions);
-
-		if ((queryObj && Object.keys(queryObj).length)
-			|| (options && 'aggs' in options)) {
-			dispatch(executeQuery(component, queryObj, options));
-		}
-	};
-}
-
 export function setQuery(component, query) {
 	return {
 		type: SET_QUERY,
 		component,
 		query,
-	};
-}
-
-export function setQueryOptions(component, queryOptions, execute = true) {
-	return (dispatch, getState) => {
-		dispatch(updateQueryOptions(component, queryOptions));
-
-		if (execute) {
-			const store = getState();
-			const { queryObj, options } = buildQuery(component, store.dependencyTree, store.queryList, store.queryOptions);
-
-			if ((queryObj && Object.keys(queryObj).length)
-				|| (options && 'aggs' in options)) {
-				dispatch(executeQuery(component, queryObj, options));
-			}
-
-			const watchList = store.watchMan[component];
-
-			if (Array.isArray(watchList)) {
-				watchList.forEach((subscriber) => {
-					const { queryObj: queryObject, options: queryOptions } = buildQuery(subscriber, store.dependencyTree, store.queryList, store.queryOptions);
-					dispatch(executeQuery(subscriber, queryObject, queryOptions, false));
-				});
-			}
-		}
 	};
 }
 
@@ -93,11 +54,57 @@ function updateQueryOptions(component, options) {
 	};
 }
 
+export function updateAggs(component, aggregations) {
+	return {
+		type: UPDATE_AGGS,
+		component,
+		aggregations,
+	};
+}
+
 export function logQuery(component, query) {
 	return {
 		type: LOG_QUERY,
 		component,
 		query,
+	};
+}
+
+export function updateHits(component, hits, time, append = false) {
+	return {
+		type: UPDATE_HITS,
+		component,
+		hits: hits.hits,
+		total: hits.total,
+		time,
+		append,
+	};
+}
+
+function setLoading(component, isLoading) {
+	return {
+		type: SET_LOADING,
+		component,
+		isLoading,
+	};
+}
+
+function shiftHits(component, hit, deleted = false, updated = false) {
+	return {
+		type: SHIFT_HITS,
+		component,
+		hit,
+		deleted,
+		updated,
+	};
+}
+
+export function setStreaming(component, status = false, ref = null) {
+	return {
+		type: SET_STREAMING,
+		component,
+		status,
+		ref,
 	};
 }
 
@@ -177,22 +184,68 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 	};
 }
 
-export function updateHits(component, hits, time, append = false) {
-	return {
-		type: UPDATE_HITS,
-		component,
-		hits: hits.hits,
-		total: hits.total,
-		time,
-		append,
+export function watchComponent(component, react) {
+	return (dispatch, getState) => {
+		dispatch(updateWatchman(component, react));
+
+		const store = getState();
+		const { queryObj, options } = buildQuery(
+			component,
+			store.dependencyTree,
+			store.queryList,
+			store.queryOptions,
+		);
+
+		if ((queryObj && Object.keys(queryObj).length)
+			|| (options && 'aggs' in options)) {
+			dispatch(executeQuery(component, queryObj, options));
+		}
 	};
 }
 
-export function updateAggs(component, aggregations) {
+export function setQueryOptions(component, queryOptions, execute = true) {
+	return (dispatch, getState) => {
+		dispatch(updateQueryOptions(component, queryOptions));
+
+		if (execute) {
+			const store = getState();
+			const { queryObj, options } = buildQuery(
+				component,
+				store.dependencyTree,
+				store.queryList,
+				store.queryOptions,
+			);
+
+			if ((queryObj && Object.keys(queryObj).length)
+				|| (options && 'aggs' in options)) {
+				dispatch(executeQuery(component, queryObj, options));
+			}
+
+			const watchList = store.watchMan[component];
+
+			if (Array.isArray(watchList)) {
+				watchList.forEach((subscriber) => {
+					const { queryObj: queryObject, options: qOptions } = buildQuery(
+						subscriber,
+						store.dependencyTree,
+						store.queryList,
+						store.queryOptions,
+					);
+					dispatch(executeQuery(subscriber, queryObject, qOptions, false));
+				});
+			}
+		}
+	};
+}
+
+export function setValue(component, value, label, showFilter, URLParams) {
 	return {
-		type: UPDATE_AGGS,
+		type: SET_VALUE,
 		component,
-		aggregations,
+		value,
+		label,
+		showFilter,
+		URLParams,
 	};
 }
 
@@ -221,7 +274,12 @@ export function updateQuery({
 
 		if (Array.isArray(watchList)) {
 			watchList.forEach((component) => {
-				const { queryObj, options } = buildQuery(component, store.dependencyTree, store.queryList, store.queryOptions);
+				const { queryObj, options } = buildQuery(
+					component,
+					store.dependencyTree,
+					store.queryList,
+					store.queryOptions,
+				);
 				dispatch(executeQuery(component, queryObj, options, false, onQueryChange));
 			});
 		}
@@ -231,7 +289,12 @@ export function updateQuery({
 export function loadMore(component, newOptions, append = true) {
 	return (dispatch, getState) => {
 		const store = getState();
-		let { queryObj, options } = buildQuery(component, store.dependencyTree, store.queryList, store.queryOptions);
+		let { queryObj, options } = buildQuery( // eslint-disable-line
+			component,
+			store.dependencyTree,
+			store.queryList,
+			store.queryOptions,
+		);
 
 		if (!options) {
 			options = {};
@@ -242,46 +305,8 @@ export function loadMore(component, newOptions, append = true) {
 	};
 }
 
-export function setValue(component, value, label, showFilter, URLParams) {
-	return {
-		type: SET_VALUE,
-		component,
-		value,
-		label,
-		showFilter,
-		URLParams,
-	};
-}
-
 export function clearValues() {
 	return {
 		type: CLEAR_VALUES,
-	};
-}
-
-function setLoading(component, isLoading) {
-	return {
-		type: SET_LOADING,
-		component,
-		isLoading,
-	};
-}
-
-export function setStreaming(component, status = false, ref = null) {
-	return {
-		type: SET_STREAMING,
-		component,
-		status,
-		ref,
-	};
-}
-
-function shiftHits(component, hit, deleted = false, updated = false) {
-	return {
-		type: SHIFT_HITS,
-		component,
-		hit,
-		deleted,
-		updated,
 	};
 }
