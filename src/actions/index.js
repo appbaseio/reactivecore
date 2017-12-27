@@ -127,7 +127,7 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 		};
 
 		if (!isEqual(finalQuery, queryLog[component])) {
-			// console.log("Executing for", component, finalQuery);
+			// console.log('Executing for', component, finalQuery);
 			if (onQueryChange) {
 				onQueryChange(queryLog[component], finalQuery);
 			}
@@ -215,9 +215,10 @@ export function setQueryOptions(component, queryOptions, execute = true) {
 				store.queryList,
 				store.queryOptions,
 			);
-
-			if ((queryObj && Object.keys(queryObj).length)
-				|| (options && 'aggs' in options)) {
+			if (
+				(queryObj && Object.keys(queryObj).length)
+				|| (options && ('aggs' in options || 'sort' in options))
+			) {
 				dispatch(executeQuery(component, queryObj, options));
 			}
 
