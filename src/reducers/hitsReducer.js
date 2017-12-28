@@ -17,11 +17,12 @@ export default function hitsReducer(state = {}, action) {
 			[action.component]: { hits: action.hits, total: action.total, time: action.time },
 		};
 	} else if (action.type === SHIFT_HITS) {
-		let hits = state[action.component] && state[action.component].hits || [];
+		let hits = (state[action.component] && state[action.component].hits) || [];
 
 		if (action.updated) {
 			hits = hits.filter(item => item._id !== action.hit._id);
-			// appending {stream: true} to the hit - allowing user to selectively react to streaming changes
+			// appending {stream: true} to the hit - allowing user
+			// to selectively react to streaming changes
 			hits = [{ ...action.hit, stream: true }, ...hits];
 
 			return {
