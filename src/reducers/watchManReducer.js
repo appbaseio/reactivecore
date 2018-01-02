@@ -14,7 +14,7 @@ function getWatchList(depTree) {
 		}
 	});
 
-	return [...new Set(components)];
+	return components.filter((value, index, array) => array.indexOf(value) === index);
 }
 
 export default function watchManReducer(state = {}, action) {
