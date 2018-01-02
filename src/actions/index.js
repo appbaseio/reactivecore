@@ -142,7 +142,7 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 					if ('aggregations' in response) {
 						dispatch(updateAggs(component, response.aggregations));
 					}
-				} else {
+				} else if (response._id) {
 					dispatch(shiftHits(component, response, response._deleted, response._updated));
 				}
 			};
