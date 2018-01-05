@@ -13,6 +13,7 @@ import logsReducer from './logsReducer';
 import valueReducer from './valueReducer';
 import loadingReducer from './loadingReducer';
 import streamingReducer from './streamingReducer';
+import timestampReducer from './timestampReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -28,4 +29,5 @@ export default combineReducers({
 	selectedValues: valueReducer,
 	isLoading: loadingReducer,
 	stream: streamingReducer,
+	timestamp: timestampReducer,
 });

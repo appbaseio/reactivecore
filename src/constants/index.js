@@ -14,3 +14,4 @@ export const CLEAR_VALUES = 'CLEAR_VALUES';
 export const SET_LOADING = 'SET_LOADING';
 export const SET_STREAMING = 'SET_STREAMING';
 export const SHIFT_HITS = 'SHIFT_HITS';
+export const SET_TIMESTAMP = 'SET_TIMESTAMP';

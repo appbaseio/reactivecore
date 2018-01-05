@@ -12,6 +12,7 @@ import {
 	SET_LOADING,
 	SET_STREAMING,
 	SHIFT_HITS,
+	SET_TIMESTAMP,
 } from '../constants';
 
 import { buildQuery, isEqual } from '../utils/helper';
@@ -108,10 +109,22 @@ export function setStreaming(component, status = false, ref = null) {
 	};
 }
 
+function setTimestamp(component, timestamp) {
+	return {
+		type: SET_TIMESTAMP,
+		component,
+		timestamp,
+	};
+}
+
+
 export function executeQuery(component, query, options = {}, appendToHits = false, onQueryChange) {
 	return (dispatch, getState) => {
 		const {
-			appbaseRef, config, queryLog, stream,
+			appbaseRef,
+			config,
+			queryLog,
+			stream,
 		} = getState();
 		let mainQuery = null;
 
@@ -135,7 +148,13 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 			dispatch(setLoading(component, true));
 
 			const handleResponse = (response) => {
+				const { timestamp } = getState();
+				if (timestamp[component] && timestamp[component] > response._timestamp) {
+					return;
+				}
+
 				if (response.hits) {
+					dispatch(setTimestamp(component, response._timestamp));
 					dispatch(updateHits(component, response.hits, response.took, appendToHits));
 					dispatch(setLoading(component, false));
 
