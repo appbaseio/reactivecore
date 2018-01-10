@@ -11,7 +11,7 @@ import {
 	CLEAR_VALUES,
 	SET_LOADING,
 	SET_STREAMING,
-	SHIFT_HITS,
+	PUSH_TO_STREAM_HITS,
 	SET_TIMESTAMP,
 } from '../constants';
 
@@ -90,13 +90,11 @@ function setLoading(component, isLoading) {
 	};
 }
 
-function shiftHits(component, hit, deleted = false, updated = false) {
+function pushToStreamHits(component, hit) {
 	return {
-		type: SHIFT_HITS,
+		type: PUSH_TO_STREAM_HITS,
 		component,
 		hit,
-		deleted,
-		updated,
 	};
 }
 
@@ -162,7 +160,7 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 						dispatch(updateAggs(component, response.aggregations));
 					}
 				} else if (response._id) {
-					dispatch(shiftHits(component, response, response._deleted, response._updated));
+					dispatch(pushToStreamHits(component, response));
 				}
 			};
 
@@ -183,7 +181,7 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 				}
 
 				const ref = appbaseRef.searchStream({
-					type: config.type === '*' ? null : config.type,
+					type: config.type === '*' ? '' : config.type,
 					body: finalQuery,
 				})
 					.on('data', handleResponse)
@@ -193,7 +191,7 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 			}
 
 			appbaseRef.search({
-				type: config.type === '*' ? null : config.type,
+				type: config.type === '*' ? '' : config.type,
 				body: finalQuery,
 				preference: component,
 			})
