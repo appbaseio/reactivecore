@@ -203,3 +203,37 @@ export const handleA11yAction = (e, callback) => {
 		callback();
 	}
 };
+
+const highlightResults = (result) => {
+	const data = { ...result };
+	if (data.highlight) {
+		Object.keys(data.highlight).forEach((highlightItem) => {
+			const highlightValue = data.highlight[highlightItem][0];
+			data._source = Object.assign({}, data._source, { [highlightItem]: highlightValue });
+		});
+	}
+	return data;
+};
+
+export const parseHits = (hits) => {
+	let results = null;
+	if (hits) {
+		results = [...hits].map((item) => {
+			const streamProps = {};
+
+			if (item._updated) {
+				streamProps._updated = item._updated;
+			} else if (item._deleted) {
+				streamProps._deleted = item._deleted;
+			}
+
+			const data = highlightResults(item);
+			return {
+				_id: data._id,
+				...data._source,
+				...streamProps,
+			};
+		});
+	}
+	return results;
+};
