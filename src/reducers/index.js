@@ -15,6 +15,7 @@ import loadingReducer from './loadingReducer';
 import streamingReducer from './streamingReducer';
 import streamHitsReducer from './streamHitsReducer';
 import timestampReducer from './timestampReducer';
+import headersReducer from './headersReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -32,4 +33,5 @@ export default combineReducers({
 	stream: streamingReducer,
 	streamHits: streamHitsReducer,
 	timestamp: timestampReducer,
+	headers: headersReducer,
 });

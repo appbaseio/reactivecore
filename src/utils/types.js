@@ -43,6 +43,7 @@ const types = {
 	func,
 	funcRequired: func.isRequired,
 	fuzziness: oneOf([0, 1, 2, 'AUTO']),
+	headers: object,
 	highlightField: oneOfType([string, arrayOf(string)]),
 	hits: arrayOf(object),
 	iconPosition: oneOf(['left', 'right']),

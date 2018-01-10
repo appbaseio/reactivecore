@@ -13,6 +13,7 @@ import {
 	SET_STREAMING,
 	PUSH_TO_STREAM_HITS,
 	SET_TIMESTAMP,
+	SET_HEADERS,
 } from '../constants';
 
 import { buildQuery, isEqual } from '../utils/helper';
@@ -123,6 +124,7 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 			config,
 			queryLog,
 			stream,
+			headers,
 		} = getState();
 		let mainQuery = null;
 
@@ -190,6 +192,7 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 				dispatch(setStreaming(component, true, ref));
 			}
 
+			appbaseRef.setHeaders(headers);
 			appbaseRef.search({
 				type: config.type === '*' ? '' : config.type,
 				body: finalQuery,
@@ -326,5 +329,12 @@ export function loadMore(component, newOptions, append = true) {
 export function clearValues() {
 	return {
 		type: CLEAR_VALUES,
+	};
+}
+
+export function setHeaders(headers) {
+	return {
+		type: SET_HEADERS,
+		headers,
 	};
 }
