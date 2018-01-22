@@ -7,7 +7,7 @@ const dateFormats = {
 	basic_time: 'HHmmss.fffzzz',
 	basic_time_no_millis: 'HHmmsszzz',
 	epoch_millis: 'epoch_millis',
-	epoch_seconds: 'epoch_seconds',
+	epoch_second: 'epoch_second',
 };
 
 export default dateFormats;
