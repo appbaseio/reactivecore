@@ -37,9 +37,6 @@ export function getQueryOptions(props) {
 	if (props.size !== undefined) {
 		options.size = props.size;
 	}
-	if (props.from !== undefined) {
-		options.from = props.from;
-	}
 	return options;
 }
 
