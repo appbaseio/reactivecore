@@ -28,7 +28,7 @@ function validateLocation(props, propName) {
 	} else if (propName === 'lng' && (props[propName] < -180 || props[propName] > 180)) {
 		return new Error(`${propName} value should be between -180 and 180.`);
 	}
-	return true;
+	return null;
 }
 
 const types = {
