@@ -19,6 +19,18 @@ const reactKeyType = oneOfType([
 	object,
 ]);
 
+function validateLocation(props, propName) {
+	if (isNaN(props[propName])) { // eslint-disable-line
+		return new Error(`${propName} value must be number`);
+	}
+	if (propName === 'lat' && (props[propName] < -90 || props[propName] > 90)) {
+		return new Error(`${propName} value should be between -90 and 90.`);
+	} else if (propName === 'lng' && (props[propName] < -180 || props[propName] > 180)) {
+		return new Error(`${propName} value should be between -180 and 180.`);
+	}
+	return true;
+}
+
 const types = {
 	any,
 	bool,
@@ -100,6 +112,10 @@ const types = {
 	props: object,
 	rangeLabelsAlign: oneOf(['left', 'right']),
 	title: oneOfType([string, any]),
+	location: shape({
+		lat: validateLocation,
+		lng: validateLocation,
+	}),
 };
 
 export default types;
