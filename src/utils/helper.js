@@ -62,7 +62,7 @@ function createBoolQuery(operation, query) {
 }
 
 function getQuery(react, queryList) {
-	let query = {};
+	let query = [];
 	Object.keys(react).forEach((conjunction) => {
 		if (Array.isArray(react[conjunction])) {
 			const operation = getOperation(conjunction);
@@ -73,17 +73,33 @@ function getQuery(react, queryList) {
 				return null;
 			}).filter(item => !!item);
 
-			query = createBoolQuery(operation, queryArr);
+			const boolQuery = createBoolQuery(operation, queryArr);
+			if (boolQuery) {
+				query = [...query, boolQuery];
+			}
 		} else if (typeof react[conjunction] === 'string') {
 			const operation = getOperation(conjunction);
-			query = createBoolQuery(operation, queryList[react[conjunction]]);
+			const boolQuery = createBoolQuery(operation, queryList[react[conjunction]]);
+			if (boolQuery) {
+				query = [...query, boolQuery];
+			}
 		} else if (typeof react[conjunction] === 'object'
 			&& react[conjunction] !== null
 			&& !Array.isArray(react[conjunction])) {
-			query = getQuery(react[conjunction], queryList);
+			const boolQuery = getQuery(react[conjunction], queryList);
+			if (boolQuery) {
+				query = [...query, boolQuery];
+			}
 		}
 	});
-	return query;
+
+	if (query && query.length) {
+		return {
+			bool: { must: query }
+		}
+	}
+
+	return null;
 }
 
 function getExternalQueryOptions(react, options, component) {
