@@ -152,7 +152,6 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 				};
 			}
 		} else if (component in Object.keys(mapData) && mapData[component].query) {
-			console.log('========add geo-bound-query if no query is present=======');
 			mainQuery = {
 				query: {
 					bool: {
@@ -171,7 +170,7 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 		};
 
 		if (Object.keys(finalQuery).length && !isEqual(finalQuery, queryLog[component])) {
-			console.log('Executing for', component, finalQuery);
+			// console.log('Executing for', component, finalQuery);
 			if (onQueryChange) {
 				onQueryChange(queryLog[component], finalQuery);
 			}
