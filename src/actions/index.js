@@ -14,6 +14,7 @@ import {
 	PUSH_TO_STREAM_HITS,
 	SET_TIMESTAMP,
 	SET_HEADERS,
+	SET_MAP_DATA,
 } from '../constants';
 
 import { buildQuery, isEqual } from '../utils/helper';
@@ -125,12 +126,42 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 			queryLog,
 			stream,
 			headers,
+			mapData,
 		} = getState();
 		let mainQuery = null;
 
 		if (query) {
+			if (component in Object.keys(mapData) && mapData[component].mustExecute) {
+				let currentQuery = query.bool.must;
+				if (!Array.isArray(currentQuery)) {
+					currentQuery = [currentQuery];
+				}
+				mainQuery = {
+					query: {
+						bool: {
+							must: [
+								...currentQuery,
+								mapData[component].query,
+							],
+						},
+					},
+				};
+			} else {
+				mainQuery = {
+					query,
+				};
+			}
+		} else if (component in Object.keys(mapData) && mapData[component].query) {
+			console.log('========add geo-bound-query if no query is present=======');
 			mainQuery = {
-				query,
+				query: {
+					bool: {
+						must: [
+							{ match_all: {} },
+							mapData[component].query,
+						],
+					},
+				},
 			};
 		}
 
@@ -139,8 +170,8 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 			...options,
 		};
 
-		if (!isEqual(finalQuery, queryLog[component])) {
-			// console.log('Executing for', component, finalQuery);
+		if (Object.keys(finalQuery).length && !isEqual(finalQuery, queryLog[component])) {
+			console.log('Executing for', component, finalQuery);
 			if (onQueryChange) {
 				onQueryChange(queryLog[component], finalQuery);
 			}
@@ -336,5 +367,30 @@ export function setHeaders(headers) {
 	return {
 		type: SET_HEADERS,
 		headers,
+	};
+}
+
+function updateMapData(componentId, query, mustExecute) {
+	return {
+		type: SET_MAP_DATA,
+		componentId,
+		query,
+		mustExecute,
+	};
+}
+
+export function setMapData(componentId, query, mustExecute) {
+	return (dispatch, getState) => {
+		dispatch(updateMapData(componentId, query, mustExecute));
+
+		const store = getState();
+		const { queryObj, options } = buildQuery(
+			componentId,
+			store.dependencyTree,
+			store.queryList,
+			store.queryOptions,
+		);
+
+		dispatch(executeQuery(componentId, queryObj, options));
 	};
 }

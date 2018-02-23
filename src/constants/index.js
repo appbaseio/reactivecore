@@ -16,4 +16,5 @@ export const SET_STREAMING = 'SET_STREAMING';
 export const PUSH_TO_STREAM_HITS = 'PUSH_TO_STREAM_HITS';
 export const SET_TIMESTAMP = 'SET_TIMESTAMP';
 export const SET_HEADERS = 'SET_HEADERS';
+export const SET_MAP_DATA = 'SET_MAP_DATA';
 export const STORE_KEY = '__REACTIVESEARCH__';
