@@ -9,9 +9,10 @@
 	"scripts": {
 		"lint": "eslint .",
 		"start": "yarn run build -w",
-		"build": "babel src --out-dir lib",
+		"build": "babel --ignore __tests__ src --out-dir lib",
 		"precommit": "eslint .",
-		"prepublish": "yarn run build"
+		"prepublish": "yarn run build",
+		"test": "../../node_modules/jest/bin/jest.js --watch"
 	},
 	"repository": {
 		"type": "git",
@@ -36,8 +37,10 @@
 		"eslint-config-airbnb": "^16.1.0",
 		"eslint-plugin-babel": "^4.1.2",
 		"eslint-plugin-import": "^2.8.0",
+		"eslint-plugin-jest": "^21.12.2",
 		"eslint-plugin-jsx-a11y": "^6.0.3",
 		"eslint-plugin-react": "^7.5.1",
-		"husky": "^0.14.3"
+		"husky": "^0.14.3",
+		"jest": "^22.4.2"
 	}
 }
