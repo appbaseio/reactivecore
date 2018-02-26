@@ -116,6 +116,27 @@ const types = {
 		lat: validateLocation,
 		lng: validateLocation,
 	}),
+	unit: oneOf([
+		'mi',
+		'miles',
+		'yd',
+		'yards',
+		'ft',
+		'feet',
+		'in',
+		'inch',
+		'km',
+		'kilometers',
+		'm',
+		'meters',
+		'cm',
+		'centimeters',
+		'mm',
+		'millimeters',
+		'NM',
+		'nmi',
+		'nauticalmiles',
+	]),
 };
 
 export default types;
