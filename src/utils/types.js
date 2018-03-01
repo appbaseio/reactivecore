@@ -105,6 +105,7 @@ const types = {
 	stringOrArray: oneOfType([string, arrayOf(string)]),
 	stringRequired: string.isRequired,
 	style: object,
+	themePreset: oneOf(['light', 'dark']),
 	queryFormatDate: oneOf(Object.keys(dateFormats)),
 	queryFormatSearch: oneOf(['and', 'or']),
 	queryFormatNumberBox: oneOf(['exact', 'lte', 'gte']),
