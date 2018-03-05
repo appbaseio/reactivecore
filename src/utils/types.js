@@ -21,7 +21,7 @@ const reactKeyType = oneOfType([
 
 function validateLocation(props, propName) {
 	if (isNaN(props[propName])) { // eslint-disable-line
-		return new Error(`${propName} value must be number`);
+		return new Error(`${propName} value must be a number`);
 	}
 	if (propName === 'lat' && (props[propName] < -90 || props[propName] > 90)) {
 		return new Error(`${propName} value should be between -90 and 90.`);
