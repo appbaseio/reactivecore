@@ -210,6 +210,8 @@ export const checkSomePropChange = (prevProps, nextProps, propsList, callback) =
 
 export const getClassName = (classMap, component) => (classMap && classMap[component]) || '';
 
+export const getInnerKey = (obj, key) => (obj && obj[key]) || {};
+
 export const handleA11yAction = (e, callback) => {
 	if (e.key === 'Enter' || e.key === ' ') {
 		e.preventDefault();
