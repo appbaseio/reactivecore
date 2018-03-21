@@ -131,7 +131,11 @@ export function executeQuery(component, query, options = {}, appendToHits = fals
 		let mainQuery = null;
 
 		if (query) {
-			if (component in Object.keys(mapData) && mapData[component].mustExecute) {
+			if (
+				component in Object.keys(mapData)
+				&& mapData[component].mustExecute
+				&& mapData[component].query
+			) {
 				// add geo-bound-query if mustExecute is true
 				let currentQuery = query.bool.must;
 				if (!Array.isArray(currentQuery)) {
