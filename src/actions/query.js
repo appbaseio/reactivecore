@@ -85,18 +85,17 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 			.on('data', (res) => {
 				orderOfQueries.forEach((component, index) => {
 					const response = res.responses[index];
-					if (timestamp[component] && timestamp[component] > response._timestamp) {
-						return;
-					}
 
-					if (response.hits) {
-						dispatch(setTimestamp(component, response._timestamp));
-						dispatch(updateHits(component, response.hits, response.took, appendToHits));
-						dispatch(setLoading(component, false));
-					}
+					if (!timestamp[component] || timestamp[component] < response._timestamp) {
+						if (response.hits) {
+							dispatch(setTimestamp(component, response._timestamp));
+							dispatch(updateHits(component, response.hits, response.took, appendToHits));
+							dispatch(setLoading(component, false));
+						}
 
-					if (response.aggregations) {
-						dispatch(updateAggs(component, response.aggregations));
+						if (response.aggregations) {
+							dispatch(updateAggs(component, response.aggregations));
+						}
 					}
 				});
 			})
@@ -114,6 +113,8 @@ export function executeQuery(componentId, executeWatchList = false) {
 		const {
 			queryLog,
 			stream,
+			appbaseRef,
+			config,
 			mapData,
 			watchMan,
 			dependencyTree,
@@ -122,17 +123,7 @@ export function executeQuery(componentId, executeWatchList = false) {
 		} = getState();
 		let orderOfQueries = [];
 		let finalQuery = [];
-
-		// const handleResponse = (response) => {
-		// 	if (response._id) {
-		// 		dispatch(pushToStreamHits(componentId, response));
-		// 	}
-		// };
-
-		// const handleError = (error) => {
-		// 	console.error(error);
-		// 	dispatch(setLoading(component, false));
-		// };
+		const matchAllQuery = { match_all: {} };
 
 		let componentList = [componentId];
 
@@ -150,19 +141,54 @@ export function executeQuery(componentId, executeWatchList = false) {
 				queryOptions,
 			);
 
-			const validOptions = ['aggs', 'from', 'sort', 'size'];
-
+			const validOptions = ['aggs', 'from', 'sort'];
+			// check if query or options are valid - non-empty
 			if (
-				(queryObj && Object.keys(queryObj).length)
+				(queryObj && !!Object.keys(queryObj).length)
 				|| (options && (
 					Object.keys(options).some(item => validOptions.includes(item)))
 				)
 			) {
-				if (!queryObj || (queryObj && !Object.keys(queryObj).length)) {
-					queryObj = { match_all: {} };
+				const isMapComponent = Object.keys(mapData).includes(component);
+
+				// apply map-query if applicable
+				if (
+					isMapComponent
+					&& mapData[component].mustExecute
+					&& mapData[component].query
+				) {
+					// add geo-bound-query if mustExecute is true
+					queryObj = (queryObj && Object.keys(queryObj).length)
+						? [queryObj.bool.must]
+						: [matchAllQuery];
+
+					queryObj = {
+						bool: {
+							must: [
+								...queryObj,
+								mapData[component].query,
+							],
+						},
+					};
+				} else if (
+					(!queryObj || (queryObj && !Object.keys(queryObj).length))
+					&& isMapComponent
+					&& !!mapData[component].query
+				) {
+					// add geo-bound-query if no query is present
+					queryObj = {
+						bool: {
+							must: [
+								matchAllQuery,
+								mapData[component].query,
+							],
+						},
+					};
 				}
 
-				orderOfQueries = [...orderOfQueries, component];
+				if (!queryObj || (queryObj && !Object.keys(queryObj).length)) {
+					queryObj = { ...matchAllQuery };
+				}
 
 				const currentQuery = {
 					query: { ...queryObj },
@@ -170,25 +196,48 @@ export function executeQuery(componentId, executeWatchList = false) {
 					...queryOptions[component],
 				};
 
-				if (isEqual(currentQuery, queryLog[component])) { return; }
+				if (!isEqual(currentQuery, queryLog[component])) {
+					orderOfQueries = [...orderOfQueries, component];
+					dispatch(logQuery(component, currentQuery));
 
-				dispatch(logQuery(component, currentQuery));
-				finalQuery = [
-					...finalQuery,
-					{
-						preference: component,
-					},
-					currentQuery,
-				];
+					// execute streaming query if applicable
+					if (stream[component] && stream[component].status) {
+						if (stream[component].ref) {
+							stream[component].ref.stop();
+						}
+
+						const ref = appbaseRef.searchStream({
+							type: config.type === '*' ? '' : config.type,
+							body: currentQuery,
+						})
+							.on('data', (response) => {
+								if (response._id) {
+									dispatch(pushToStreamHits(component, response));
+								}
+							})
+							.on('error', (error) => {
+								console.error(error);
+								dispatch(setLoading(component, false));
+							});
+
+						// update streaming ref
+						dispatch(setStreaming(component, true, ref));
+					}
+
+					// push to combined query for msearch
+					finalQuery = [
+						...finalQuery,
+						{
+							preference: component,
+						},
+						currentQuery,
+					];
+				}
 			}
 		});
 
 		if (finalQuery.length) {
 			dispatch(msearch(finalQuery, orderOfQueries));
-		}
-
-		if (stream[componentId] && stream[componentId].status) {
-			// handle streaming query
 		}
 	};
 }
@@ -243,10 +292,15 @@ export function loadMore(component, newOptions, append = true) {
 			queryObj = { match_all: {} };
 		}
 
-		const finalQuery = {
-			query: { ...queryObj },
-			...options,
-		};
+		const finalQuery = [
+			{
+				preference: component,
+			},
+			{
+				query: { ...queryObj },
+				...options,
+			},
+		];
 		dispatch(msearch(finalQuery, [component], append));
 	};
 }

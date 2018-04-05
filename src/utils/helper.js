@@ -74,29 +74,39 @@ function getQuery(react, queryList) {
 			}).filter(item => !!item);
 
 			const boolQuery = createBoolQuery(operation, queryArr);
-			if (boolQuery) {
+			if (boolQuery && query.length) {
 				query = [...query, boolQuery];
+			} else {
+				query = boolQuery;
 			}
 		} else if (typeof react[conjunction] === 'string') {
 			const operation = getOperation(conjunction);
 			const boolQuery = createBoolQuery(operation, queryList[react[conjunction]]);
-			if (boolQuery) {
+			if (boolQuery && query.length) {
 				query = [...query, boolQuery];
+			} else {
+				query = boolQuery;
 			}
 		} else if (typeof react[conjunction] === 'object'
 			&& react[conjunction] !== null
 			&& !Array.isArray(react[conjunction])) {
 			const boolQuery = getQuery(react[conjunction], queryList);
-			if (boolQuery) {
+			if (boolQuery && query.length) {
 				query = [...query, boolQuery];
+			} else {
+				query = boolQuery;
 			}
 		}
 	});
 
-	if (query && query.length) {
+	if (Array.isArray(query) && query.length) {
 		return {
 			bool: { must: query }
 		}
+	}
+
+	if (query && Object.keys(query).length) {
+		return query;
 	}
 
 	return null;
