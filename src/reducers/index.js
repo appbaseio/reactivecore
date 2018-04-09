@@ -17,6 +17,7 @@ import streamHitsReducer from './streamHitsReducer';
 import timestampReducer from './timestampReducer';
 import headersReducer from './headersReducer';
 import mapDataReducer from './mapDataReducer';
+import queryListenerReducer from './queryListenerReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -36,4 +37,5 @@ export default combineReducers({
 	timestamp: timestampReducer,
 	headers: headersReducer,
 	mapData: mapDataReducer, // holds the map id and boolean to execute geo-bound-query
+	queryListener: queryListenerReducer,
 });

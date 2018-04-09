@@ -6,6 +6,7 @@ import {
 	SET_TIMESTAMP,
 	SET_HEADERS,
 	SET_STREAMING,
+	SET_QUERY_LISTENER,
 } from '../constants';
 
 import { setValue } from './value';
@@ -108,6 +109,12 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 	};
 }
 
+function executeQueryListener(listener, oldQuery, newQuery) {
+	if (listener && listener.onQueryChange) {
+		listener.onQueryChange(oldQuery, newQuery);
+	}
+}
+
 export function executeQuery(componentId, executeWatchList = false) {
 	return (dispatch, getState) => {
 		const {
@@ -120,6 +127,7 @@ export function executeQuery(componentId, executeWatchList = false) {
 			dependencyTree,
 			queryList,
 			queryOptions,
+			queryListener,
 		} = getState();
 		let orderOfQueries = [];
 		let finalQuery = [];
@@ -198,6 +206,7 @@ export function executeQuery(componentId, executeWatchList = false) {
 
 				if (!isEqual(currentQuery, queryLog[component])) {
 					orderOfQueries = [...orderOfQueries, component];
+					executeQueryListener(queryListener[component], queryLog[component], currentQuery);
 					dispatch(logQuery(component, currentQuery));
 
 					// execute streaming query if applicable
@@ -258,7 +267,6 @@ export function updateQuery({
 	value,
 	label = null,
 	showFilter = true,
-	onQueryChange,
 	URLParams = false,
 }) {
 	return (dispatch) => {
@@ -301,6 +309,16 @@ export function loadMore(component, newOptions, append = true) {
 				...options,
 			},
 		];
+
 		dispatch(msearch(finalQuery, [component], append));
+	};
+}
+
+export function setQueryListener(component, onQueryChange, beforeQueryChange) {
+	return {
+		type: SET_QUERY_LISTENER,
+		component,
+		onQueryChange,
+		beforeQueryChange,
 	};
 }
