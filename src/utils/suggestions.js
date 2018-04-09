@@ -37,10 +37,19 @@ const getSuggestions = (fields, suggestions, currentValue) => {
 		}
 	};
 
-	suggestions.forEach((item) => {
-		fields.forEach((field) => {
-			const label = item._source[field];
-			if (label) {
+	const parseField = (source, field) => {
+		const fieldNodes = field.split('.');
+		const label = source[fieldNodes[0]];
+		if (label) {
+			if (fieldNodes.length > 1) {
+				// nested fields of the 'foo.bar.zoo' variety
+				const children = field.substring(fieldNodes[0].length + 1);
+				if (Array.isArray(label)) {
+					label.forEach((arrayItem) => { parseField(arrayItem, children); });
+				} else {
+					parseField(label, children);
+				}
+			} else {
 				const val = extractSuggestion(label);
 				if (val) {
 					if (Array.isArray(val)) {
@@ -50,7 +59,11 @@ const getSuggestions = (fields, suggestions, currentValue) => {
 					}
 				}
 			}
-		});
+		}
+	};
+
+	suggestions.forEach((item) => {
+		fields.forEach((field) => { parseField(item._source, field); });
 	});
 
 	return suggestionsList;
