@@ -4,7 +4,7 @@
 
 <details>
     <summary>The following changes have been included in the <code>master</code> branch and will be out in the next release. <b>Click to expand</b></summary>
-    - No changes yet
+    - Fix an edge case with nested multifield suggestions [here](https://github.com/appbaseio/reactivecore/commit/be9e2cc79fcf0d3b11f6e55eb1b1af29e49a4003)
 </details>
 
 ## v1.5.1
