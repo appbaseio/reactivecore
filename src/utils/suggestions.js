@@ -38,24 +38,26 @@ const getSuggestions = (fields, suggestions, currentValue) => {
 	};
 
 	const parseField = (source, field) => {
-		const fieldNodes = field.split('.');
-		const label = source[fieldNodes[0]];
-		if (label) {
-			if (fieldNodes.length > 1) {
-				// nested fields of the 'foo.bar.zoo' variety
-				const children = field.substring(fieldNodes[0].length + 1);
-				if (Array.isArray(label)) {
-					label.forEach((arrayItem) => { parseField(arrayItem, children); });
-				} else {
-					parseField(label, children);
-				}
-			} else {
-				const val = extractSuggestion(label);
-				if (val) {
-					if (Array.isArray(val)) {
-						val.forEach(suggestion => populateSuggestionsList(suggestion));
+		if (typeof source === 'object') {
+			const fieldNodes = field.split('.');
+			const label = source[fieldNodes[0]];
+			if (label) {
+				if (fieldNodes.length > 1) {
+					// nested fields of the 'foo.bar.zoo' variety
+					const children = field.substring(fieldNodes[0].length + 1);
+					if (Array.isArray(label)) {
+						label.forEach((arrayItem) => { parseField(arrayItem, children); });
 					} else {
-						populateSuggestionsList(val);
+						parseField(label, children);
+					}
+				} else {
+					const val = extractSuggestion(label);
+					if (val) {
+						if (Array.isArray(val)) {
+							val.forEach(suggestion => populateSuggestionsList(suggestion));
+						} else {
+							populateSuggestionsList(val);
+						}
 					}
 				}
 			}
