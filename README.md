@@ -60,3 +60,7 @@ import { <methodName> } from "@appbaseio/reactivecore/lib/utils"
 | `getAggsOrder`		| returns aggs order query based on `sortBy` prop			|
 | `checkPropChange`     | checks for props changes that would need to update the query via callback		|
 | `checkSomePropChange`	| checks for any prop change in the propsList and invokes the callback			|
+
+## Changelog
+
+Check the [Changelog](./CHANGELOG.md) doc
