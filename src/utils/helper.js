@@ -165,10 +165,9 @@ export function pushToAndClause(reactProp, component) {
 	return { ...react, and: component };
 }
 
-// checks and executes before/onValueChange for sensors
+// checks and executes beforeValueChange for sensors
 export function checkValueChange(
-	componentId, value, beforeValueChange,
-	onValueChange, performUpdate,
+	componentId, value, beforeValueChange, performUpdate,
 ) {
 	let selectedValue = value;
 	// To ensure that the returned values are consistent across all the components
@@ -178,9 +177,6 @@ export function checkValueChange(
 	}
 	const executeUpdate = () => {
 		performUpdate();
-		if (onValueChange) {
-			onValueChange(selectedValue);
-		}
 	};
 	if (beforeValueChange) {
 		beforeValueChange(selectedValue)
