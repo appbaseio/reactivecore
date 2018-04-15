@@ -76,6 +76,7 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 			config,
 			headers,
 			timestamp,
+			queryListener,
 		} = getState();
 
 		appbaseRef.setHeaders(headers);
@@ -103,6 +104,9 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 			.on('error', (error) => {
 				console.error(error);
 				orderOfQueries.forEach((component) => {
+					if (queryListener[component] && queryListener[component].onError) {
+						queryListener[component].onError(error);
+					}
 					dispatch(setLoading(component, false));
 				});
 			});
@@ -225,6 +229,10 @@ export function executeQuery(componentId, executeWatchList = false) {
 								}
 							})
 							.on('error', (error) => {
+								if (queryListener[component] && queryListener[component].onError) {
+									queryListener[component].onError(error);
+								}
+
 								console.error(error);
 								dispatch(setLoading(component, false));
 							});
@@ -314,11 +322,11 @@ export function loadMore(component, newOptions, append = true) {
 	};
 }
 
-export function setQueryListener(component, onQueryChange, beforeQueryChange) {
+export function setQueryListener(component, onQueryChange, onError) {
 	return {
 		type: SET_QUERY_LISTENER,
 		component,
 		onQueryChange,
-		beforeQueryChange,
+		onError,
 	};
 }

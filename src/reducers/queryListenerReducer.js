@@ -5,7 +5,7 @@ export default function queryListenerReducer(state = {}, action) {
 		return {
 			[action.component]: {
 				onQueryChange: action.onQueryChange,
-				beforeQueryChange: action.beforeQueryChange,
+				onError: action.onError,
 			},
 		};
 	} else if (action.type === REMOVE_COMPONENT) {
