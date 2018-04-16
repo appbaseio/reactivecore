@@ -18,6 +18,7 @@ export function isEqual(x, y) {
 	}
 	return true;
 }
+/* eslint-enable */
 
 export function debounce(callback, wait, context = this) {
 	let timeout = null;
@@ -25,8 +26,8 @@ export function debounce(callback, wait, context = this) {
 
 	const later = () => callback.apply(context, callbackArgs);
 
-	return function () {
-		callbackArgs = arguments;
+	return function debouncedFunction() {
+		callbackArgs = arguments; // eslint-disable-line
 		clearTimeout(timeout);
 		timeout = setTimeout(later, wait);
 	};
@@ -101,8 +102,8 @@ function getQuery(react, queryList) {
 
 	if (Array.isArray(query) && query.length) {
 		return {
-			bool: { must: query }
-		}
+			bool: { must: query },
+		};
 	}
 
 	if (query && Object.keys(query).length) {
@@ -166,26 +167,21 @@ export function pushToAndClause(reactProp, component) {
 }
 
 // checks and executes beforeValueChange for sensors
-export function checkValueChange(
-	componentId, value, beforeValueChange, performUpdate,
-) {
+export function checkValueChange(componentId, value, beforeValueChange, performUpdate) {
 	let selectedValue = value;
 	// To ensure that the returned values are consistent across all the components
 	// null is returned in case of an empty array
 	if (Array.isArray(value) && !value.length) {
 		selectedValue = null;
 	}
-	const executeUpdate = () => {
-		performUpdate();
-	};
 	if (beforeValueChange) {
 		beforeValueChange(selectedValue)
-			.then(executeUpdate)
+			.then(performUpdate)
 			.catch((e) => {
 				console.warn(`${componentId} - beforeValueChange rejected the promise with `, e);
 			});
 	} else {
-		executeUpdate();
+		performUpdate();
 	}
 }
 
