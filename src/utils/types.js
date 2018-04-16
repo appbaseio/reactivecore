@@ -46,10 +46,6 @@ const types = {
 	}).isRequired,
 	date: oneOfType([string, arrayOf(string)]),
 	dateObject: object,
-	dateRange: shape({
-		start: oneOfType([string, arrayOf(string)]),
-		end: oneOfType([string, arrayOf(string)]),
-	}),
 	fieldWeights: arrayOf(number),
 	filterLabel: string,
 	func,
@@ -63,12 +59,12 @@ const types = {
 	options: oneOfType([arrayOf(object), object]),
 	paginationAt: oneOf(['top', 'bottom', 'both']),
 	range: shape({
-		start: number,
-		end: number,
+		start: number.isRequired,
+		end: number.isRequired,
 	}),
 	rangeLabels: shape({
-		start: string,
-		end: string,
+		start: string.isRequired,
+		end: string.isRequired,
 	}),
 	react: shape({
 		and: reactKeyType,
