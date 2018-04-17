@@ -19,18 +19,35 @@ const extractSuggestion = (val) => {
 	}
 };
 
-const getSuggestions = (fields, suggestions, currentValue) => {
+const getSuggestions = (fields, suggestions, currentValue, suggestionProperties = []) => {
 	let suggestionsList = [];
 	let labelsList = [];
 
-	const populateSuggestionsList = (val) => {
+	const populateSuggestionsList = (val, source) => {
 		// check if the suggestion includes the current value
 		// and not already included in other suggestions
 		const isWordMatch = currentValue.trim().split(' ').some(term => val.includes(term));
 		if (isWordMatch && !labelsList.includes(val)) {
-			const option = {
+			const defaultOption = {
 				label: val,
 				value: val,
+			};
+
+			let additionalKeys = {};
+			if (Array.isArray(suggestionProperties) && suggestionProperties.length > 0) {
+				suggestionProperties.forEach((prop) => {
+					if (source.hasOwnProperty(prop)) {
+						additionalKeys = {
+							...additionalKeys,
+							[prop]: source[prop],
+						};
+					}
+				});
+			}
+
+			const option = {
+				...defaultOption,
+				...additionalKeys,
 			};
 			labelsList = [...labelsList, val];
 			suggestionsList = [...suggestionsList, option];
@@ -54,9 +71,9 @@ const getSuggestions = (fields, suggestions, currentValue) => {
 					const val = extractSuggestion(label);
 					if (val) {
 						if (Array.isArray(val)) {
-							val.forEach(suggestion => populateSuggestionsList(suggestion));
+							val.forEach(suggestion => populateSuggestionsList(suggestion, source));
 						} else {
-							populateSuggestionsList(val);
+							populateSuggestionsList(val, source);
 						}
 					}
 				}
