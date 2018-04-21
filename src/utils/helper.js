@@ -52,14 +52,24 @@ function getOperation(conjunction) {
 }
 
 function createBoolQuery(operation, query) {
+	let resultQuery = null;
 	if ((Array.isArray(query) && query.length) || (!Array.isArray(query) && query)) {
-		return {
+		resultQuery = {
 			bool: {
 				[operation]: query,
 			},
 		};
 	}
-	return null;
+
+	if (operation === 'should' && resultQuery) {
+		resultQuery = {
+			bool: {
+				...resultQuery.bool,
+				minimum_should_match: 1,
+			},
+		};
+	}
+	return resultQuery;
 }
 
 function getQuery(react, queryList) {
@@ -75,27 +85,22 @@ function getQuery(react, queryList) {
 			}).filter(item => !!item);
 
 			const boolQuery = createBoolQuery(operation, queryArr);
-			if (boolQuery && query.length) {
+			if (boolQuery) {
 				query = [...query, boolQuery];
-			} else {
-				query = boolQuery;
 			}
 		} else if (typeof react[conjunction] === 'string') {
 			const operation = getOperation(conjunction);
 			const boolQuery = createBoolQuery(operation, queryList[react[conjunction]]);
-			if (boolQuery && query.length) {
+			if (boolQuery) {
 				query = [...query, boolQuery];
-			} else {
-				query = boolQuery;
 			}
-		} else if (typeof react[conjunction] === 'object'
+		} else if (
+			typeof react[conjunction] === 'object'
 			&& react[conjunction] !== null
-			&& !Array.isArray(react[conjunction])) {
+		) {
 			const boolQuery = getQuery(react[conjunction], queryList);
-			if (boolQuery && query.length) {
+			if (boolQuery) {
 				query = [...query, boolQuery];
-			} else {
-				query = boolQuery;
 			}
 		}
 	});
@@ -160,7 +165,7 @@ export function pushToAndClause(reactProp, component) {
 			react.and = [react.and, component];
 			return react;
 		}
-		react.and = this.pushToAndClause(react.and, component);
+		react.and = pushToAndClause(react.and, component);
 		return react;
 	}
 	return { ...react, and: component };
