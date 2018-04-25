@@ -276,7 +276,7 @@ export function updateQuery({
 	label = null,
 	showFilter = true,
 	URLParams = false,
-}) {
+}, execute = true) {
 	return (dispatch) => {
 		let queryToDispatch = query;
 		if (query && query.query) {
@@ -287,7 +287,7 @@ export function updateQuery({
 			dispatch(setValue(componentId, value, label, showFilter, URLParams));
 		}
 		dispatch(setQuery(componentId, queryToDispatch));
-		dispatch(executeQuery(componentId, true));
+		if (execute) dispatch(executeQuery(componentId, true));
 	};
 }
 
