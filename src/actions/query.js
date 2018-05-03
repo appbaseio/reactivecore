@@ -75,7 +75,6 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 			appbaseRef,
 			config,
 			headers,
-			timestamp,
 			queryListener,
 		} = getState();
 
@@ -87,10 +86,11 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 			.on('data', (res) => {
 				orderOfQueries.forEach((component, index) => {
 					const response = res.responses[index];
+					const { timestamp } = getState();
 
-					if (!timestamp[component] || timestamp[component] < response._timestamp) {
+					if ((timestamp[component] === undefined) || (timestamp[component] < res._timestamp)) {
 						if (response.hits) {
-							dispatch(setTimestamp(component, response._timestamp));
+							dispatch(setTimestamp(component, res._timestamp));
 							dispatch(updateHits(component, response.hits, response.took, appendToHits));
 							dispatch(setLoading(component, false));
 						}
