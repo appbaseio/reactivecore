@@ -1,4 +1,4 @@
-import { WATCH_COMPONENT, REMOVE_COMPONENT } from '../constants';
+import { WATCH_COMPONENT } from '../constants';
 
 function getWatchList(depTree) {
 	const list = Object.values(depTree);
@@ -31,17 +31,6 @@ export default function watchManReducer(state = {}, action) {
 				newState[item] = [...newState[item], action.component];
 			} else {
 				newState[item] = [action.component];
-			}
-		});
-		return newState;
-	} else if (action.type === REMOVE_COMPONENT) {
-		const newState = { ...state };
-		Object.keys(newState).forEach((component) => {
-			if (component === action.component) {
-				delete newState[component];
-			} else {
-				newState[component] = newState[component]
-					.filter(item => item !== action.component);
 			}
 		});
 		return newState;
