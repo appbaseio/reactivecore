@@ -4,7 +4,7 @@
 
 <details>
     <summary>The following changes have been included in the <code>master</code> branch and will be out in the next release. <b>Click to expand</b></summary>
-    - No changes yet
+    - Fix an edge case with generating suggestions with numeric splits [#8](https://github.com/appbaseio/reactivecore/issues/8)
 </details>
 
 ## v1.5.2
