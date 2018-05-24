@@ -252,6 +252,7 @@ export const parseHits = (hits) => {
 			const data = highlightResults(item);
 			return {
 				_id: data._id,
+				_index: data._index,
 				...data._source,
 				...streamProps,
 			};
