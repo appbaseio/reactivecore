@@ -227,14 +227,19 @@ export const handleA11yAction = (e, callback) => {
 };
 
 const highlightResults = (result) => {
-	const data = { ...result };
-	if (data.highlight) {
-		Object.keys(data.highlight).forEach((highlightItem) => {
-			const highlightValue = data.highlight[highlightItem][0];
-			data._source = Object.assign({}, data._source, { [highlightItem]: highlightValue });
-		});
-	}
-	return data;
+    const data = { ...result };
+    if (data.highlight) {
+        Object.keys(data.highlight).forEach((highlightItem) => {
+            const highlightValue = data.highlight[highlightItem][0];
+            const original = data._source[highlightItem];
+            const originalName = '_original_' + highlightItem;
+            data._source = Object.assign({}, data._source,
+                { [highlightItem]: highlightValue,
+                  [originalName]: original
+                });
+        });
+    }
+    return data;
 };
 
 export const parseHits = (hits) => {
