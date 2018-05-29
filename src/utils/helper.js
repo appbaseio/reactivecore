@@ -253,6 +253,7 @@ export const parseHits = (hits) => {
 			return {
 				_id: data._id,
 				_index: data._index,
+				_original_result: item,
 				...data._source,
 				...streamProps,
 			};
