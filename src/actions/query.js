@@ -2,6 +2,7 @@ import {
 	SET_QUERY,
 	SET_QUERY_OPTIONS,
 	LOG_QUERY,
+	LOG_COMBINED_QUERY,
 	SET_LOADING,
 	SET_TIMESTAMP,
 	SET_HEADERS,
@@ -12,6 +13,7 @@ import {
 import { setValue } from './value';
 import { updateHits, updateAggs, pushToStreamHits } from './hits';
 import { buildQuery, isEqual } from '../utils/helper';
+import { updateMapData } from '../../../../node_modules/@appbaseio/reactivecore/src/actions/maps';
 
 export function setQuery(component, query) {
 	return {
@@ -29,9 +31,19 @@ export function updateQueryOptions(component, options) {
 	};
 }
 
+// gatekeeping for normal queries
 export function logQuery(component, query) {
 	return {
 		type: LOG_QUERY,
+		component,
+		query,
+	};
+}
+
+// gatekeeping for queries combined with map queries
+export function logCombinedQuery(component, query) {
+	return {
+		type: LOG_COMBINED_QUERY,
 		component,
 		query,
 	};
@@ -119,7 +131,7 @@ function executeQueryListener(listener, oldQuery, newQuery) {
 	}
 }
 
-export function executeQuery(componentId, executeWatchList = false) {
+export function executeQuery(componentId, executeWatchList = false, mustExecuteMapQuery = false) {
 	return (dispatch, getState) => {
 		const {
 			queryLog,
@@ -161,43 +173,7 @@ export function executeQuery(componentId, executeWatchList = false) {
 					Object.keys(options).some(item => validOptions.includes(item)))
 				)
 			) {
-				const isMapComponent = Object.keys(mapData).includes(component);
-
-				// apply map-query if applicable
-				if (
-					isMapComponent
-					&& mapData[component].mustExecute
-					&& mapData[component].query
-				) {
-					// add geo-bound-query if mustExecute is true
-					queryObj = (queryObj && Object.keys(queryObj).length)
-						? [queryObj.bool.must]
-						: [matchAllQuery];
-
-					queryObj = {
-						bool: {
-							must: [
-								...queryObj,
-								mapData[component].query,
-							],
-						},
-					};
-				} else if (
-					(!queryObj || (queryObj && !Object.keys(queryObj).length))
-					&& isMapComponent
-					&& !!mapData[component].query
-				) {
-					// add geo-bound-query if no query is present
-					queryObj = {
-						bool: {
-							must: [
-								matchAllQuery,
-								mapData[component].query,
-							],
-						},
-					};
-				}
-
+				// attach a match-all-query if empty
 				if (!queryObj || (queryObj && !Object.keys(queryObj).length)) {
 					queryObj = { ...matchAllQuery };
 				}
@@ -208,10 +184,57 @@ export function executeQuery(componentId, executeWatchList = false) {
 					...queryOptions[component],
 				};
 
-				if (!isEqual(currentQuery, queryLog[component])) {
+				const queryToLog = {
+					query: { ...queryObj },
+					...options,
+					...queryOptions[component],
+				};
+
+				if (mustExecuteMapQuery || !isEqual(currentQuery, queryLog[component])) {
 					orderOfQueries = [...orderOfQueries, component];
-					executeQueryListener(queryListener[component], queryLog[component], currentQuery);
-					dispatch(logQuery(component, currentQuery));
+
+					// log query before adding the map query,
+					// since we don't do gatekeeping on the map query in the `queryLog`
+					dispatch(logQuery(component, queryToLog));
+
+					// add maps query here
+					const isMapComponent = Object.keys(mapData).includes(component);
+
+					if (
+						isMapComponent
+						&& mapData[component].query
+					) {
+						// attach mapQuery to exisiting query via "must" type
+						const existingQuery = currentQuery.query;
+						currentQuery.query = {
+							bool: {
+								must: [
+									existingQuery,
+									mapData[component].query,
+								],
+							},
+						};
+
+						if (!mapData[component].persistMapQuery) {
+							// clear mapQuery if we don't want it to persist
+							dispatch(updateMapData(componentId, null, false));
+						}
+
+						// skip the query execution if the combined query [component + map Query]
+						// matches the logged combined query
+						const { combinedLog } = getState();
+						if (isEqual(combinedLog[component], currentQuery)) return;
+
+						// log query after adding the map query,
+						// to separately support gatekeeping for combined map queries
+						dispatch(logCombinedQuery(component, currentQuery));
+					}
+
+					executeQueryListener(
+						queryListener[component],
+						queryLog[component],
+						currentQuery,
+					);
 
 					// execute streaming query if applicable
 					if (stream[component] && stream[component].status) {

@@ -10,6 +10,7 @@ import appbaseRefReducer from './appbaseRefReducer';
 import hitsReducer from './hitsReducer';
 import aggsReducer from './aggsReducer';
 import logsReducer from './logsReducer';
+import combinedLogsReducer from './combinedLogsReducer';
 import valueReducer from './valueReducer';
 import loadingReducer from './loadingReducer';
 import streamingReducer from './streamingReducer';
@@ -30,6 +31,7 @@ export default combineReducers({
 	hits: hitsReducer,
 	aggregations: aggsReducer,
 	queryLog: logsReducer,
+	combinedLog: combinedLogsReducer,
 	selectedValues: valueReducer,
 	isLoading: loadingReducer,
 	stream: streamingReducer,

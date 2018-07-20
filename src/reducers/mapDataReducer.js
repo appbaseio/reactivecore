@@ -5,7 +5,7 @@ export default function mapDataReducer(state = {}, action) {
 		return {
 			[action.componentId]: {
 				query: action.query,
-				mustExecute: action.mustExecute,
+				persistMapQuery: action.persistMapQuery,
 			},
 		};
 	} else if (action.type === REMOVE_COMPONENT) {
