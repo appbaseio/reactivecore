@@ -13,7 +13,7 @@ import {
 import { setValue } from './value';
 import { updateHits, updateAggs, pushToStreamHits } from './hits';
 import { buildQuery, isEqual } from '../utils/helper';
-import { updateMapData } from '../../../../node_modules/@appbaseio/reactivecore/src/actions/maps';
+import { updateMapData } from './maps';
 
 export function setQuery(component, query) {
 	return {
