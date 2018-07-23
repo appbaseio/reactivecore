@@ -190,7 +190,9 @@ export function executeQuery(componentId, executeWatchList = false, mustExecuteM
 					...queryOptions[component],
 				};
 
-				if (mustExecuteMapQuery || !isEqual(currentQuery, queryLog[component])) {
+				const oldQuery = queryLog[component];
+
+				if (mustExecuteMapQuery || !isEqual(currentQuery, oldQuery)) {
 					orderOfQueries = [...orderOfQueries, component];
 
 					// log query before adding the map query,
@@ -232,7 +234,7 @@ export function executeQuery(componentId, executeWatchList = false, mustExecuteM
 
 					executeQueryListener(
 						queryListener[component],
-						queryLog[component],
+						oldQuery,
 						currentQuery,
 					);
 
