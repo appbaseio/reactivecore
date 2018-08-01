@@ -38,6 +38,12 @@ export function getQueryOptions(props) {
 	if (props.size !== undefined) {
 		options.size = props.size;
 	}
+	if (props.includeFields || props.excludeFields) {
+		const source = {};
+		if (props.includeFields) { source.includes = props.includeFields; }
+		if (props.excludeFields) { source.excludes = props.excludeFields; }
+		options._source = source;
+	}
 	return options;
 }
 
