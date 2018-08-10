@@ -31,6 +31,7 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 			const defaultOption = {
 				label: val,
 				value: val,
+				source,
 			};
 
 			let additionalKeys = {};
