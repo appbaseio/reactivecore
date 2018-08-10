@@ -326,6 +326,8 @@ export function loadMore(component, newOptions, append = true) {
 			store.queryOptions,
 		);
 
+		const { queryLog } = store;
+
 		if (!options) options = {};
 		options = { ...options, ...newOptions };
 
@@ -333,14 +335,21 @@ export function loadMore(component, newOptions, append = true) {
 			queryObj = { match_all: {} };
 		}
 
+		const currentQuery = {
+			query: { ...queryObj },
+			...options,
+		};
+
+		// query gatekeeping
+		if (isEqual(queryLog[component], currentQuery)) return;
+
+		dispatch(logQuery(component, currentQuery));
+
 		const finalQuery = [
 			{
 				preference: component,
 			},
-			{
-				query: { ...queryObj },
-				...options,
-			},
+			currentQuery,
 		];
 
 		dispatch(msearch(finalQuery, [component], append));
