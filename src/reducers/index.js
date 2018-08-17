@@ -19,9 +19,11 @@ import timestampReducer from './timestampReducer';
 import headersReducer from './headersReducer';
 import mapDataReducer from './mapDataReducer';
 import queryListenerReducer from './queryListenerReducer';
+import componentTypeReducer from './componentTypeReducer';
 
 export default combineReducers({
 	components: componentsReducer,
+	componentType: componentTypeReducer,
 	watchMan: watchManReducer, // contains the list of subscribers
 	queryList: queryReducer,
 	queryOptions: queryOptionsReducer,

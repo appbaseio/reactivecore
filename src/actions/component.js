@@ -6,10 +6,11 @@ import {
 
 import { executeQuery } from './query';
 
-export function addComponent(component) {
+export function addComponent(component, name = null) {
 	return {
 		type: ADD_COMPONENT,
 		component,
+		name,
 	};
 }
 
