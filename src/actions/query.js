@@ -99,7 +99,11 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 
 		// send search id or term in headers
 		// TODO: implement support for search id
-		if (validComponents.length) {
+		if (
+			config.analytics
+			&& config.url === 'https://scalr.api.appbase.io'
+			&& validComponents.length
+		) {
 			if (selectedValues[validComponents[0]]) {
 				searchHeaders = {
 					'X-Search-Query': selectedValues[validComponents[0]].value,
