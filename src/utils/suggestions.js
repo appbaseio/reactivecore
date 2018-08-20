@@ -26,7 +26,7 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 	const populateSuggestionsList = (val, source) => {
 		// check if the suggestion includes the current value
 		// and not already included in other suggestions
-		const isWordMatch = currentValue.trim().split(' ').some(term => String(val).includes(term));
+		const isWordMatch = currentValue.trim().split(' ').some(term => String(val).toLowerCase().includes(term));
 		if (isWordMatch && !labelsList.includes(val)) {
 			const defaultOption = {
 				label: val,
