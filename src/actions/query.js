@@ -115,34 +115,32 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 		appbaseRef.msearch({
 			type: config.type === '*' ? '' : config.type,
 			body: query,
-		})
-			.on('data', (res) => {
-				orderOfQueries.forEach((component, index) => {
-					const response = res.responses[index];
-					const { timestamp } = getState();
+		}).then(res => {
+			orderOfQueries.forEach((component, index) => {
+				const response = res.responses[index];
+				const { timestamp } = getState();
 
-					if ((timestamp[component] === undefined) || (timestamp[component] < res._timestamp)) {
-						if (response.hits) {
-							dispatch(setTimestamp(component, res._timestamp));
-							dispatch(updateHits(component, response.hits, response.took, appendToHits));
-							dispatch(setLoading(component, false));
-						}
+				if ((timestamp[component] === undefined) || (timestamp[component] < res._timestamp)) {
+					if (response.hits) {
+						dispatch(setTimestamp(component, res._timestamp));
+						dispatch(updateHits(component, response.hits, response.took, appendToHits));
+						dispatch(setLoading(component, false));
+					}
 
-						if (response.aggregations) {
-							dispatch(updateAggs(component, response.aggregations));
-						}
+					if (response.aggregations) {
+						dispatch(updateAggs(component, response.aggregations));
 					}
-				});
-			})
-			.on('error', (error) => {
-				console.error(error);
-				orderOfQueries.forEach((component) => {
-					if (queryListener[component] && queryListener[component].onError) {
-						queryListener[component].onError(error);
-					}
-					dispatch(setLoading(component, false));
-				});
+				}
 			});
+		}).catch(error => {
+			console.error(error);
+			orderOfQueries.forEach((component) => {
+				if (queryListener[component] && queryListener[component].onError) {
+					queryListener[component].onError(error);
+				}
+				dispatch(setLoading(component, false));
+			});
+		})
 	};
 }
 
@@ -268,20 +266,21 @@ export function executeQuery(componentId, executeWatchList = false, mustExecuteM
 						const ref = appbaseRef.searchStream({
 							type: config.type === '*' ? '' : config.type,
 							body: currentQuery,
+						}, (response) => {
+							if (response._id) {
+								dispatch(pushToStreamHits(component, response));
+							} 
+						}, (error) => {
+							if (queryListener[component] && queryListener[component].onError) {
+								queryListener[component].onError(error);
+							}
+							/**
+							 * In android devices, sometime websocket throws error when there is no activity
+							 * for a long time, console.error crashes the app, so changed it to console.warn
+							 */
+							console.warn(error);
+							dispatch(setLoading(component , false));
 						})
-							.on('data', (response) => {
-								if (response._id) {
-									dispatch(pushToStreamHits(component, response));
-								}
-							})
-							.on('error', (error) => {
-								if (queryListener[component] && queryListener[component].onError) {
-									queryListener[component].onError(error);
-								}
-
-								console.error(error);
-								dispatch(setLoading(component, false));
-							});
 
 						// update streaming ref
 						dispatch(setStreaming(component, true, ref));
