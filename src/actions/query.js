@@ -274,8 +274,11 @@ export function executeQuery(componentId, executeWatchList = false, mustExecuteM
 							if (queryListener[component] && queryListener[component].onError) {
 								queryListener[component].onError(error);
 							}
-
-							console.error(error);
+							/**
+							 * In android devices, sometime websocket throws error when there is no activity
+							 * for a long time, console.error crashes the app, so changed it to console.warn
+							 */
+							console.warn(error);
 							dispatch(setLoading(component , false));
 						})
 
