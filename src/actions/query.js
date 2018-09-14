@@ -115,7 +115,7 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 		appbaseRef.msearch({
 			type: config.type === '*' ? '' : config.type,
 			body: query,
-		}).then(res => {
+		}).then((res) => {
 			orderOfQueries.forEach((component, index) => {
 				const response = res.responses[index];
 				const { timestamp } = getState();
@@ -132,7 +132,7 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 					}
 				}
 			});
-		}).catch(error => {
+		}).catch((error) => {
 			console.error(error);
 			orderOfQueries.forEach((component) => {
 				if (queryListener[component] && queryListener[component].onError) {
@@ -140,7 +140,7 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 				}
 				dispatch(setLoading(component, false));
 			});
-		})
+		});
 	};
 }
 
@@ -269,7 +269,7 @@ export function executeQuery(componentId, executeWatchList = false, mustExecuteM
 						}, (response) => {
 							if (response._id) {
 								dispatch(pushToStreamHits(component, response));
-							} 
+							}
 						}, (error) => {
 							if (queryListener[component] && queryListener[component].onError) {
 								queryListener[component].onError(error);
@@ -279,8 +279,8 @@ export function executeQuery(componentId, executeWatchList = false, mustExecuteM
 							 * for a long time, console.error crashes the app, so changed it to console.warn
 							 */
 							console.warn(error);
-							dispatch(setLoading(component , false));
-						})
+							dispatch(setLoading(component, false));
+						});
 
 						// update streaming ref
 						dispatch(setStreaming(component, true, ref));
