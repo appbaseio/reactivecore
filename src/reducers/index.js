@@ -19,11 +19,10 @@ import timestampReducer from './timestampReducer';
 import headersReducer from './headersReducer';
 import mapDataReducer from './mapDataReducer';
 import queryListenerReducer from './queryListenerReducer';
-import componentTypeReducer from './componentTypeReducer';
+import analyticsReducer from './analyticsReducer';
 
 export default combineReducers({
 	components: componentsReducer,
-	componentType: componentTypeReducer,
 	watchMan: watchManReducer, // contains the list of subscribers
 	queryList: queryReducer,
 	queryOptions: queryOptionsReducer,
@@ -42,4 +41,5 @@ export default combineReducers({
 	headers: headersReducer,
 	mapData: mapDataReducer, // holds the map id and boolean to execute geo-bound-query
 	queryListener: queryListenerReducer,
+	analytics: analyticsReducer,
 });

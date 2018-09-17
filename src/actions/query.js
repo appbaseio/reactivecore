@@ -8,6 +8,7 @@ import {
 	SET_HEADERS,
 	SET_STREAMING,
 	SET_QUERY_LISTENER,
+	SET_SEARCH_ID,
 } from '../constants';
 
 import { setValue } from './value';
@@ -81,32 +82,41 @@ export function setHeaders(headers) {
 	};
 }
 
-const SEARCH_COMPONENTS = ['DATASEARCH', 'CATEGORYSEARCH'];
-function msearch(query, orderOfQueries, appendToHits = false) {
+function setSearchId(searchId = null) {
+	return {
+		type: SET_SEARCH_ID,
+		searchId,
+	};
+}
+
+function msearch(query, orderOfQueries, appendToHits = false, isInternalComponent = false) {
 	return (dispatch, getState) => {
 		const {
 			appbaseRef,
 			config,
 			headers,
 			queryListener,
-			selectedValues,
-			componentType,
+			analytics,
 		} = getState();
 
 		let searchHeaders = {};
-		const validComponents = Object.keys(componentType)
-			.filter(item => SEARCH_COMPONENTS.includes(componentType[item]));
 
 		// send search id or term in headers
-		// TODO: implement support for search id
 		if (
 			config.analytics
 			&& config.url === 'https://scalr.api.appbase.io'
-			&& validComponents.length
+			&& !isInternalComponent
 		) {
-			if (selectedValues[validComponents[0]]) {
+			const { searchValue, searchId } = analytics;
+			// if search id exists use that otherwise
+			// it implies a new query in which case I send X-Search-Query
+			if (searchId) {
 				searchHeaders = {
-					'X-Search-Query': selectedValues[validComponents[0]].value,
+					'X-Search-Id': searchId,
+				};
+			} else if (searchValue) {
+				searchHeaders = {
+					'X-Search-Query': searchValue,
 				};
 			}
 		}
@@ -116,6 +126,11 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 			type: config.type === '*' ? '' : config.type,
 			body: query,
 		}).then((res) => {
+			const searchId = res._headers.get('X-Search-Id');
+			if (searchId) {
+				// if search id was updated set it in store
+				dispatch(setSearchId(searchId));
+			}
 			orderOfQueries.forEach((component, index) => {
 				const response = res.responses[index];
 				const { timestamp } = getState();
@@ -299,7 +314,8 @@ export function executeQuery(componentId, executeWatchList = false, mustExecuteM
 		});
 
 		if (finalQuery.length) {
-			dispatch(msearch(finalQuery, orderOfQueries));
+			// in case of an internal component the analytics headers should not be included
+			dispatch(msearch(finalQuery, orderOfQueries, false, componentId.endsWith('__internal')));
 		}
 	};
 }
@@ -321,6 +337,7 @@ export function updateQuery({
 	label = null,
 	showFilter = true,
 	URLParams = false,
+	componentType = null,
 }, execute = true) {
 	return (dispatch) => {
 		let queryToDispatch = query;
@@ -329,7 +346,7 @@ export function updateQuery({
 		}
 		// don't set filters for internal components
 		if (!componentId.endsWith('__internal')) {
-			dispatch(setValue(componentId, value, label, showFilter, URLParams));
+			dispatch(setValue(componentId, value, label, showFilter, URLParams, componentType));
 		}
 		dispatch(setQuery(componentId, queryToDispatch));
 		if (execute) dispatch(executeQuery(componentId, true));
