@@ -14,6 +14,7 @@ import {
 import { setValue } from './value';
 import { updateHits, updateAggs, pushToStreamHits } from './hits';
 import { buildQuery, isEqual } from '../utils/helper';
+import getFilterString from '../utils/analytics';
 import { updateMapData } from './maps';
 
 export function setQuery(component, query) {
@@ -97,6 +98,7 @@ function msearch(query, orderOfQueries, appendToHits = false, isInternalComponen
 			headers,
 			queryListener,
 			analytics,
+			selectedValues,
 		} = getState();
 
 		let searchHeaders = {};
@@ -108,16 +110,23 @@ function msearch(query, orderOfQueries, appendToHits = false, isInternalComponen
 			&& !isInternalComponent
 		) {
 			const { searchValue, searchId } = analytics;
+
+			// if a filter string exists append that to the search headers
+			const filterString = getFilterString(selectedValues);
 			// if search id exists use that otherwise
 			// it implies a new query in which case I send X-Search-Query
 			if (searchId) {
-				searchHeaders = {
+				searchHeaders = Object.assign({
 					'X-Search-Id': searchId,
-				};
+				}, filterString && {
+					'X-Search-Filters': filterString,
+				});
 			} else if (searchValue) {
-				searchHeaders = {
+				searchHeaders = Object.assign({
 					'X-Search-Query': searchValue,
-				};
+				}, filterString && {
+					'X-Search-Filters': filterString,
+				});
 			}
 		}
 
