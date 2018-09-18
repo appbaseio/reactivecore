@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`snapshot filter components 1`] = `
+Array [
+  "NUMBERBOX",
+  "TAGCLOUD",
+  "TOGGLEBUTTON",
+  "DATEPICKER",
+  "DATERANGE",
+  "MULTIDATALIST",
+  "MULTIDROPDOWNLIST",
+  "MULTILIST",
+  "SINGLEDATALIST",
+  "SINGLEDROPDOWNLIST",
+  "SINGLELIST",
+  "DYNAMICRANGESLIDER",
+  "MULTIDROPDOWNRANGE",
+  "MULTIRANGE",
+  "RANGESLIDER",
+  "RATINGSFILTER",
+  "SINGLEDROPDOWNRANGE",
+  "SINGLERANGE",
+]
+`;
+
+exports[`snapshot range components 1`] = `
+Array [
+  "DATERANGE",
+  "DYNAMICRANGESLIDER",
+  "RANGESLIDER",
+  "RANGEINPUT",
+  "RATINGSFILTER",
+]
+`;
+
+exports[`snapshot range object components 1`] = `
+Array [
+  "SINGLERANGE",
+  "SINGLEDROPDOWNRANGE",
+  "MULTIRANGE",
+  "MULTIDROPDOWNRANGE",
+]
+`;
