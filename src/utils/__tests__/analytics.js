@@ -61,6 +61,16 @@ test('parseFilterValue should parse array of object values', () => {
 	expect(res).toBe('Filter=value1');
 });
 
+test('parseFilterValue should parse array with multiple values', () => {
+	const componentId = 'id1';
+	const componentValues = {
+		label: 'Filter',
+		value: [{ label: 'label1', value: 'value1' }, { label: 'label2', value: 'value2' }],
+	};
+	const res = parseFilterValue(componentId, componentValues);
+	expect(res).toBe('Filter=value1,Filter=value2');
+});
+
 test('parseFilterValue should parse range values for DateRange', () => {
 	const componentId = 'id1';
 	const componentValues = {
