@@ -104,11 +104,7 @@ function msearch(query, orderOfQueries, appendToHits = false, isInternalComponen
 		let searchHeaders = {};
 
 		// send search id or term in headers
-		if (
-			config.analytics
-			&& config.url === 'https://scalr.api.appbase.io'
-			&& !isInternalComponent
-		) {
+		if (config.analytics && !isInternalComponent) {
 			const { searchValue, searchId } = analytics;
 
 			// if a filter string exists append that to the search headers
