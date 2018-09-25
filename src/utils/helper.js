@@ -84,7 +84,13 @@ function getQuery(react, queryList) {
 		if (Array.isArray(react[conjunction])) {
 			const operation = getOperation(conjunction);
 			const queryArr = react[conjunction].map((comp) => {
-				if (comp in queryList) {
+				if (typeof comp !== 'string') {
+					// in this case, we have { <conjunction>: <> } objects inside the array
+					const boolQuery = getQuery(comp, queryList);
+					if (boolQuery) {
+						query = [...query, boolQuery];
+					}
+				} else if (comp in queryList) {
 					return queryList[comp];
 				}
 				return null;
