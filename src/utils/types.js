@@ -17,6 +17,7 @@ const reactKeyType = oneOfType([
 	string,
 	arrayOf(string),
 	object,
+	arrayOf(object),
 ]);
 
 function validateLocation(props, propName) {
