@@ -58,6 +58,7 @@ function getOperation(conjunction) {
 }
 
 function createBoolQuery(operation, query) {
+	console.log('creating bool query', operation, query);
 	let resultQuery = null;
 	if ((Array.isArray(query) && query.length) || (!Array.isArray(query) && query)) {
 		resultQuery = {
@@ -86,10 +87,7 @@ function getQuery(react, queryList) {
 			const queryArr = react[conjunction].map((comp) => {
 				if (typeof comp !== 'string') {
 					// in this case, we have { <conjunction>: <> } objects inside the array
-					const boolQuery = createBoolQuery(operation, getQuery(comp, queryList));
-					if (boolQuery) {
-						query = [...query, boolQuery];
-					}
+					return getQuery(comp, queryList);
 				} else if (comp in queryList) {
 					return queryList[comp];
 				}
