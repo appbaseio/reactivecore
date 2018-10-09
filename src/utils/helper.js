@@ -1,5 +1,7 @@
 /* eslint-disable */
 // when we want to perform deep equality check, especially in objects
+import dateFormats from './dateFormats';
+
 export function isEqual(x, y) {
 	if (x === y) return true;
 	if (!(x instanceof Object) || !(y instanceof Object)) return false;
@@ -269,3 +271,18 @@ export const parseHits = (hits) => {
 	}
 	return results;
 };
+
+export function formatDate(date, props) {
+	switch (props.queryFormat) {
+		case 'epoch_millis':
+			return date.getTime();
+		case 'epoch_seconds':
+			return Math.floor(date.getTime() / 1000);
+		default: {
+			if (dateFormats[props.queryFormat]) {
+				return date.toString(dateFormats[props.queryFormat]);
+			}
+			return date;
+		}
+	}
+}
