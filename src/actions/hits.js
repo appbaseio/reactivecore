@@ -4,11 +4,12 @@ import {
 	PUSH_TO_STREAM_HITS,
 } from '../constants';
 
-export function updateAggs(component, aggregations) {
+export function updateAggs(component, aggregations, append = false) {
 	return {
 		type: UPDATE_AGGS,
 		component,
 		aggregations,
+		append,
 	};
 }
 
