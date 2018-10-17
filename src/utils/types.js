@@ -91,6 +91,7 @@ const types = {
 		'landscape-left',
 		'landscape-right',
 	]),
+	tooltipTrigger: oneOf(['hover', 'none', 'focus', 'always']),
 	sortBy: oneOf(['asc', 'desc']),
 	sortOptions: arrayOf(shape({
 		label: string,
