@@ -8,10 +8,9 @@ import * as helper from './utils/helper';
 import * as suggestions from './utils/suggestions';
 import * as causes from './utils/causes';
 
-
 const storeKey = STORE_KEY;
 const vueTypes = VueTypes;
-export { helper, causes, suggestions, Actions, vueTypes, storeKey };
+export { vueTypes, helper, causes, suggestions, Actions, storeKey };
 export default function configureStore(initialState) {
 	return createStore(
 		rootReducer,
