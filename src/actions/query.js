@@ -90,7 +90,13 @@ function setSearchId(searchId = null) {
 	};
 }
 
-function msearch(query, orderOfQueries, appendToHits = false, isInternalComponent = false) {
+function msearch(
+	query,
+	orderOfQueries,
+	appendToHits = false,
+	isInternalComponent = false,
+	appendToAggs = false,
+) {
 	return (dispatch, getState) => {
 		const {
 			appbaseRef,
@@ -148,7 +154,7 @@ function msearch(query, orderOfQueries, appendToHits = false, isInternalComponen
 					}
 
 					if (response.aggregations) {
-						dispatch(updateAggs(component, response.aggregations));
+						dispatch(updateAggs(component, response.aggregations, appendToAggs));
 					}
 				}
 			});
@@ -170,7 +176,11 @@ function executeQueryListener(listener, oldQuery, newQuery) {
 	}
 }
 
-export function executeQuery(componentId, executeWatchList = false, mustExecuteMapQuery = false) {
+export function executeQuery(
+	componentId,
+	executeWatchList = false,
+	mustExecuteMapQuery = false,
+) {
 	return (dispatch, getState) => {
 		const {
 			queryLog,
@@ -358,7 +368,12 @@ export function updateQuery({
 	};
 }
 
-export function loadMore(component, newOptions, append = true) {
+export function loadMore(component, newOptions, appendToHits = true, appendToAggs = false) {
+	// `appendToAggs` will be `true` in case of consecutive loading
+	// of data-driven components via composite aggregations.
+
+	// This approach will enable us to reset the component's query (aggs)
+	// whenever there is a change in the component's subscribed source.
 	return (dispatch, getState) => {
 		const store = getState();
 		let { queryObj, options } = buildQuery(
@@ -394,7 +409,7 @@ export function loadMore(component, newOptions, append = true) {
 			currentQuery,
 		];
 
-		dispatch(msearch(finalQuery, [component], append));
+		dispatch(msearch(finalQuery, [component], appendToHits, false, appendToAggs));
 	};
 }
 
