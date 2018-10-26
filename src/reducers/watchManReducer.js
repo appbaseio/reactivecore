@@ -8,7 +8,14 @@ function getWatchList(depTree) {
 		if (typeof item === 'string') {
 			components.push(item);
 		} else if (Array.isArray(item)) {
-			components.push(...item);
+			item.forEach((component) => {
+				if (typeof component === 'string') {
+					components.push(component);
+				} else {
+					// in this case, we have { <conjunction>: <> } object inside the array
+					components.push(...getWatchList(component));
+				}
+			});
 		} else if (typeof item === 'object' && item !== null) {
 			components.push(...getWatchList(item));
 		}

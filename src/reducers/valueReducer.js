@@ -9,6 +9,7 @@ export default function valueReducer(state = {}, action) {
 				label: action.label || action.component,
 				showFilter: action.showFilter,
 				URLParams: action.URLParams,
+				componentType: action.componentType,
 			},
 		};
 	} else if (action.type === CLEAR_VALUES) {

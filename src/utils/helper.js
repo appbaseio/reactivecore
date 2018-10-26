@@ -1,5 +1,7 @@
 /* eslint-disable */
 // when we want to perform deep equality check, especially in objects
+import dateFormats from './dateFormats';
+
 export function isEqual(x, y) {
 	if (x === y) return true;
 	if (!(x instanceof Object) || !(y instanceof Object)) return false;
@@ -84,7 +86,10 @@ function getQuery(react, queryList) {
 		if (Array.isArray(react[conjunction])) {
 			const operation = getOperation(conjunction);
 			const queryArr = react[conjunction].map((comp) => {
-				if (comp in queryList) {
+				if (typeof comp !== 'string') {
+					// in this case, we have { <conjunction>: <> } objects inside the array
+					return getQuery(comp, queryList);
+				} else if (comp in queryList) {
 					return queryList[comp];
 				}
 				return null;
@@ -259,6 +264,7 @@ export const parseHits = (hits) => {
 			return {
 				_id: data._id,
 				_index: data._index,
+				_type: data._type,
 				...data._source,
 				...streamProps,
 			};
@@ -266,3 +272,18 @@ export const parseHits = (hits) => {
 	}
 	return results;
 };
+
+export function formatDate(date, props) {
+	switch (props.queryFormat) {
+		case 'epoch_millis':
+			return date.getTime();
+		case 'epoch_seconds':
+			return Math.floor(date.getTime() / 1000);
+		default: {
+			if (dateFormats[props.queryFormat]) {
+				return date.toString(dateFormats[props.queryFormat]);
+			}
+			return date;
+		}
+	}
+}

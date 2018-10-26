@@ -8,11 +8,13 @@ import {
 	SET_HEADERS,
 	SET_STREAMING,
 	SET_QUERY_LISTENER,
+	SET_SEARCH_ID,
 } from '../constants';
 
 import { setValue } from './value';
 import { updateHits, updateAggs, pushToStreamHits } from './hits';
 import { buildQuery, isEqual } from '../utils/helper';
+import getFilterString from '../utils/analytics';
 import { updateMapData } from './maps';
 
 export function setQuery(component, query) {
@@ -81,33 +83,52 @@ export function setHeaders(headers) {
 	};
 }
 
-const SEARCH_COMPONENTS = ['DATASEARCH', 'CATEGORYSEARCH'];
-function msearch(query, orderOfQueries, appendToHits = false) {
+function setSearchId(searchId = null) {
+	return {
+		type: SET_SEARCH_ID,
+		searchId,
+	};
+}
+
+function msearch(
+	query,
+	orderOfQueries,
+	appendToHits = false,
+	isInternalComponent = false,
+	appendToAggs = false,
+) {
 	return (dispatch, getState) => {
 		const {
 			appbaseRef,
 			config,
 			headers,
 			queryListener,
+			analytics,
 			selectedValues,
-			componentType,
 		} = getState();
 
 		let searchHeaders = {};
-		const validComponents = Object.keys(componentType)
-			.filter(item => SEARCH_COMPONENTS.includes(componentType[item]));
 
 		// send search id or term in headers
-		// TODO: implement support for search id
-		if (
-			config.analytics
-			&& config.url === 'https://scalr.api.appbase.io'
-			&& validComponents.length
-		) {
-			if (selectedValues[validComponents[0]]) {
-				searchHeaders = {
-					'X-Search-Query': selectedValues[validComponents[0]].value,
-				};
+		if (config.analytics && !isInternalComponent) {
+			const { searchValue, searchId } = analytics;
+
+			// if a filter string exists append that to the search headers
+			const filterString = getFilterString(selectedValues);
+			// if search id exists use that otherwise
+			// it implies a new query in which case I send X-Search-Query
+			if (searchId) {
+				searchHeaders = Object.assign({
+					'X-Search-Id': searchId,
+				}, filterString && {
+					'X-Search-Filters': filterString,
+				});
+			} else if (searchValue) {
+				searchHeaders = Object.assign({
+					'X-Search-Query': searchValue,
+				}, filterString && {
+					'X-Search-Filters': filterString,
+				});
 			}
 		}
 
@@ -115,7 +136,12 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 		appbaseRef.msearch({
 			type: config.type === '*' ? '' : config.type,
 			body: query,
-		}).then(res => {
+		}).then((res) => {
+			const searchId = res._headers.get('X-Search-Id');
+			if (searchId) {
+				// if search id was updated set it in store
+				dispatch(setSearchId(searchId));
+			}
 			orderOfQueries.forEach((component, index) => {
 				const response = res.responses[index];
 				const { timestamp } = getState();
@@ -128,11 +154,11 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 					}
 
 					if (response.aggregations) {
-						dispatch(updateAggs(component, response.aggregations));
+						dispatch(updateAggs(component, response.aggregations, appendToAggs));
 					}
 				}
 			});
-		}).catch(error => {
+		}).catch((error) => {
 			console.error(error);
 			orderOfQueries.forEach((component) => {
 				if (queryListener[component] && queryListener[component].onError) {
@@ -140,7 +166,7 @@ function msearch(query, orderOfQueries, appendToHits = false) {
 				}
 				dispatch(setLoading(component, false));
 			});
-		})
+		});
 	};
 }
 
@@ -150,7 +176,11 @@ function executeQueryListener(listener, oldQuery, newQuery) {
 	}
 }
 
-export function executeQuery(componentId, executeWatchList = false, mustExecuteMapQuery = false) {
+export function executeQuery(
+	componentId,
+	executeWatchList = false,
+	mustExecuteMapQuery = false,
+) {
 	return (dispatch, getState) => {
 		const {
 			queryLog,
@@ -269,7 +299,7 @@ export function executeQuery(componentId, executeWatchList = false, mustExecuteM
 						}, (response) => {
 							if (response._id) {
 								dispatch(pushToStreamHits(component, response));
-							} 
+							}
 						}, (error) => {
 							if (queryListener[component] && queryListener[component].onError) {
 								queryListener[component].onError(error);
@@ -279,8 +309,8 @@ export function executeQuery(componentId, executeWatchList = false, mustExecuteM
 							 * for a long time, console.error crashes the app, so changed it to console.warn
 							 */
 							console.warn(error);
-							dispatch(setLoading(component , false));
-						})
+							dispatch(setLoading(component, false));
+						});
 
 						// update streaming ref
 						dispatch(setStreaming(component, true, ref));
@@ -299,7 +329,8 @@ export function executeQuery(componentId, executeWatchList = false, mustExecuteM
 		});
 
 		if (finalQuery.length) {
-			dispatch(msearch(finalQuery, orderOfQueries));
+			// in case of an internal component the analytics headers should not be included
+			dispatch(msearch(finalQuery, orderOfQueries, false, componentId.endsWith('__internal')));
 		}
 	};
 }
@@ -321,6 +352,7 @@ export function updateQuery({
 	label = null,
 	showFilter = true,
 	URLParams = false,
+	componentType = null,
 }, execute = true) {
 	return (dispatch) => {
 		let queryToDispatch = query;
@@ -329,14 +361,19 @@ export function updateQuery({
 		}
 		// don't set filters for internal components
 		if (!componentId.endsWith('__internal')) {
-			dispatch(setValue(componentId, value, label, showFilter, URLParams));
+			dispatch(setValue(componentId, value, label, showFilter, URLParams, componentType));
 		}
 		dispatch(setQuery(componentId, queryToDispatch));
 		if (execute) dispatch(executeQuery(componentId, true));
 	};
 }
 
-export function loadMore(component, newOptions, append = true) {
+export function loadMore(component, newOptions, appendToHits = true, appendToAggs = false) {
+	// `appendToAggs` will be `true` in case of consecutive loading
+	// of data-driven components via composite aggregations.
+
+	// This approach will enable us to reset the component's query (aggs)
+	// whenever there is a change in the component's subscribed source.
 	return (dispatch, getState) => {
 		const store = getState();
 		let { queryObj, options } = buildQuery(
@@ -372,7 +409,7 @@ export function loadMore(component, newOptions, append = true) {
 			currentQuery,
 		];
 
-		dispatch(msearch(finalQuery, [component], append));
+		dispatch(msearch(finalQuery, [component], appendToHits, false, appendToAggs));
 	};
 }
 
