@@ -1,6 +1,5 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import thunk from 'redux-thunk';
-import VueTypes from './utils/vueTypes';
 import rootReducer from './reducers';
 import { STORE_KEY } from './constants';
 import * as Actions from './actions';
@@ -9,8 +8,7 @@ import * as suggestions from './utils/suggestions';
 import * as causes from './utils/causes';
 
 const storeKey = STORE_KEY;
-const vueTypes = VueTypes;
-export { vueTypes, helper, causes, suggestions, Actions, storeKey };
+export { helper, causes, suggestions, Actions, storeKey };
 
 const composeEnhancers
 	= typeof window === 'object'
