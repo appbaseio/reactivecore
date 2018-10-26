@@ -261,13 +261,16 @@ export const parseHits = (hits) => {
 			}
 
 			const data = highlightResults(item);
-			return {
-				_id: data._id,
-				_index: data._index,
-				_type: data._type,
-				...data._source,
-				...streamProps,
-			};
+			let result = Object.keys(data)
+				.filter(key => key !== '_source')
+				.reduce((obj, key) => {
+					obj[key] = data[key];
+					return obj;
+				},{
+					...data._source,
+					...streamProps,
+				});
+			return result;
 		});
 	}
 	return results;
