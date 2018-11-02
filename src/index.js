@@ -4,10 +4,12 @@ import rootReducer from './reducers';
 import { STORE_KEY } from './constants';
 import * as Actions from './actions';
 import * as helper from './utils/helper';
-import * as suggestions from './utils/suggestions';
-import * as causes from './utils/causes';
+import Suggestions from './utils/suggestions';
+import Causes from './utils/causes';
 
 const storeKey = STORE_KEY;
+const suggestions = Suggestions;
+const causes = Causes;
 export { helper, causes, suggestions, Actions, storeKey };
 
 const composeEnhancers
