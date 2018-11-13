@@ -132,6 +132,12 @@ function msearch(
 			}
 		}
 
+		// set loading as active for the given component
+		orderOfQueries.forEach((component) => {
+			console.log('setting loading state for', component);
+			dispatch(setLoading(component, true));
+		});
+
 		appbaseRef.setHeaders({ ...headers, ...searchHeaders });
 		appbaseRef.msearch({
 			type: config.type === '*' ? '' : config.type,
