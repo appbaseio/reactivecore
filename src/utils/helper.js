@@ -286,7 +286,7 @@ export function formatDate(date, props) {
 			if (dateFormats[props.queryFormat]) {
 				return date.toString(dateFormats[props.queryFormat]);
 			}
-			return date;
+			return date.getTime();
 		}
 	}
 }
