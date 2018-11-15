@@ -265,6 +265,7 @@ export const parseHits = (hits) => {
 				_id: data._id,
 				_index: data._index,
 				_type: data._type,
+				highlight: data.highlight || {},
 				...data._source,
 				...streamProps,
 			};
