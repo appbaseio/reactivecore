@@ -1,16 +1,11 @@
-import {
-	ADD_COMPONENT,
-	REMOVE_COMPONENT,
-	WATCH_COMPONENT,
-} from '../constants';
+import { ADD_COMPONENT, REMOVE_COMPONENT, WATCH_COMPONENT } from '../constants';
 
 import { executeQuery } from './query';
 
-export function addComponent(component, name = null) {
+export function addComponent(component) {
 	return {
 		type: ADD_COMPONENT,
 		component,
-		name,
 	};
 }
 
