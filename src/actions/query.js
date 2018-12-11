@@ -176,9 +176,9 @@ function msearch(
 			console.error(error);
 			orderOfQueries.forEach((component) => {
 				if (queryListener[component] && queryListener[component].onError) {
-					dispatch(setError(component, error));
 					queryListener[component].onError(error);
 				}
+				dispatch(setError(component, error));
 				dispatch(setLoading(component, false));
 			});
 		});
@@ -317,7 +317,6 @@ export function executeQuery(
 							}
 						}, (error) => {
 							if (queryListener[component] && queryListener[component].onError) {
-								dispatch(setError(component, error));
 								queryListener[component].onError(error);
 							}
 							/**
@@ -325,6 +324,7 @@ export function executeQuery(
 							 * for a long time, console.error crashes the app, so changed it to console.warn
 							 */
 							console.warn(error);
+							dispatch(setError(component, error));
 							dispatch(setLoading(component, false));
 						});
 
