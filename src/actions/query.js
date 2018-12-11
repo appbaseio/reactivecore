@@ -9,6 +9,7 @@ import {
 	SET_STREAMING,
 	SET_QUERY_LISTENER,
 	SET_SEARCH_ID,
+	SET_ERROR,
 } from '../constants';
 
 import { setValue } from './value';
@@ -56,6 +57,14 @@ function setLoading(component, isLoading) {
 		type: SET_LOADING,
 		component,
 		isLoading,
+	};
+}
+
+function setError(component, error) {
+	return {
+		type: SET_ERROR,
+		component,
+		error,
 	};
 }
 
@@ -167,6 +176,7 @@ function msearch(
 			console.error(error);
 			orderOfQueries.forEach((component) => {
 				if (queryListener[component] && queryListener[component].onError) {
+					dispatch(setError(component, error));
 					queryListener[component].onError(error);
 				}
 				dispatch(setLoading(component, false));
@@ -307,6 +317,7 @@ export function executeQuery(
 							}
 						}, (error) => {
 							if (queryListener[component] && queryListener[component].onError) {
+								dispatch(setError(component, error));
 								queryListener[component].onError(error);
 							}
 							/**

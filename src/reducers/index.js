@@ -13,6 +13,7 @@ import logsReducer from './logsReducer';
 import combinedLogsReducer from './combinedLogsReducer';
 import valueReducer from './valueReducer';
 import loadingReducer from './loadingReducer';
+import errorReducer from './errorReducer';
 import streamingReducer from './streamingReducer';
 import streamHitsReducer from './streamHitsReducer';
 import timestampReducer from './timestampReducer';
@@ -35,6 +36,7 @@ export default combineReducers({
 	combinedLog: combinedLogsReducer,
 	selectedValues: valueReducer,
 	isLoading: loadingReducer,
+	error: errorReducer,
 	stream: streamingReducer,
 	streamHits: streamHitsReducer,
 	timestamp: timestampReducer,

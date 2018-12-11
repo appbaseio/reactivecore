@@ -13,6 +13,7 @@ export const LOG_COMBINED_QUERY = 'LOG_COMBINED_QUERY';
 export const SET_VALUE = 'SET_VALUE';
 export const CLEAR_VALUES = 'CLEAR_VALUES';
 export const SET_LOADING = 'SET_LOADING';
+export const SET_ERROR = 'SET_ERROR';
 export const SET_STREAMING = 'SET_STREAMING';
 export const PUSH_TO_STREAM_HITS = 'PUSH_TO_STREAM_HITS';
 export const SET_TIMESTAMP = 'SET_TIMESTAMP';
