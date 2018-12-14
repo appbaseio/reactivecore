@@ -1,10 +1,11 @@
-const fetchGraphQl = async (graphQlUrl, url, credentials, app, query) => {
+const fetchGraphQL = async (graphQLUrl, url, credentials, app, query) => {
 	try {
-		const response = await fetch(graphQlUrl, {
+		const fetchUrl = credentials ? url.replace('//', `//${credentials}@`) : url;
+		const response = await fetch(graphQLUrl, {
 			method: 'POST',
 			body: `
 				query{
-					elastic50(host: "${url.replace('//', `//${credentials}@`)}"){
+					elastic50(host: "${fetchUrl}"){
 						msearch(
 							index: "${app}"
 							body: ${JSON.stringify(query.map(item => JSON.stringify(item)))}
@@ -23,4 +24,4 @@ const fetchGraphQl = async (graphQlUrl, url, credentials, app, query) => {
 	}
 };
 
-export default fetchGraphQl;
+export default fetchGraphQL;

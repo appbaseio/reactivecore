@@ -17,7 +17,7 @@ import { updateHits, updateAggs, pushToStreamHits } from './hits';
 import { buildQuery, isEqual } from '../utils/helper';
 import getFilterString from '../utils/analytics';
 import { updateMapData } from './maps';
-import fetchGraphQl from '../utils/graphQl';
+import fetchGraphQL from '../utils/graphQL';
 
 export function setQuery(component, query) {
 	return {
@@ -156,9 +156,9 @@ function msearch(
 		try {
 			let res = null;
 
-			if (config.graphQlUrl) {
-				res = await fetchGraphQl(
-					config.graphQlUrl,
+			if (config.graphQLUrl) {
+				res = await fetchGraphQL(
+					config.graphQLUrl,
 					config.url,
 					config.credentials,
 					config.app,
