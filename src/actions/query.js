@@ -17,6 +17,7 @@ import { updateHits, updateAggs, pushToStreamHits } from './hits';
 import { buildQuery, isEqual } from '../utils/helper';
 import getFilterString from '../utils/analytics';
 import { updateMapData } from './maps';
+import fetchGraphQl from '../utils/graphQl';
 
 export function setQuery(component, query) {
 	return {
@@ -106,7 +107,7 @@ function msearch(
 	isInternalComponent = false,
 	appendToAggs = false,
 ) {
-	return (dispatch, getState) => {
+	return async (dispatch, getState) => {
 		const {
 			appbaseRef,
 			config,
@@ -127,17 +128,23 @@ function msearch(
 			// if search id exists use that otherwise
 			// it implies a new query in which case I send X-Search-Query
 			if (searchId) {
-				searchHeaders = Object.assign({
-					'X-Search-Id': searchId,
-				}, filterString && {
-					'X-Search-Filters': filterString,
-				});
+				searchHeaders = Object.assign(
+					{
+						'X-Search-Id': searchId,
+					},
+					filterString && {
+						'X-Search-Filters': filterString,
+					},
+				);
 			} else if (searchValue) {
-				searchHeaders = Object.assign({
-					'X-Search-Query': searchValue,
-				}, filterString && {
-					'X-Search-Filters': filterString,
-				});
+				searchHeaders = Object.assign(
+					{
+						'X-Search-Query': searchValue,
+					},
+					filterString && {
+						'X-Search-Filters': filterString,
+					},
+				);
 			}
 		}
 
@@ -146,21 +153,36 @@ function msearch(
 			dispatch(setLoading(component, true));
 		});
 
-		appbaseRef.setHeaders({ ...headers, ...searchHeaders });
-		appbaseRef.msearch({
-			type: config.type === '*' ? '' : config.type,
-			body: query,
-		}).then((res) => {
-			const searchId = res._headers.get('X-Search-Id');
+		try {
+			let res = null;
+
+			if (config.graphQlUrl) {
+				res = await fetchGraphQl(
+					config.graphQlUrl,
+					config.url,
+					config.credentials,
+					config.app,
+					query,
+				);
+			} else {
+				appbaseRef.setHeaders({ ...headers, ...searchHeaders });
+				res = await appbaseRef.msearch({
+					type: config.type === '*' ? '' : config.type,
+					body: query,
+				});
+			}
+
+			const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
 			if (searchId) {
 				// if search id was updated set it in store
 				dispatch(setSearchId(searchId));
 			}
+
 			orderOfQueries.forEach((component, index) => {
 				const response = res.responses[index];
 				const { timestamp } = getState();
 
-				if ((timestamp[component] === undefined) || (timestamp[component] < res._timestamp)) {
+				if (timestamp[component] === undefined || timestamp[component] < res._timestamp) {
 					if (response.hits) {
 						dispatch(setTimestamp(component, res._timestamp));
 						dispatch(updateHits(component, response.hits, response.took, appendToHits));
@@ -172,7 +194,7 @@ function msearch(
 					}
 				}
 			});
-		}).catch((error) => {
+		} catch (error) {
 			console.error(error);
 			orderOfQueries.forEach((component) => {
 				if (queryListener[component] && queryListener[component].onError) {
@@ -181,7 +203,7 @@ function msearch(
 				dispatch(setError(component, error));
 				dispatch(setLoading(component, false));
 			});
-		});
+		}
 	};
 }
 
