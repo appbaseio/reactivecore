@@ -302,13 +302,7 @@ export function formatDate(date, props) {
  * @param {Object} customQuery
  */
 export const getOptionsFromQuery = (customQuery = {}) => {
-	const options = {};
-	// Only apply options when query key is present
-	if (customQuery.query) {
-		const { query, ...rest } = customQuery;
-		Object.keys(rest).forEach((option) => {
-			options[option] = rest[option];
-		});
-	}
-	return Object.keys(options).length ? options : null;
+	const { query, ...rest } = customQuery;
+	return Object.keys(rest).length ? rest : null;
 };
+
