@@ -10,6 +10,7 @@ export default function valueReducer(state = {}, action) {
 				showFilter: action.showFilter,
 				URLParams: action.URLParams,
 				componentType: action.componentType,
+				category: action.category,
 			},
 		};
 	} else if (action.type === CLEAR_VALUES) {

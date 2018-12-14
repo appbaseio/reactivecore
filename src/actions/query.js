@@ -369,6 +369,7 @@ export function updateQuery({
 	showFilter = true,
 	URLParams = false,
 	componentType = null,
+	category = null,
 }, execute = true) {
 	return (dispatch) => {
 		let queryToDispatch = query;
@@ -377,7 +378,7 @@ export function updateQuery({
 		}
 		// don't set filters for internal components
 		if (!componentId.endsWith('__internal')) {
-			dispatch(setValue(componentId, value, label, showFilter, URLParams, componentType));
+			dispatch(setValue(componentId, value, label, showFilter, URLParams, componentType, category));
 		}
 		dispatch(setQuery(componentId, queryToDispatch));
 		if (execute) dispatch(executeQuery(componentId, true));
