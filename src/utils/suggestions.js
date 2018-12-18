@@ -1,13 +1,14 @@
 // flattens a nested array
-const flatten = arr => (
-	arr.reduce((flat, toFlatten) =>
-		flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten), [])
-);
+const flatten = arr =>
+	arr.reduce(
+		(flat, toFlatten) => flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten),
+		[],
+	);
 
 const extractSuggestion = (val) => {
 	switch (typeof val) {
 		case 'string':
-			return val.toLowerCase();
+			return val;
 		case 'object':
 			if (Array.isArray(val)) {
 				return flatten(val);
@@ -26,7 +27,13 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 	const populateSuggestionsList = (val, source) => {
 		// check if the suggestion includes the current value
 		// and not already included in other suggestions
-		const isWordMatch = currentValue.trim().split(' ').some(term => String(val).toLowerCase().includes(term));
+		const isWordMatch = currentValue
+			.trim()
+			.split(' ')
+			.some(term =>
+				String(val)
+					.toLowerCase()
+					.includes(term));
 		if (isWordMatch && !labelsList.includes(val)) {
 			const defaultOption = {
 				label: val,
@@ -64,7 +71,9 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 					// nested fields of the 'foo.bar.zoo' variety
 					const children = field.substring(fieldNodes[0].length + 1);
 					if (Array.isArray(label)) {
-						label.forEach((arrayItem) => { parseField(arrayItem, children); });
+						label.forEach((arrayItem) => {
+							parseField(arrayItem, children);
+						});
 					} else {
 						parseField(label, children);
 					}
@@ -83,7 +92,9 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 	};
 
 	suggestions.forEach((item) => {
-		fields.forEach((field) => { parseField(item._source, field); });
+		fields.forEach((field) => {
+			parseField(item._source, field);
+		});
 	});
 
 	return suggestionsList;
