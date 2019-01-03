@@ -172,8 +172,8 @@ function msearch(
 				});
 			}
 
-			if (config.transformResponse && typeof config.transformResponse) {
-				config.transformResponse(res);
+			if (config.transformResponse && typeof config.transformResponse === 'function') {
+				res = await config.transformResponse(res);
 			}
 
 			const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
