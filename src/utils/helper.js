@@ -283,6 +283,9 @@ export const parseHits = (hits) => {
 };
 
 export function formatDate(date, props) {
+	if (props.parseDate) {
+		return props.parseDate(date, props);
+	}
 	switch (props.queryFormat) {
 		case 'epoch_millis':
 			return date.getTime();
@@ -292,7 +295,7 @@ export function formatDate(date, props) {
 			if (dateFormats[props.queryFormat]) {
 				return date.toString(dateFormats[props.queryFormat]);
 			}
-			return date;
+			return date.getTime();
 		}
 	}
 }
