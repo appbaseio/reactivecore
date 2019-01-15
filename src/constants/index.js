@@ -11,6 +11,7 @@ export const ADD_APPBASE_REF = 'ADD_APPBASE_REF';
 export const LOG_QUERY = 'LOG_QUERY';
 export const LOG_COMBINED_QUERY = 'LOG_COMBINED_QUERY';
 export const SET_VALUE = 'SET_VALUE';
+export const PATCH_VALUE = 'PATCH_VALUE';
 export const CLEAR_VALUES = 'CLEAR_VALUES';
 export const SET_LOADING = 'SET_LOADING';
 export const SET_ERROR = 'SET_ERROR';
