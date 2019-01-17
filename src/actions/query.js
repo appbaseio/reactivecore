@@ -107,7 +107,7 @@ function msearch(
 	isInternalComponent = false,
 	appendToAggs = false,
 ) {
-	return async (dispatch, getState) => {
+	return (dispatch, getState) => {
 		const {
 			appbaseRef,
 			config,
@@ -153,29 +153,14 @@ function msearch(
 			dispatch(setLoading(component, true));
 		});
 
-		try {
-			let res = null;
-
-			if (config.graphQLUrl) {
-				res = await fetchGraphQL(
-					config.graphQLUrl,
-					config.url,
-					config.credentials,
-					config.app,
-					query,
-				);
-			} else {
-				appbaseRef.setHeaders({ ...headers, ...searchHeaders });
-				res = await appbaseRef.msearch({
-					type: config.type === '*' ? '' : config.type,
-					body: query,
-				});
-			}
-
+		const handleTransformResponse = (res) => {
 			if (config.transformResponse && typeof config.transformResponse === 'function') {
-				res = await config.transformResponse(res);
+				return config.transformResponse(res);
 			}
+			return new Promise(resolve => resolve(res));
+		};
 
+		const handleResponse = (res) => {
 			const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
 			if (searchId) {
 				// if search id was updated set it in store
@@ -198,7 +183,9 @@ function msearch(
 					}
 				}
 			});
-		} catch (error) {
+		};
+
+		const handleError = (error) => {
 			console.error(error);
 			orderOfQueries.forEach((component) => {
 				if (queryListener[component] && queryListener[component].onError) {
@@ -206,6 +193,34 @@ function msearch(
 				}
 				dispatch(setError(component, error));
 				dispatch(setLoading(component, false));
+			});
+		};
+
+		if (config.graphQLUrl) {
+			fetchGraphQL(
+				config.graphQLUrl,
+				config.url,
+				config.credentials,
+				config.app,
+				query,
+			).then(res => (
+				handleTransformResponse(res)
+			)).then((res) => {
+				handleResponse(res);
+			}).catch((err) => {
+				handleError(err);
+			});
+		} else {
+			appbaseRef.setHeaders({ ...headers, ...searchHeaders });
+			appbaseRef.msearch({
+				type: config.type === '*' ? '' : config.type,
+				body: query,
+			}).then(res => (
+				handleTransformResponse(res)
+			)).then((res) => {
+				handleResponse(res);
+			}).catch((err) => {
+				handleError(err);
 			});
 		}
 	};
