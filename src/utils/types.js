@@ -13,15 +13,11 @@ import {
 
 import dateFormats from './dateFormats';
 
-const reactKeyType = oneOfType([
-	string,
-	arrayOf(string),
-	object,
-	arrayOf(object),
-]);
+const reactKeyType = oneOfType([string, arrayOf(string), object, arrayOf(object)]);
 
 function validateLocation(props, propName) {
-	if (isNaN(props[propName])) { // eslint-disable-line
+	// eslint-disable-next-line
+	if (isNaN(props[propName])) {
 		return new Error(`${propName} value must be a number`);
 	}
 	if (propName === 'lat' && (props[propName] < -90 || props[propName] > 90)) {
@@ -73,6 +69,10 @@ const types = {
 		and: reactKeyType,
 		or: reactKeyType,
 		not: reactKeyType,
+	}),
+	categorySearchValue: shape({
+		term: string,
+		category: string,
 	}),
 	selectedValues: object,
 	selectedValue: oneOfType([
