@@ -5,12 +5,13 @@ import { STORE_KEY } from './constants';
 import * as Actions from './actions';
 import * as helper from './utils/helper';
 import Suggestions from './utils/suggestions';
+import polyfills from './utils/polyfills';
 import Causes from './utils/causes';
 
 const storeKey = STORE_KEY;
 const suggestions = Suggestions;
 const causes = Causes;
-export { helper, causes, suggestions, Actions, storeKey };
+export { helper, causes, suggestions, Actions, storeKey, polyfills };
 
 const composeEnhancers
 	= typeof window === 'object'
