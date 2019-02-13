@@ -10,6 +10,7 @@ import {
 	SET_QUERY_LISTENER,
 	SET_SEARCH_ID,
 	SET_ERROR,
+	SET_PROMOTED_RESULTS,
 } from '../constants';
 
 import { setValue } from './value';
@@ -93,6 +94,13 @@ export function setHeaders(headers) {
 	};
 }
 
+export function setPromotedResults(results = []) {
+	return {
+		type: SET_PROMOTED_RESULTS,
+		results,
+	};
+}
+
 function setSearchId(searchId = null) {
 	return {
 		type: SET_SEARCH_ID,
@@ -167,6 +175,13 @@ function msearch(
 				dispatch(setSearchId(searchId));
 			}
 
+			// handle promoted results
+			if (res.promoted) {
+				dispatch(setPromotedResults(res.promoted));
+			} else {
+				dispatch(setPromotedResults());
+			}
+
 			orderOfQueries.forEach((component, index) => {
 				const response = res.responses[index];
 				const { timestamp } = getState();
@@ -197,31 +212,28 @@ function msearch(
 		};
 
 		if (config.graphQLUrl) {
-			fetchGraphQL(
-				config.graphQLUrl,
-				config.url,
-				config.credentials,
-				config.app,
-				query,
-			).then(res => (
-				handleTransformResponse(res)
-			)).then((res) => {
-				handleResponse(res);
-			}).catch((err) => {
-				handleError(err);
-			});
+			fetchGraphQL(config.graphQLUrl, config.url, config.credentials, config.app, query)
+				.then(res => handleTransformResponse(res))
+				.then((res) => {
+					handleResponse(res);
+				})
+				.catch((err) => {
+					handleError(err);
+				});
 		} else {
 			appbaseRef.setHeaders({ ...headers, ...searchHeaders });
-			appbaseRef.msearch({
-				type: config.type === '*' ? '' : config.type,
-				body: query,
-			}).then(res => (
-				handleTransformResponse(res)
-			)).then((res) => {
-				handleResponse(res);
-			}).catch((err) => {
-				handleError(err);
-			});
+			appbaseRef
+				.msearch({
+					type: config.type === '*' ? '' : config.type,
+					body: query,
+				})
+				.then(res => handleTransformResponse(res))
+				.then((res) => {
+					handleResponse(res);
+				})
+				.catch((err) => {
+					handleError(err);
+				});
 		}
 	};
 }
@@ -232,11 +244,7 @@ function executeQueryListener(listener, oldQuery, newQuery) {
 	}
 }
 
-export function executeQuery(
-	componentId,
-	executeWatchList = false,
-	mustExecuteMapQuery = false,
-) {
+export function executeQuery(componentId, executeWatchList = false, mustExecuteMapQuery = false) {
 	return (dispatch, getState) => {
 		const {
 			queryLog,
@@ -274,9 +282,7 @@ export function executeQuery(
 			// check if query or options are valid - non-empty
 			if (
 				(queryObj && !!Object.keys(queryObj).length)
-				|| (options && (
-					Object.keys(options).some(item => validOptions.includes(item)))
-				)
+				|| (options && Object.keys(options).some(item => validOptions.includes(item)))
 			) {
 				// attach a match-all-query if empty
 				if (!queryObj || (queryObj && !Object.keys(queryObj).length)) {
@@ -307,18 +313,12 @@ export function executeQuery(
 					// add maps query here
 					const isMapComponent = Object.keys(mapData).includes(component);
 
-					if (
-						isMapComponent
-						&& mapData[component].query
-					) {
+					if (isMapComponent && mapData[component].query) {
 						// attach mapQuery to exisiting query via "must" type
 						const existingQuery = currentQuery.query;
 						currentQuery.query = {
 							bool: {
-								must: [
-									existingQuery,
-									mapData[component].query,
-								],
+								must: [existingQuery, mapData[component].query],
 							},
 						};
 
@@ -337,11 +337,7 @@ export function executeQuery(
 						dispatch(logCombinedQuery(component, currentQuery));
 					}
 
-					executeQueryListener(
-						queryListener[component],
-						oldQuery,
-						currentQuery,
-					);
+					executeQueryListener(queryListener[component], oldQuery, currentQuery);
 
 					// execute streaming query if applicable
 					if (stream[component] && stream[component].status) {
@@ -349,25 +345,29 @@ export function executeQuery(
 							stream[component].ref.stop();
 						}
 
-						const ref = appbaseRef.searchStream({
-							type: config.type === '*' ? '' : config.type,
-							body: currentQuery,
-						}, (response) => {
-							if (response._id) {
-								dispatch(pushToStreamHits(component, response));
-							}
-						}, (error) => {
-							if (queryListener[component] && queryListener[component].onError) {
-								queryListener[component].onError(error);
-							}
-							/**
-							 * In android devices, sometime websocket throws error when there is no activity
-							 * for a long time, console.error crashes the app, so changed it to console.warn
-							 */
-							console.warn(error);
-							dispatch(setError(component, error));
-							dispatch(setLoading(component, false));
-						});
+						const ref = appbaseRef.searchStream(
+							{
+								type: config.type === '*' ? '' : config.type,
+								body: currentQuery,
+							},
+							(response) => {
+								if (response._id) {
+									dispatch(pushToStreamHits(component, response));
+								}
+							},
+							(error) => {
+								if (queryListener[component] && queryListener[component].onError) {
+									queryListener[component].onError(error);
+								}
+								/**
+								 * In android devices, sometime websocket throws error when there is no activity
+								 * for a long time, console.error crashes the app, so changed it to console.warn
+								 */
+								console.warn(error);
+								dispatch(setError(component, error));
+								dispatch(setLoading(component, false));
+							},
+						);
 
 						// update streaming ref
 						dispatch(setStreaming(component, true, ref));
@@ -402,16 +402,19 @@ export function setQueryOptions(component, queryOptions, execute = true) {
 	};
 }
 
-export function updateQuery({
-	componentId,
-	query,
-	value,
-	label = null,
-	showFilter = true,
-	URLParams = false,
-	componentType = null,
-	category = null,
-}, execute = true) {
+export function updateQuery(
+	{
+		componentId,
+		query,
+		value,
+		label = null,
+		showFilter = true,
+		URLParams = false,
+		componentType = null,
+		category = null,
+	},
+	execute = true,
+) {
 	return (dispatch) => {
 		let queryToDispatch = query;
 		if (query && query.query) {

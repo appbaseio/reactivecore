@@ -21,6 +21,7 @@ import headersReducer from './headersReducer';
 import mapDataReducer from './mapDataReducer';
 import queryListenerReducer from './queryListenerReducer';
 import analyticsReducer from './analyticsReducer';
+import promotedResultsReducer from './promotedResultsReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -31,6 +32,7 @@ export default combineReducers({
 	appbaseRef: appbaseRefReducer,
 	config: configReducer,
 	hits: hitsReducer,
+	promotedResults: promotedResultsReducer,
 	aggregations: aggsReducer,
 	queryLog: logsReducer,
 	combinedLog: combinedLogsReducer,
