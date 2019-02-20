@@ -161,11 +161,22 @@ function msearch(
 			dispatch(setLoading(component, true));
 		});
 
-		const handleTransformResponse = (res) => {
+		const handleTransformResponse = (res, component) => {
 			if (config.transformResponse && typeof config.transformResponse === 'function') {
-				return config.transformResponse(res);
+				return config.transformResponse(res, component);
 			}
 			return new Promise(resolve => resolve(res));
+		};
+
+		const handleError = (error) => {
+			console.error(error);
+			orderOfQueries.forEach((component) => {
+				if (queryListener[component] && queryListener[component].onError) {
+					queryListener[component].onError(error);
+				}
+				dispatch(setError(component, error));
+				dispatch(setLoading(component, false));
+			});
 		};
 
 		const handleResponse = (res) => {
@@ -183,37 +194,30 @@ function msearch(
 			}
 
 			orderOfQueries.forEach((component, index) => {
-				const response = res.responses[index];
-				const { timestamp } = getState();
+				handleTransformResponse(res.responses[index], component).then((response) => {
+					const { timestamp } = getState();
+					if (
+						timestamp[component] === undefined
+						|| timestamp[component] < res._timestamp
+					) {
+						if (response.hits) {
+							dispatch(setTimestamp(component, res._timestamp));
+							dispatch(updateHits(component, response.hits, response.took, appendToHits));
+							dispatch(setLoading(component, false));
+						}
 
-				if (timestamp[component] === undefined || timestamp[component] < res._timestamp) {
-					if (response.hits) {
-						dispatch(setTimestamp(component, res._timestamp));
-						dispatch(updateHits(component, response.hits, response.took, appendToHits));
-						dispatch(setLoading(component, false));
+						if (response.aggregations) {
+							dispatch(updateAggs(component, response.aggregations, appendToAggs));
+						}
 					}
-
-					if (response.aggregations) {
-						dispatch(updateAggs(component, response.aggregations, appendToAggs));
-					}
-				}
-			});
-		};
-
-		const handleError = (error) => {
-			console.error(error);
-			orderOfQueries.forEach((component) => {
-				if (queryListener[component] && queryListener[component].onError) {
-					queryListener[component].onError(error);
-				}
-				dispatch(setError(component, error));
-				dispatch(setLoading(component, false));
+				}).catch((err) => {
+					handleError(err);
+				});
 			});
 		};
 
 		if (config.graphQLUrl) {
 			fetchGraphQL(config.graphQLUrl, config.url, config.credentials, config.app, query)
-				.then(res => handleTransformResponse(res))
 				.then((res) => {
 					handleResponse(res);
 				})
@@ -227,7 +231,6 @@ function msearch(
 					type: config.type === '*' ? '' : config.type,
 					body: query,
 				})
-				.then(res => handleTransformResponse(res))
 				.then((res) => {
 					handleResponse(res);
 				})
