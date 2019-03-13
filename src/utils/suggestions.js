@@ -93,7 +93,7 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 
 	suggestions.forEach((item) => {
 		fields.forEach((field) => {
-			parseField(item._source, field);
+			parseField({ ...item._source, _id: item._id }, field);
 		});
 	});
 
