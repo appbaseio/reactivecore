@@ -1,6 +1,6 @@
 {
 	"name": "@appbaseio/reactivecore",
-	"version": "8.0.0",
+	"version": "8.1.0",
 	"description": "Core architecture of reactive UI libraries",
 	"main": "lib/index.js",
 	"files": [
