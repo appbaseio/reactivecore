@@ -92,8 +92,20 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 	};
 
 	suggestions.forEach((item) => {
+		const {
+			_score, _index, _type, _id,
+		} = item;
 		fields.forEach((field) => {
-			parseField(item._source, field);
+			parseField(
+				{
+					...item._source,
+					_id,
+					_index,
+					_score,
+					_type,
+				},
+				field,
+			);
 		});
 	});
 
