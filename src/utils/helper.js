@@ -273,6 +273,7 @@ export const parseHits = (hits) => {
 				_id: data._id,
 				_index: data._index,
 				_type: data._type,
+				_score: data._score,
 				highlight: data.highlight || {},
 				...data._source,
 				...streamProps,
@@ -305,4 +306,3 @@ export const getOptionsFromQuery = (customQuery = {}) => {
 	const { query, ...rest } = customQuery;
 	return Object.keys(rest).length ? rest : null;
 };
-
