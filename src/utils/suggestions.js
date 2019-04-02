@@ -24,12 +24,7 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 	let suggestionsList = [];
 	let labelsList = [];
 
-	const getSourceValue = (id) => {
-		const selectedItem = suggestions.find(item => item._id === id);
-		return selectedItem._source;
-	};
-
-	const populateSuggestionsList = (val, source, id) => {
+	const populateSuggestionsList = (val, parsedSource, source) => {
 		// check if the suggestion includes the current value
 		// and not already included in other suggestions
 		const isWordMatch = currentValue
@@ -43,15 +38,15 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 			const defaultOption = {
 				label: val,
 				value: val,
-				source: getSourceValue(id),
+				source,
 			};
 			let additionalKeys = {};
 			if (Array.isArray(suggestionProperties) && suggestionProperties.length > 0) {
 				suggestionProperties.forEach((prop) => {
-					if (source.hasOwnProperty(prop)) {
+					if (parsedSource.hasOwnProperty(prop)) {
 						additionalKeys = {
 							...additionalKeys,
-							[prop]: source[prop],
+							[prop]: parsedSource[prop],
 						};
 					}
 				});
@@ -66,29 +61,29 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 		}
 	};
 
-	const parseField = (source, field, id) => {
-		if (typeof source === 'object') {
+	const parseField = (parsedSource, field, source = parsedSource) => {
+		if (typeof parsedSource === 'object') {
 			const fieldNodes = field.split('.');
-			const label = source[fieldNodes[0]];
+			const label = parsedSource[fieldNodes[0]];
 			if (label) {
 				if (fieldNodes.length > 1) {
 					// nested fields of the 'foo.bar.zoo' variety
 					const children = field.substring(fieldNodes[0].length + 1);
 					if (Array.isArray(label)) {
 						label.forEach((arrayItem) => {
-							parseField(arrayItem, children, id);
+							parseField(arrayItem, children, source);
 						});
 					} else {
-						parseField(label, children, id);
+						parseField(label, children, source);
 					}
 				} else {
 					const val = extractSuggestion(label);
 					if (val) {
 						if (Array.isArray(val)) {
 							val.forEach(suggestion =>
-								populateSuggestionsList(suggestion, source, id));
+								populateSuggestionsList(suggestion, parsedSource, source));
 						} else {
-							populateSuggestionsList(val, source, id);
+							populateSuggestionsList(val, parsedSource, source);
 						}
 					}
 				}
@@ -100,18 +95,16 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 		const {
 			_score, _index, _type, _id,
 		} = item;
+
+		const source = {
+			...item._source,
+			_id,
+			_index,
+			_score,
+			_type,
+		};
 		fields.forEach((field) => {
-			parseField(
-				{
-					...getSourceValue(_id),
-					_id,
-					_index,
-					_score,
-					_type,
-				},
-				field,
-				_id,
-			);
+			parseField(source, field);
 		});
 	});
 
