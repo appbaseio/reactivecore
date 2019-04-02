@@ -24,7 +24,12 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 	let suggestionsList = [];
 	let labelsList = [];
 
-	const populateSuggestionsList = (val, source) => {
+	const getSourceValue = (id) => {
+		const selectedItem = suggestions.find(item => item._id === id);
+		return selectedItem._source;
+	};
+
+	const populateSuggestionsList = (val, source, id) => {
 		// check if the suggestion includes the current value
 		// and not already included in other suggestions
 		const isWordMatch = currentValue
@@ -38,9 +43,8 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 			const defaultOption = {
 				label: val,
 				value: val,
-				source,
+				source: getSourceValue(id),
 			};
-
 			let additionalKeys = {};
 			if (Array.isArray(suggestionProperties) && suggestionProperties.length > 0) {
 				suggestionProperties.forEach((prop) => {
@@ -62,7 +66,7 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 		}
 	};
 
-	const parseField = (source, field) => {
+	const parseField = (source, field, id) => {
 		if (typeof source === 'object') {
 			const fieldNodes = field.split('.');
 			const label = source[fieldNodes[0]];
@@ -72,18 +76,19 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 					const children = field.substring(fieldNodes[0].length + 1);
 					if (Array.isArray(label)) {
 						label.forEach((arrayItem) => {
-							parseField(arrayItem, children);
+							parseField(arrayItem, children, id);
 						});
 					} else {
-						parseField(label, children);
+						parseField(label, children, id);
 					}
 				} else {
 					const val = extractSuggestion(label);
 					if (val) {
 						if (Array.isArray(val)) {
-							val.forEach(suggestion => populateSuggestionsList(suggestion, source));
+							val.forEach(suggestion =>
+								populateSuggestionsList(suggestion, source, id));
 						} else {
-							populateSuggestionsList(val, source);
+							populateSuggestionsList(val, source, id);
 						}
 					}
 				}
@@ -98,13 +103,14 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 		fields.forEach((field) => {
 			parseField(
 				{
-					...item._source,
+					...getSourceValue(_id),
 					_id,
 					_index,
 					_score,
 					_type,
 				},
 				field,
+				_id,
 			);
 		});
 	});
