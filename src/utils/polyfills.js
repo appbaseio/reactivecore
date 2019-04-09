@@ -54,3 +54,13 @@ if (!String.prototype.endsWith) {
 		return d >= 0 && this.lastIndexOf(pattern) === d;
 	};
 }
+
+if (typeof Event !== 'function') {
+	function Event(event) {
+		const evt = document.createEvent('Event');
+		evt.initEvent(event, true, true);
+		return evt;
+	}
+
+	window.Event = Event;
+}
