@@ -62,8 +62,7 @@ if (typeof Event !== 'function') {
 		return evt;
 	}
 
-	if (typeof window === 'undefined') {
-		return;
+	if (typeof window !== 'undefined') {
+		window.Event = Event;
 	}
-	window.Event = Event;
 }
