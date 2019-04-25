@@ -20,21 +20,14 @@ const extractSuggestion = (val) => {
 	}
 };
 
-const getSuggestions = (fields, suggestions, currentValue, suggestionProperties = []) => {
+const getSuggestions = (fields, suggestions, suggestionProperties = []) => {
 	let suggestionsList = [];
 	let labelsList = [];
 
 	const populateSuggestionsList = (val, parsedSource, source) => {
 		// check if the suggestion includes the current value
 		// and not already included in other suggestions
-		const isWordMatch = currentValue
-			.trim()
-			.split(' ')
-			.some(term =>
-				String(val)
-					.toLowerCase()
-					.includes(term));
-		if (isWordMatch && !labelsList.includes(val)) {
+		if (!labelsList.includes(val)) {
 			const defaultOption = {
 				label: val,
 				value: val,
@@ -43,7 +36,7 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 			let additionalKeys = {};
 			if (Array.isArray(suggestionProperties) && suggestionProperties.length > 0) {
 				suggestionProperties.forEach((prop) => {
-					if (parsedSource.hasOwnProperty(prop)) {
+					if (Object.prototype.hasOwnProperty.call(parsedSource, prop)) {
 						additionalKeys = {
 							...additionalKeys,
 							[prop]: parsedSource[prop],
