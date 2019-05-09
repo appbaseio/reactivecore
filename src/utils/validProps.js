@@ -1,0 +1,48 @@
+export default [
+	// Specific to ReactiveList
+	'dataField',
+	'includeFields',
+	'excludeFields',
+	'size',
+	'sortBy',
+	'sortOptions',
+	'pagination',
+	// Specific to DataSearch
+	'autoFocus',
+	'autosuggest',
+	'debounce',
+	'defaultValue',
+	'defaultSuggestions',
+	'fieldWeights',
+	'filterLabel',
+	'fuzziness',
+	'highlight',
+	'highlightField',
+	'nestedField',
+	'placeholder',
+	'queryFormat',
+	// Specific to Category Search
+	'categoryField',
+	'strictSelection',
+	// Specific to List Components
+	'selectAllLabel',
+	'showCheckbox',
+	'showFilter',
+	'showSearch',
+	'showCount',
+	'showLoadMore',
+	'loadMoreLabel',
+	'showMissing',
+	'missingLabel',
+	'data',
+	'showRadio',
+	// TagCloud and ToggleButton
+	'multiSelect',
+	// Range Components
+	'interval',
+	'showHistogram',
+	'snap',
+	'stepValue',
+	'range',
+	'showSlider',
+];

@@ -22,6 +22,7 @@ import mapDataReducer from './mapDataReducer';
 import queryListenerReducer from './queryListenerReducer';
 import analyticsReducer from './analyticsReducer';
 import promotedResultsReducer from './promotedResultsReducer';
+import propsReducer from './propsReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -46,4 +47,5 @@ export default combineReducers({
 	mapData: mapDataReducer, // holds the map id and boolean to execute geo-bound-query
 	queryListener: queryListenerReducer,
 	analytics: analyticsReducer,
+	props: propsReducer,
 });

@@ -24,3 +24,6 @@ export const SET_QUERY_LISTENER = 'SET_QUERY_LISTENER';
 export const STORE_KEY = '__REACTIVESEARCH__';
 export const SET_SEARCH_ID = 'SET_SEARCH_ID';
 export const SET_PROMOTED_RESULTS = 'SET_PROMOTED_RESULTS';
+export const SET_PROPS = 'SET_PROPS';
+export const UPDATE_PROPS = 'UPDATE_PROPS';
+export const REMOVE_PROPS = 'REMOVE_PROPS';

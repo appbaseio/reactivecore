@@ -3,3 +3,4 @@ export * from './hits';
 export * from './maps';
 export * from './query';
 export * from './value';
+export * from './props';
