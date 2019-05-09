@@ -15,7 +15,7 @@ import {
 
 import { setValue } from './value';
 import { updateHits, updateAggs, pushToStreamHits } from './hits';
-import { buildQuery, isEqual } from '../utils/helper';
+import { buildQuery, isEqual, getSearchState } from '../utils/helper';
 import getFilterString from '../utils/analytics';
 import { updateMapData } from './maps';
 import fetchGraphQL from '../utils/graphQL';
@@ -154,6 +154,10 @@ function msearch(
 					},
 				);
 			}
+			const searchState = getSearchState(getState());
+			if (searchState && Object.keys(searchState).length) {
+				searchHeaders['X-Search-State'] = JSON.stringify(searchState);
+			}
 		}
 
 		// set loading as active for the given component
@@ -194,25 +198,32 @@ function msearch(
 			}
 
 			orderOfQueries.forEach((component, index) => {
-				handleTransformResponse(res.responses[index], component).then((response) => {
-					const { timestamp } = getState();
-					if (
-						timestamp[component] === undefined
-						|| timestamp[component] < res._timestamp
-					) {
-						if (response.hits) {
-							dispatch(setTimestamp(component, res._timestamp));
-							dispatch(updateHits(component, response.hits, response.took, appendToHits));
-							dispatch(setLoading(component, false));
-						}
+				handleTransformResponse(res.responses[index], component)
+					.then((response) => {
+						const { timestamp } = getState();
+						if (
+							timestamp[component] === undefined
+							|| timestamp[component] < res._timestamp
+						) {
+							if (response.hits) {
+								dispatch(setTimestamp(component, res._timestamp));
+								dispatch(updateHits(
+									component,
+									response.hits,
+									response.took,
+									appendToHits,
+								));
+								dispatch(setLoading(component, false));
+							}
 
-						if (response.aggregations) {
-							dispatch(updateAggs(component, response.aggregations, appendToAggs));
+							if (response.aggregations) {
+								dispatch(updateAggs(component, response.aggregations, appendToAggs));
+							}
 						}
-					}
-				}).catch((err) => {
-					handleError(err);
-				});
+					})
+					.catch((err) => {
+						handleError(err);
+					});
 			});
 		};
 

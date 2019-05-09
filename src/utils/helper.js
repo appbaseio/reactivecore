@@ -312,3 +312,49 @@ export const getOptionsFromQuery = (customQuery = {}) => {
 	}
 	return null;
 };
+
+export const getSearchState = (state = {}) => {
+	const {
+		selectedValues, queryLog, dependencyTree, props,
+	} = state;
+	const searchState = {};
+	Object.keys(props).forEach((componentId) => {
+		searchState[componentId] = {
+			...searchState[componentId],
+			...props[componentId],
+		};
+	});
+	Object.keys(selectedValues).forEach((componentId) => {
+		const componentState = searchState[componentId];
+		const selectedValue = selectedValues[componentId];
+		if (selectedValue) {
+			searchState[componentId] = {
+				...componentState,
+				...{
+					title: selectedValue.label,
+					componentType: selectedValue.componentType,
+					value: selectedValue.value,
+					...(selectedValue.category && {
+						category: selectedValue.category,
+					}),
+					URLParams: selectedValue.URLParams,
+				},
+			};
+		}
+	});
+	Object.keys(queryLog).forEach((componentId) => {
+		searchState[componentId] = {
+			...searchState[componentId],
+			...queryLog[componentId],
+		};
+	});
+	Object.keys(dependencyTree).forEach((componentId) => {
+		searchState[componentId] = {
+			...searchState[componentId],
+			...{
+				react: dependencyTree[componentId],
+			},
+		};
+	});
+	return searchState;
+};
