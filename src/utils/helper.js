@@ -313,17 +313,33 @@ export const getOptionsFromQuery = (customQuery = {}) => {
 	return null;
 };
 
-export const getSearchState = (state = {}) => {
+export const getSearchState = (state = {}, forHeaders = false) => {
 	const {
-		selectedValues, queryLog, dependencyTree, props,
+		selectedValues,
+		queryLog,
+		dependencyTree,
+		props,
+		hits,
+		aggregations,
+		isLoading,
+		error,
 	} = state;
 	const searchState = {};
-	Object.keys(props).forEach((componentId) => {
-		searchState[componentId] = {
-			...searchState[componentId],
-			...props[componentId],
-		};
-	});
+
+	const populateState = (obj = {}, key) =>
+		Object.keys(obj).forEach((componentId) => {
+			searchState[componentId] = {
+				...searchState[componentId],
+				...(key
+					? {
+						[key]: obj[componentId],
+					}
+					: obj[componentId]),
+			};
+		});
+
+	populateState(props);
+
 	Object.keys(selectedValues).forEach((componentId) => {
 		const componentState = searchState[componentId];
 		const selectedValue = selectedValues[componentId];
@@ -342,19 +358,13 @@ export const getSearchState = (state = {}) => {
 			};
 		}
 	});
-	Object.keys(queryLog).forEach((componentId) => {
-		searchState[componentId] = {
-			...searchState[componentId],
-			...queryLog[componentId],
-		};
-	});
-	Object.keys(dependencyTree).forEach((componentId) => {
-		searchState[componentId] = {
-			...searchState[componentId],
-			...{
-				react: dependencyTree[componentId],
-			},
-		};
-	});
+	if (!forHeaders) {
+		populateState(queryLog);
+		populateState(hits, 'hits');
+		populateState(aggregations, 'aggregations');
+		populateState(isLoading, 'isLoading');
+		populateState(error, 'error');
+	}
+	populateState(dependencyTree, 'react');
 	return searchState;
 };

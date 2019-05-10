@@ -128,7 +128,7 @@ function msearch(
 		let searchHeaders = {};
 
 		// send search id or term in headers
-		if (config.analytics && !isInternalComponent) {
+		if (config.analytics && config.searchStateHeader && !isInternalComponent) {
 			const { searchValue, searchId } = analytics;
 
 			// if a filter string exists append that to the search headers
@@ -154,7 +154,7 @@ function msearch(
 					},
 				);
 			}
-			const searchState = getSearchState(getState());
+			const searchState = getSearchState(getState(), true);
 			if (searchState && Object.keys(searchState).length) {
 				searchHeaders['X-Search-State'] = JSON.stringify(searchState);
 			}
