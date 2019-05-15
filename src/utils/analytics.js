@@ -1,39 +1,41 @@
+import { componentTypes } from '../utils/constants';
+
 const filterComponents = [
-	'NUMBERBOX',
-	'TAGCLOUD',
-	'TOGGLEBUTTON',
-	'DATEPICKER',
-	'DATERANGE',
-	'MULTIDATALIST',
-	'MULTIDROPDOWNLIST',
-	'MULTILIST',
-	'SINGLEDATALIST',
-	'SINGLEDROPDOWNLIST',
-	'SINGLELIST',
-	'DYNAMICRANGESLIDER',
-	'MULTIDROPDOWNRANGE',
-	'MULTIRANGE',
-	'RANGESLIDER',
-	'RATINGSFILTER',
-	'SINGLEDROPDOWNRANGE',
-	'SINGLERANGE',
+	componentTypes.numberBox,
+	componentTypes.tagCloud,
+	componentTypes.toggleButton,
+	componentTypes.datePicker,
+	componentTypes.dateRange,
+	componentTypes.multiDataList,
+	componentTypes.multiDropdownList,
+	componentTypes.multiList,
+	componentTypes.singleDataList,
+	componentTypes.singleDropdownList,
+	componentTypes.singleList,
+	componentTypes.dynamicRangeSlider,
+	componentTypes.multiDropdownRange,
+	componentTypes.multiRange,
+	componentTypes.rangeSlider,
+	componentTypes.ratingsFilter,
+	componentTypes.singleDropdownRange,
+	componentTypes.singleRange,
 ];
 
 // components storing range as array
 const rangeComponents = [
-	'DATERANGE',
-	'DYNAMICRANGESLIDER',
-	'RANGESLIDER',
-	'RANGEINPUT',
-	'RATINGSFILTER',
+	componentTypes.dateRange,
+	componentTypes.dynamicRangeSlider,
+	componentTypes.rangeSlider,
+	componentTypes.rangeInput,
+	componentTypes.ratingsFilter,
 ];
 
 // components storing range as object
 const rangeObjectComponents = [
-	'SINGLERANGE',
-	'SINGLEDROPDOWNRANGE',
-	'MULTIRANGE',
-	'MULTIDROPDOWNRANGE',
+	componentTypes.singleRange,
+	componentTypes.singleDropdownRange,
+	componentTypes.multiRange,
+	componentTypes.multiDropdownRange,
 ];
 
 function parseRangeObject(filterKey, rangeObject) {

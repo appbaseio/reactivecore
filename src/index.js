@@ -5,7 +5,7 @@ import { STORE_KEY } from './constants';
 import * as Actions from './actions';
 import * as helper from './utils/helper';
 import Suggestions from './utils/suggestions';
-import validProps from './utils/validProps';
+import constants from './utils/constants';
 import polyfills from './utils/polyfills';
 import Causes from './utils/causes';
 import valueReducer from './reducers/valueReducer';
@@ -24,7 +24,7 @@ const Reducers = {
 	dependencyTreeReducer,
 	propsReducer,
 };
-export { helper, causes, suggestions, Actions, storeKey, polyfills, Reducers, validProps };
+export { helper, causes, suggestions, Actions, storeKey, polyfills, Reducers, constants };
 
 const composeEnhancers
 	= typeof window === 'object' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__

@@ -1,5 +1,5 @@
 import { SET_PROPS, REMOVE_PROPS, UPDATE_PROPS } from '../constants';
-import validProps from '../utils/validProps';
+import { validProps } from '../utils/constants';
 
 const getfilteredOptions = (options = {}) => {
 	const filteredOptions = {};
