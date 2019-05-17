@@ -1,8 +1,4 @@
-import {
-	UPDATE_HITS,
-	UPDATE_AGGS,
-	PUSH_TO_STREAM_HITS,
-} from '../constants';
+import { UPDATE_HITS, UPDATE_AGGS, PUSH_TO_STREAM_HITS } from '../constants';
 
 export function updateAggs(component, aggregations, append = false) {
 	return {
@@ -18,7 +14,8 @@ export function updateHits(component, hits, time, append = false) {
 		type: UPDATE_HITS,
 		component,
 		hits: hits.hits,
-		total: hits.total,
+		// make compatible with es7
+		total: typeof hits.total === 'object' ? hits.total.value : hits.total,
 		time,
 		append,
 	};
