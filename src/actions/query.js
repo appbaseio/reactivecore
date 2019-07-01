@@ -193,12 +193,6 @@ function msearch(
 			}
 
 			// handle promoted results
-			if (res.promoted) {
-				dispatch(setPromotedResults(res.promoted));
-			} else {
-				dispatch(setPromotedResults());
-			}
-
 			orderOfQueries.forEach((component, index) => {
 				handleTransformResponse(res.responses[index], component)
 					.then((response) => {
@@ -207,6 +201,11 @@ function msearch(
 							timestamp[component] === undefined
 							|| timestamp[component] < res._timestamp
 						) {
+							if (response.promoted) {
+								dispatch(setPromotedResults(response.promoted));
+							} else {
+								dispatch(setPromotedResults());
+							}
 							if (response.hits) {
 								dispatch(setTimestamp(component, res._timestamp));
 								dispatch(updateHits(
