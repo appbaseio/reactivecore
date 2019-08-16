@@ -1,3 +1,5 @@
+import fetch from 'cross-fetch';
+
 const fetchGraphQL = (graphQLUrl, url, credentials, app, query) => {
 	const fetchUrl = credentials ? url.replace('//', `//${credentials}@`) : url;
 	return fetch(graphQLUrl, {
