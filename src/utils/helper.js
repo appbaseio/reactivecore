@@ -269,16 +269,20 @@ export const parseHits = (hits) => {
 			}
 
 			const data = highlightResults(item);
-			let result = Object.keys(data)
+			const result = Object.keys(data)
 				.filter(key => key !== '_source')
-				.reduce((obj, key) => {
-					obj[key] = data[key];
-					return obj;
-				},{
-          highlight: data.highlight || {},
-					...data._source,
-					...streamProps,
-				});
+				.reduce(
+					(obj, key) => {
+						// eslint-disable-next-line
+						obj[key] = data[key];
+						return obj;
+					},
+					{
+						highlight: data.highlight || {},
+						...data._source,
+						...streamProps,
+					},
+				);
 			return result;
 		});
 	}
@@ -335,7 +339,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 				...(key
 					? {
 						[key]: obj[componentId],
-					}
+					  }
 					: obj[componentId]),
 			};
 		});
