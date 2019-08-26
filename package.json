@@ -1,46 +1,50 @@
 {
-  "name": "@appbaseio/reactivecore",
-  "version": "6.0.3",
-  "description": "Core architecture of reactive UI libraries",
-  "main": "lib/index.js",
-  "files": [
-    "lib/"
-  ],
-  "scripts": {
-    "lint": "eslint .",
-    "start": "yarn run build -w",
-    "build": "babel --ignore __tests__ src --out-dir lib",
-    "precommit": "eslint .",
-    "prepublish": "yarn run build",
-    "test": "../../node_modules/jest/bin/jest.js --watch --env node"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/appbaseio/reactivecore.git"
-  },
-  "author": "Deepak Grover <deepakgrover333@gmail.com> (https://github.com/metagrover)",
-  "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/appbaseio/reactivecore/issues"
-  },
-  "homepage": "https://github.com/appbaseio/reactivecore#readme",
-  "dependencies": {
-    "prop-types": "^15.6.0",
-    "redux": "^4.0.0",
-    "redux-thunk": "^2.3.0"
-  },
-  "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-eslint": "^7.2.3",
-    "babel-preset-react-native": "^4.0.0",
-    "eslint": "^4.4.0",
-    "eslint-config-airbnb": "^16.1.0",
-    "eslint-plugin-babel": "^4.1.2",
-    "eslint-plugin-import": "^2.8.0",
-    "eslint-plugin-jest": "^21.12.2",
-    "eslint-plugin-jsx-a11y": "^6.0.3",
-    "eslint-plugin-react": "^7.5.1",
-    "husky": "^0.14.3",
-    "jest": "^22.4.2"
-  }
+	"name": "@appbaseio/reactivecore",
+	"version": "8.2.9",
+	"description": "Core architecture of reactive UI libraries",
+	"main": "lib/index.js",
+	"files": [
+		"lib/"
+	],
+	"scripts": {
+		"lint": "eslint .",
+		"start": "yarn run build -w",
+		"build": "babel --ignore __tests__ src --out-dir lib",
+		"precommit": "eslint .",
+		"prepublish": "yarn run build",
+		"version-upgrade": "nps upgrade-core -c ../../package-scripts.js",
+		"postpublish": "yarn run version-upgrade",
+		"test": "../../node_modules/jest/bin/jest.js --watch --env node"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/appbaseio/reactivecore.git"
+	},
+	"author": "Deepak Grover <deepakgrover333@gmail.com> (https://github.com/metagrover)",
+	"license": "Apache-2.0",
+	"bugs": {
+		"url": "https://github.com/appbaseio/reactivecore/issues"
+	},
+	"homepage": "https://github.com/appbaseio/reactivecore#readme",
+	"dependencies": {
+		"cross-fetch": "^3.0.4",
+		"prop-types": "^15.6.0",
+		"redux": "^4.0.0",
+		"redux-thunk": "^2.3.0"
+	},
+	"devDependencies": {
+		"babel-cli": "^6.24.1",
+		"babel-eslint": "^7.2.3",
+		"babel-preset-react-native": "^4.0.0",
+		"eslint": "^4.4.0",
+		"eslint-config-airbnb": "^16.1.0",
+		"eslint-plugin-babel": "^4.1.2",
+		"eslint-plugin-import": "^2.8.0",
+		"eslint-plugin-jest": "^21.12.2",
+		"eslint-plugin-jsx-a11y": "^6.0.3",
+		"eslint-plugin-react": "^7.5.1",
+		"husky": "^0.14.3",
+		"jest": "^22.4.2",
+		"nps": "^5.9.5"
+	}
 }

@@ -9,13 +9,16 @@ import {
 	SET_STREAMING,
 	SET_QUERY_LISTENER,
 	SET_SEARCH_ID,
+	SET_ERROR,
+	SET_PROMOTED_RESULTS,
 } from '../constants';
 
 import { setValue } from './value';
 import { updateHits, updateAggs, pushToStreamHits } from './hits';
-import { buildQuery, isEqual } from '../utils/helper';
+import { buildQuery, isEqual, getSearchState } from '../utils/helper';
 import getFilterString from '../utils/analytics';
 import { updateMapData } from './maps';
+import fetchGraphQL from '../utils/graphQL';
 
 export function setQuery(component, query) {
 	return {
@@ -59,6 +62,14 @@ function setLoading(component, isLoading) {
 	};
 }
 
+function setError(component, error) {
+	return {
+		type: SET_ERROR,
+		component,
+		error,
+	};
+}
+
 function setTimestamp(component, timestamp) {
 	return {
 		type: SET_TIMESTAMP,
@@ -80,6 +91,13 @@ export function setHeaders(headers) {
 	return {
 		type: SET_HEADERS,
 		headers,
+	};
+}
+
+export function setPromotedResults(results = []) {
+	return {
+		type: SET_PROMOTED_RESULTS,
+		results,
 	};
 }
 
@@ -118,55 +136,121 @@ function msearch(
 			// if search id exists use that otherwise
 			// it implies a new query in which case I send X-Search-Query
 			if (searchId) {
-				searchHeaders = Object.assign({
-					'X-Search-Id': searchId,
-				}, filterString && {
-					'X-Search-Filters': filterString,
-				});
+				searchHeaders = Object.assign(
+					{
+						'X-Search-Id': searchId,
+						'X-Search-Query': searchValue,
+					},
+					filterString && {
+						'X-Search-Filters': filterString,
+					},
+				);
 			} else if (searchValue) {
-				searchHeaders = Object.assign({
-					'X-Search-Query': searchValue,
-				}, filterString && {
-					'X-Search-Filters': filterString,
-				});
+				searchHeaders = Object.assign(
+					{
+						'X-Search-Query': searchValue,
+					},
+					filterString && {
+						'X-Search-Filters': filterString,
+					},
+				);
+			}
+			if (config.searchStateHeader) {
+				const searchState = getSearchState(getState(), true);
+				if (searchState && Object.keys(searchState).length) {
+					searchHeaders['X-Search-State'] = JSON.stringify(searchState);
+				}
 			}
 		}
 
-		appbaseRef.setHeaders({ ...headers, ...searchHeaders });
-		appbaseRef.msearch({
-			type: config.type === '*' ? '' : config.type,
-			body: query,
-		}).then((res) => {
-			const searchId = res._headers.get('X-Search-Id');
-			if (searchId) {
-				// if search id was updated set it in store
-				dispatch(setSearchId(searchId));
+		// set loading as active for the given component
+		orderOfQueries.forEach((component) => {
+			dispatch(setLoading(component, true));
+		});
+
+		const handleTransformResponse = (res, component) => {
+			if (config.transformResponse && typeof config.transformResponse === 'function') {
+				return config.transformResponse(res, component);
 			}
-			orderOfQueries.forEach((component, index) => {
-				const response = res.responses[index];
-				const { timestamp } = getState();
+			return new Promise(resolve => resolve(res));
+		};
 
-				if ((timestamp[component] === undefined) || (timestamp[component] < res._timestamp)) {
-					if (response.hits) {
-						dispatch(setTimestamp(component, res._timestamp));
-						dispatch(updateHits(component, response.hits, response.took, appendToHits));
-						dispatch(setLoading(component, false));
-					}
-
-					if (response.aggregations) {
-						dispatch(updateAggs(component, response.aggregations, appendToAggs));
-					}
-				}
-			});
-		}).catch((error) => {
+		const handleError = (error) => {
 			console.error(error);
 			orderOfQueries.forEach((component) => {
 				if (queryListener[component] && queryListener[component].onError) {
 					queryListener[component].onError(error);
 				}
+				dispatch(setError(component, error));
 				dispatch(setLoading(component, false));
 			});
-		});
+		};
+
+		const handleResponse = (res) => {
+			const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
+			if (searchId) {
+				// if search id was updated set it in store
+				dispatch(setSearchId(searchId));
+			}
+
+			// handle promoted results
+			orderOfQueries.forEach((component, index) => {
+				handleTransformResponse(res.responses[index], component)
+					.then((response) => {
+						const { timestamp } = getState();
+						if (
+							timestamp[component] === undefined
+							|| timestamp[component] < res._timestamp
+						) {
+							if (response.promoted) {
+								dispatch(setPromotedResults(response.promoted));
+							} else {
+								dispatch(setPromotedResults());
+							}
+							if (response.hits) {
+								dispatch(setTimestamp(component, res._timestamp));
+								dispatch(updateHits(
+									component,
+									response.hits,
+									response.took,
+									appendToHits,
+								));
+								dispatch(setLoading(component, false));
+							}
+
+							if (response.aggregations) {
+								dispatch(updateAggs(component, response.aggregations, appendToAggs));
+							}
+						}
+					})
+					.catch((err) => {
+						handleError(err);
+					});
+			});
+		};
+
+		if (config.graphQLUrl) {
+			fetchGraphQL(config.graphQLUrl, config.url, config.credentials, config.app, query)
+				.then((res) => {
+					handleResponse(res);
+				})
+				.catch((err) => {
+					handleError(err);
+				});
+		} else {
+			appbaseRef.setHeaders({ ...headers, ...searchHeaders });
+			appbaseRef
+				.msearch({
+					type: config.type === '*' ? '' : config.type,
+					body: query,
+				})
+				.then((res) => {
+					handleResponse(res);
+				})
+				.catch((err) => {
+					handleError(err);
+				});
+		}
 	};
 }
 
@@ -176,11 +260,7 @@ function executeQueryListener(listener, oldQuery, newQuery) {
 	}
 }
 
-export function executeQuery(
-	componentId,
-	executeWatchList = false,
-	mustExecuteMapQuery = false,
-) {
+export function executeQuery(componentId, executeWatchList = false, mustExecuteMapQuery = false) {
 	return (dispatch, getState) => {
 		const {
 			queryLog,
@@ -218,9 +298,7 @@ export function executeQuery(
 			// check if query or options are valid - non-empty
 			if (
 				(queryObj && !!Object.keys(queryObj).length)
-				|| (options && (
-					Object.keys(options).some(item => validOptions.includes(item)))
-				)
+				|| (options && Object.keys(options).some(item => validOptions.includes(item)))
 			) {
 				// attach a match-all-query if empty
 				if (!queryObj || (queryObj && !Object.keys(queryObj).length)) {
@@ -251,18 +329,12 @@ export function executeQuery(
 					// add maps query here
 					const isMapComponent = Object.keys(mapData).includes(component);
 
-					if (
-						isMapComponent
-						&& mapData[component].query
-					) {
+					if (isMapComponent && mapData[component].query) {
 						// attach mapQuery to exisiting query via "must" type
 						const existingQuery = currentQuery.query;
 						currentQuery.query = {
 							bool: {
-								must: [
-									existingQuery,
-									mapData[component].query,
-								],
+								must: [existingQuery, mapData[component].query],
 							},
 						};
 
@@ -281,11 +353,7 @@ export function executeQuery(
 						dispatch(logCombinedQuery(component, currentQuery));
 					}
 
-					executeQueryListener(
-						queryListener[component],
-						oldQuery,
-						currentQuery,
-					);
+					executeQueryListener(queryListener[component], oldQuery, currentQuery);
 
 					// execute streaming query if applicable
 					if (stream[component] && stream[component].status) {
@@ -293,24 +361,29 @@ export function executeQuery(
 							stream[component].ref.stop();
 						}
 
-						const ref = appbaseRef.searchStream({
-							type: config.type === '*' ? '' : config.type,
-							body: currentQuery,
-						}, (response) => {
-							if (response._id) {
-								dispatch(pushToStreamHits(component, response));
-							}
-						}, (error) => {
-							if (queryListener[component] && queryListener[component].onError) {
-								queryListener[component].onError(error);
-							}
-							/**
-							 * In android devices, sometime websocket throws error when there is no activity
-							 * for a long time, console.error crashes the app, so changed it to console.warn
-							 */
-							console.warn(error);
-							dispatch(setLoading(component, false));
-						});
+						const ref = appbaseRef.searchStream(
+							{
+								type: config.type === '*' ? '' : config.type,
+								body: currentQuery,
+							},
+							(response) => {
+								if (response._id) {
+									dispatch(pushToStreamHits(component, response));
+								}
+							},
+							(error) => {
+								if (queryListener[component] && queryListener[component].onError) {
+									queryListener[component].onError(error);
+								}
+								/**
+								 * In android devices, sometime websocket throws error when there is no activity
+								 * for a long time, console.error crashes the app, so changed it to console.warn
+								 */
+								console.warn(error);
+								dispatch(setError(component, error));
+								dispatch(setLoading(component, false));
+							},
+						);
 
 						// update streaming ref
 						dispatch(setStreaming(component, true, ref));
@@ -345,15 +418,19 @@ export function setQueryOptions(component, queryOptions, execute = true) {
 	};
 }
 
-export function updateQuery({
-	componentId,
-	query,
-	value,
-	label = null,
-	showFilter = true,
-	URLParams = false,
-	componentType = null,
-}, execute = true) {
+export function updateQuery(
+	{
+		componentId,
+		query,
+		value,
+		label = null,
+		showFilter = true,
+		URLParams = false,
+		componentType = null,
+		category = null,
+	},
+	execute = true,
+) {
 	return (dispatch) => {
 		let queryToDispatch = query;
 		if (query && query.query) {
@@ -361,7 +438,7 @@ export function updateQuery({
 		}
 		// don't set filters for internal components
 		if (!componentId.endsWith('__internal')) {
-			dispatch(setValue(componentId, value, label, showFilter, URLParams, componentType));
+			dispatch(setValue(componentId, value, label, showFilter, URLParams, componentType, category));
 		}
 		dispatch(setQuery(componentId, queryToDispatch));
 		if (execute) dispatch(executeQuery(componentId, true));

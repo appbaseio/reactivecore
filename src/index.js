@@ -4,24 +4,35 @@ import rootReducer from './reducers';
 import { STORE_KEY } from './constants';
 import * as Actions from './actions';
 import * as helper from './utils/helper';
-import * as suggestions from './utils/suggestions';
-import * as causes from './utils/causes';
+import Suggestions from './utils/suggestions';
+import constants from './utils/constants';
+import polyfills from './utils/polyfills';
+import Causes from './utils/causes';
+import valueReducer from './reducers/valueReducer';
+import queryReducer from './reducers/queryReducer';
+import queryOptionsReducer from './reducers/queryOptionsReducer';
+import dependencyTreeReducer from './reducers/dependencyTreeReducer';
+import propsReducer from './reducers/propsReducer';
 
 const storeKey = STORE_KEY;
-export { helper, causes, suggestions, Actions, storeKey };
+const suggestions = Suggestions;
+const causes = Causes;
+const Reducers = {
+	valueReducer,
+	queryOptionsReducer,
+	queryReducer,
+	dependencyTreeReducer,
+	propsReducer,
+};
+export { helper, causes, suggestions, Actions, storeKey, polyfills, Reducers, constants };
 
 const composeEnhancers
-	= typeof window === 'object'
-	&& window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
+	= typeof window === 'object' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
 		? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({})
 		: compose;
 
 const enhancer = composeEnhancers(applyMiddleware(thunk));
 
 export default function configureStore(initialState) {
-	return createStore(
-		rootReducer,
-		initialState,
-		enhancer,
-	);
+	return createStore(rootReducer, initialState, enhancer);
 }

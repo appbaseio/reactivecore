@@ -11,7 +11,7 @@ export function isEqual(x, y) {
 		if (!x.hasOwnProperty(p)) continue;
 		if (!y.hasOwnProperty(p)) return false;
 		if (x[p] === y[p]) continue;
-		if (typeof (x[p]) !== 'object') return false;
+		if (typeof x[p] !== 'object') return false;
 		if (!isEqual(x[p], y[p])) return false;
 	}
 
@@ -42,8 +42,12 @@ export function getQueryOptions(props) {
 	}
 	if (props.includeFields || props.excludeFields) {
 		const source = {};
-		if (props.includeFields) { source.includes = props.includeFields; }
-		if (props.excludeFields) { source.excludes = props.excludeFields; }
+		if (props.includeFields) {
+			source.includes = props.includeFields;
+		}
+		if (props.excludeFields) {
+			source.excludes = props.excludeFields;
+		}
 		options._source = source;
 	}
 	return options;
@@ -85,15 +89,17 @@ function getQuery(react, queryList) {
 	Object.keys(react).forEach((conjunction) => {
 		if (Array.isArray(react[conjunction])) {
 			const operation = getOperation(conjunction);
-			const queryArr = react[conjunction].map((comp) => {
-				if (typeof comp !== 'string') {
-					// in this case, we have { <conjunction>: <> } objects inside the array
-					return getQuery(comp, queryList);
-				} else if (comp in queryList) {
-					return queryList[comp];
-				}
-				return null;
-			}).filter(item => !!item);
+			const queryArr = react[conjunction]
+				.map((comp) => {
+					if (typeof comp !== 'string') {
+						// in this case, we have { <conjunction>: <> } objects inside the array
+						return getQuery(comp, queryList);
+					} else if (comp in queryList) {
+						return queryList[comp];
+					}
+					return null;
+				})
+				.filter(item => !!item);
 
 			const boolQuery = createBoolQuery(operation, queryArr);
 			if (boolQuery) {
@@ -105,10 +111,7 @@ function getQuery(react, queryList) {
 			if (boolQuery) {
 				query = [...query, boolQuery];
 			}
-		} else if (
-			typeof react[conjunction] === 'object'
-			&& react[conjunction] !== null
-		) {
+		} else if (typeof react[conjunction] === 'object' && react[conjunction] !== null) {
 			const boolQuery = getQuery(react[conjunction], queryList);
 			if (boolQuery) {
 				query = [...query, boolQuery];
@@ -143,10 +146,15 @@ function getExternalQueryOptions(react, options, component) {
 			if (options[react[conjunction]]) {
 				queryOptions = { ...queryOptions, ...options[react[conjunction]] };
 			}
-		} else if (typeof react[conjunction] === 'object'
+		} else if (
+			typeof react[conjunction] === 'object'
 			&& react[conjunction] !== null
-			&& !Array.isArray(react[conjunction])) {
-			queryOptions = { ...queryOptions, ...getExternalQueryOptions(react[conjunction], options) };
+			&& !Array.isArray(react[conjunction])
+		) {
+			queryOptions = {
+				...queryOptions,
+				...getExternalQueryOptions(react[conjunction], options),
+			};
 		}
 	});
 	if (options[component]) {
@@ -267,6 +275,7 @@ export const parseHits = (hits) => {
 					obj[key] = data[key];
 					return obj;
 				},{
+          highlight: data.highlight || {},
 					...data._source,
 					...streamProps,
 				});
@@ -277,6 +286,9 @@ export const parseHits = (hits) => {
 };
 
 export function formatDate(date, props) {
+	if (props.parseDate) {
+		return props.parseDate(date, props);
+	}
 	switch (props.queryFormat) {
 		case 'epoch_millis':
 			return date.getTime();
@@ -286,7 +298,75 @@ export function formatDate(date, props) {
 			if (dateFormats[props.queryFormat]) {
 				return date.toString(dateFormats[props.queryFormat]);
 			}
-			return date;
+			return date.getTime();
 		}
 	}
 }
+
+/**
+ * To extract query options from custom or default query
+ * @param {Object} customQuery
+ */
+export const getOptionsFromQuery = (customQuery = {}) => {
+	if (customQuery) {
+		const { query, ...rest } = customQuery;
+		return Object.keys(rest).length ? rest : null;
+	}
+	return null;
+};
+
+export const getSearchState = (state = {}, forHeaders = false) => {
+	const {
+		selectedValues,
+		queryLog,
+		dependencyTree,
+		props,
+		hits,
+		aggregations,
+		isLoading,
+		error,
+	} = state;
+	const searchState = {};
+
+	const populateState = (obj = {}, key) =>
+		Object.keys(obj).forEach((componentId) => {
+			searchState[componentId] = {
+				...searchState[componentId],
+				...(key
+					? {
+						[key]: obj[componentId],
+					}
+					: obj[componentId]),
+			};
+		});
+
+	populateState(props);
+
+	Object.keys(selectedValues).forEach((componentId) => {
+		const componentState = searchState[componentId];
+		const selectedValue = selectedValues[componentId];
+		if (selectedValue) {
+			searchState[componentId] = {
+				...componentState,
+				...{
+					title: selectedValue.label,
+					componentType: selectedValue.componentType,
+					value: selectedValue.value,
+					...(selectedValue.category && {
+						category: selectedValue.category,
+					}),
+					URLParams: selectedValue.URLParams,
+				},
+			};
+		}
+	});
+	if (!forHeaders) {
+		populateState(queryLog);
+		populateState(hits, 'hits');
+		populateState(aggregations, 'aggregations');
+		populateState(isLoading, 'isLoading');
+		populateState(error, 'error');
+	}
+	populateState(dependencyTree, 'react');
+	return searchState;
+};

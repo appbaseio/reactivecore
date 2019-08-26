@@ -13,6 +13,7 @@ import logsReducer from './logsReducer';
 import combinedLogsReducer from './combinedLogsReducer';
 import valueReducer from './valueReducer';
 import loadingReducer from './loadingReducer';
+import errorReducer from './errorReducer';
 import streamingReducer from './streamingReducer';
 import streamHitsReducer from './streamHitsReducer';
 import timestampReducer from './timestampReducer';
@@ -20,6 +21,8 @@ import headersReducer from './headersReducer';
 import mapDataReducer from './mapDataReducer';
 import queryListenerReducer from './queryListenerReducer';
 import analyticsReducer from './analyticsReducer';
+import promotedResultsReducer from './promotedResultsReducer';
+import propsReducer from './propsReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -30,11 +33,13 @@ export default combineReducers({
 	appbaseRef: appbaseRefReducer,
 	config: configReducer,
 	hits: hitsReducer,
+	promotedResults: promotedResultsReducer,
 	aggregations: aggsReducer,
 	queryLog: logsReducer,
 	combinedLog: combinedLogsReducer,
 	selectedValues: valueReducer,
 	isLoading: loadingReducer,
+	error: errorReducer,
 	stream: streamingReducer,
 	streamHits: streamHitsReducer,
 	timestamp: timestampReducer,
@@ -42,4 +47,5 @@ export default combineReducers({
 	mapData: mapDataReducer, // holds the map id and boolean to execute geo-bound-query
 	queryListener: queryListenerReducer,
 	analytics: analyticsReducer,
+	props: propsReducer,
 });
