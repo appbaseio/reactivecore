@@ -23,6 +23,8 @@ import queryListenerReducer from './queryListenerReducer';
 import analyticsReducer from './analyticsReducer';
 import promotedResultsReducer from './promotedResultsReducer';
 import propsReducer from './propsReducer';
+import mapOnTopMarkerReducer from './mapOnTopMarkerReducer';
+import mapOpenMarkerReducer from './mapOpenMarkerReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -47,5 +49,7 @@ export default combineReducers({
 	mapData: mapDataReducer, // holds the map id and boolean to execute geo-bound-query
 	queryListener: queryListenerReducer,
 	analytics: analyticsReducer,
+	markerOnTop: mapOnTopMarkerReducer,
+	openMarkers: mapOpenMarkerReducer,
 	props: propsReducer,
 });
