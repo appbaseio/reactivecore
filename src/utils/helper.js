@@ -336,11 +336,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		Object.keys(obj).forEach((componentId) => {
 			searchState[componentId] = {
 				...searchState[componentId],
-				...(key
-					? {
-						[key]: obj[componentId],
-					  }
-					: obj[componentId]),
+				...(key ? { [key]: obj[componentId] } : obj[componentId]),
 			};
 		});
 
