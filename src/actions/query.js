@@ -11,6 +11,7 @@ import {
 	SET_SEARCH_ID,
 	SET_ERROR,
 	SET_PROMOTED_RESULTS,
+	SET_SUGGESTIONS_SEARCH_ID,
 } from '../constants';
 
 import { setValue } from './value';
@@ -19,6 +20,7 @@ import { buildQuery, isEqual, getSearchState } from '../utils/helper';
 import getFilterString from '../utils/analytics';
 import { updateMapData } from './maps';
 import fetchGraphQL from '../utils/graphQL';
+import { componentTypes } from '../../lib/utils/constants';
 
 export function setQuery(component, query) {
 	return {
@@ -108,12 +110,20 @@ function setSearchId(searchId = null) {
 	};
 }
 
+function setSuggestionsSearchId(searchId = null) {
+	return {
+		type: SET_SUGGESTIONS_SEARCH_ID,
+		searchId,
+	};
+}
+
 function msearch(
 	query,
 	orderOfQueries,
 	appendToHits = false,
 	isInternalComponent = false,
 	appendToAggs = false,
+	componentType,
 ) {
 	return (dispatch, getState) => {
 		const {
@@ -126,34 +136,45 @@ function msearch(
 		} = getState();
 
 		let searchHeaders = {};
-
+		const suggestionsComponents = [componentTypes.dataSearch, componentTypes.categorySearch];
+		const isSuggestionsQuery = isInternalComponent
+			&& suggestionsComponents.indexOf(componentType) !== -1;
 		// send search id or term in headers
-		if (config.analytics && !isInternalComponent) {
-			const { searchValue, searchId } = analytics;
+		if (config.analytics) {
+			if (isSuggestionsQuery) {
+				const { suggestionsSearchValue } = analytics;
+				if (suggestionsSearchValue) {
+					searchHeaders = {
+						'X-Search-Query': suggestionsSearchValue,
+					};
+				}
+			} else {
+				const { searchValue, searchId } = analytics;
 
-			// if a filter string exists append that to the search headers
-			const filterString = getFilterString(selectedValues);
-			// if search id exists use that otherwise
-			// it implies a new query in which case I send X-Search-Query
-			if (searchId) {
-				searchHeaders = Object.assign(
-					{
-						'X-Search-Id': searchId,
-						'X-Search-Query': searchValue,
-					},
-					filterString && {
-						'X-Search-Filters': filterString,
-					},
-				);
-			} else if (searchValue) {
-				searchHeaders = Object.assign(
-					{
-						'X-Search-Query': searchValue,
-					},
-					filterString && {
-						'X-Search-Filters': filterString,
-					},
-				);
+				// if a filter string exists append that to the search headers
+				const filterString = getFilterString(selectedValues);
+				// if search id exists use that otherwise
+				// it implies a new query in which case I send X-Search-Query
+				if (searchId) {
+					searchHeaders = Object.assign(
+						{
+							'X-Search-Id': searchId,
+							'X-Search-Query': searchValue,
+						},
+						filterString && {
+							'X-Search-Filters': filterString,
+						},
+					);
+				} else if (searchValue) {
+					searchHeaders = Object.assign(
+						{
+							'X-Search-Query': searchValue,
+						},
+						filterString && {
+							'X-Search-Filters': filterString,
+						},
+					);
+				}
 			}
 			if (config.searchStateHeader) {
 				const searchState = getSearchState(getState(), true);
@@ -189,8 +210,13 @@ function msearch(
 		const handleResponse = (res) => {
 			const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
 			if (searchId) {
-				// if search id was updated set it in store
-				dispatch(setSearchId(searchId));
+				if (isSuggestionsQuery) {
+					// set suggestions search id for internal request of search components
+					dispatch(setSuggestionsSearchId(searchId));
+				} else {
+					// if search id was updated set it in store
+					dispatch(setSearchId(searchId));
+				}
 			}
 
 			// handle promoted results
@@ -260,7 +286,12 @@ function executeQueryListener(listener, oldQuery, newQuery) {
 	}
 }
 
-export function executeQuery(componentId, executeWatchList = false, mustExecuteMapQuery = false) {
+export function executeQuery(
+	componentId,
+	executeWatchList = false,
+	mustExecuteMapQuery = false,
+	componentType,
+) {
 	return (dispatch, getState) => {
 		const {
 			queryLog,
@@ -403,7 +434,7 @@ export function executeQuery(componentId, executeWatchList = false, mustExecuteM
 
 		if (finalQuery.length) {
 			// in case of an internal component the analytics headers should not be included
-			dispatch(msearch(finalQuery, orderOfQueries, false, componentId.endsWith('__internal')));
+			dispatch(msearch(finalQuery, orderOfQueries, false, componentId.endsWith('__internal'), undefined, componentType));
 		}
 	};
 }
@@ -441,7 +472,7 @@ export function updateQuery(
 			dispatch(setValue(componentId, value, label, showFilter, URLParams, componentType, category));
 		}
 		dispatch(setQuery(componentId, queryToDispatch));
-		if (execute) dispatch(executeQuery(componentId, true));
+		if (execute) dispatch(executeQuery(componentId, true, false, componentType));
 	};
 }
 
