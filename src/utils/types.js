@@ -30,6 +30,13 @@ function validateLocation(props, propName) {
 
 const types = {
 	any,
+	analyticsConfig: shape({
+		searchStateHeader: bool,
+		emptyQuery: bool,
+		suggestionAnalytics: bool,
+		userId: string,
+		customEvents: object,
+	}),
 	bool,
 	boolRequired: bool.isRequired,
 	components: arrayOf(string),

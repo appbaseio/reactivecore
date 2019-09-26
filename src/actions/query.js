@@ -17,7 +17,7 @@ import {
 import { setValue } from './value';
 import { updateHits, updateAggs, pushToStreamHits } from './hits';
 import { buildQuery, isEqual, getSearchState } from '../utils/helper';
-import getFilterString from '../utils/analytics';
+import getFilterString, { parseCustomEvents } from '../utils/analytics';
 import { updateMapData } from './maps';
 import fetchGraphQL from '../utils/graphQL';
 import { componentTypes } from '../../lib/utils/constants';
@@ -141,11 +141,12 @@ function msearch(
 			&& suggestionsComponents.indexOf(componentType) !== -1;
 		// send search id or term in headers
 		if (config.analytics) {
-			if (isSuggestionsQuery) {
+			if (config.analyticsConfig.suggestionAnalytics && isSuggestionsQuery) {
 				const { suggestionsSearchValue } = analytics;
-				if (suggestionsSearchValue) {
+				const shouldIncludeQuery = !!(config.analyticsConfig.emptyQuery || suggestionsSearchValue);
+				if (shouldIncludeQuery) {
 					searchHeaders = {
-						'X-Search-Query': suggestionsSearchValue,
+						'X-Search-Query': suggestionsSearchValue || '',
 					};
 				}
 			} else {
@@ -165,10 +166,11 @@ function msearch(
 							'X-Search-Filters': filterString,
 						},
 					);
-				} else if (searchValue) {
+				} else {
+					const shouldIncludeQuery = !!(config.analyticsConfig.emptyQuery || searchValue);
 					searchHeaders = Object.assign(
-						{
-							'X-Search-Query': searchValue,
+						shouldIncludeQuery && {
+							'X-Search-Query': searchValue || '',
 						},
 						filterString && {
 							'X-Search-Filters': filterString,
@@ -176,11 +178,19 @@ function msearch(
 					);
 				}
 			}
-			if (config.searchStateHeader) {
+			if (config.analyticsConfig.searchStateHeader) {
 				const searchState = getSearchState(getState(), true);
 				if (searchState && Object.keys(searchState).length) {
 					searchHeaders['X-Search-State'] = JSON.stringify(searchState);
 				}
+			}
+
+			if (config.analyticsConfig.userId) {
+				searchHeaders['X-User-Id'] = config.analyticsConfig.userId;
+			}
+
+			if (config.analyticsConfig.customEvents) {
+				searchHeaders['X-Search-CustomEvent'] = parseCustomEvents(config.analyticsConfig.customEvents);
 			}
 		}
 
