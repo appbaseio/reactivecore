@@ -13,6 +13,7 @@ import queryReducer from './reducers/queryReducer';
 import queryOptionsReducer from './reducers/queryOptionsReducer';
 import dependencyTreeReducer from './reducers/dependencyTreeReducer';
 import propsReducer from './reducers/propsReducer';
+import { defaultAnalyticsConfig } from './utils/analytics';
 
 const storeKey = STORE_KEY;
 const suggestions = Suggestions;
@@ -34,5 +35,18 @@ const composeEnhancers
 const enhancer = composeEnhancers(applyMiddleware(thunk));
 
 export default function configureStore(initialState) {
-	return createStore(rootReducer, initialState, enhancer);
+	const finalInitialState = {
+		...initialState,
+		config: {
+			...initialState.config,
+			analyticsConfig:
+				initialState.config && initialState.config.analyticsConfig
+					? {
+						...defaultAnalyticsConfig,
+						...initialState.config.analyticsConfig,
+					  }
+					: defaultAnalyticsConfig,
+		},
+	};
+	return createStore(rootReducer, finalInitialState, enhancer);
 }

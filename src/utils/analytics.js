@@ -103,6 +103,15 @@ function parseCustomEvents(customEvents) {
 	return finalStr;
 }
 
+// defaultAnalytics Config
+export const defaultAnalyticsConfig = {
+	searchStateHeader: false,
+	emptyQuery: true,
+	suggestionAnalytics: true,
+	userId: null,
+	customEvents: null,
+};
+
 export {
 	filterComponents,
 	rangeComponents,

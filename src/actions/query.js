@@ -137,13 +137,15 @@ function msearch(
 
 		let searchHeaders = {};
 		const suggestionsComponents = [componentTypes.dataSearch, componentTypes.categorySearch];
-		const isSuggestionsQuery = isInternalComponent
-			&& suggestionsComponents.indexOf(componentType) !== -1;
+		const isSuggestionsQuery
+			= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
 		// send search id or term in headers
 		if (config.analytics) {
 			if (config.analyticsConfig.suggestionAnalytics && isSuggestionsQuery) {
 				const { suggestionsSearchValue } = analytics;
-				const shouldIncludeQuery = !!(config.analyticsConfig.emptyQuery || suggestionsSearchValue);
+				const shouldIncludeQuery = !!(
+					config.analyticsConfig.emptyQuery || suggestionsSearchValue
+				);
 				if (shouldIncludeQuery) {
 					searchHeaders = {
 						'X-Search-Query': suggestionsSearchValue || '',
@@ -444,7 +446,14 @@ export function executeQuery(
 
 		if (finalQuery.length) {
 			// in case of an internal component the analytics headers should not be included
-			dispatch(msearch(finalQuery, orderOfQueries, false, componentId.endsWith('__internal'), undefined, componentType));
+			dispatch(msearch(
+				finalQuery,
+				orderOfQueries,
+				false,
+				componentId.endsWith('__internal'),
+				undefined,
+				componentType,
+			));
 		}
 	};
 }
