@@ -77,8 +77,8 @@ function getFilterString(selectedValues) {
 						// in case of an array filter out empty array values as well
 						&& ((componentValues.value && componentValues.value.length)
 							// also consider range values in the shape { start, end }
-							|| componentValues.value.start
-							|| componentValues.value.end))
+							|| (componentValues.value && componentValues.value.start)
+							|| (componentValues.value && componentValues.value.end)))
 				// parse each filter value
 				.map(([componentId, componentValues]) =>
 					parseFilterValue(componentId, componentValues))
