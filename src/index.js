@@ -44,7 +44,7 @@ export default function configureStore(initialState) {
 					? {
 						...defaultAnalyticsConfig,
 						...initialState.config.analyticsConfig,
-					  }
+					}
 					: defaultAnalyticsConfig,
 		},
 	};

@@ -15,7 +15,7 @@ import {
 } from '../constants';
 
 import { setValue } from './value';
-import { updateHits, updateAggs, pushToStreamHits } from './hits';
+import { updateHits, updateAggs, pushToStreamHits, updateCompositeAggs } from './hits';
 import { buildQuery, isEqual, getSearchState } from '../utils/helper';
 import getFilterString, { parseCustomEvents } from '../utils/analytics';
 import { updateMapData } from './maps';
@@ -258,6 +258,7 @@ function msearch(
 
 							if (response.aggregations) {
 								dispatch(updateAggs(component, response.aggregations, appendToAggs));
+								dispatch(updateCompositeAggs(component, response.aggregations));
 							}
 						}
 					})

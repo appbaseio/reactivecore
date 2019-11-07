@@ -1,4 +1,4 @@
-import { UPDATE_HITS, UPDATE_AGGS, PUSH_TO_STREAM_HITS } from '../constants';
+import { UPDATE_HITS, UPDATE_AGGS, PUSH_TO_STREAM_HITS, UPDATE_COMPOSITE_AGGS } from '../constants';
 
 export function updateAggs(component, aggregations, append = false) {
 	return {
@@ -6,6 +6,14 @@ export function updateAggs(component, aggregations, append = false) {
 		component,
 		aggregations,
 		append,
+	};
+}
+
+export function updateCompositeAggs(component, aggregations) {
+	return {
+		type: UPDATE_COMPOSITE_AGGS,
+		component,
+		aggregations,
 	};
 }
 

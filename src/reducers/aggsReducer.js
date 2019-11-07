@@ -1,6 +1,6 @@
-import { UPDATE_AGGS, REMOVE_COMPONENT } from '../constants';
+import { UPDATE_AGGS, REMOVE_COMPONENT, UPDATE_COMPOSITE_AGGS } from '../constants';
 
-export default function aggsReducer(state = {}, action) {
+function aggsReducer(state = {}, action) {
 	if (action.type === UPDATE_AGGS) {
 		if (action.append) {
 			const field = Object.keys(state[action.component])[0];
@@ -12,10 +12,7 @@ export default function aggsReducer(state = {}, action) {
 				...state,
 				[action.component]: {
 					[field]: {
-						buckets: [
-							...state[action.component][field].buckets,
-							...newBuckets,
-						],
+						buckets: [...state[action.component][field].buckets, ...newBuckets],
 						...aggsData,
 					},
 				},
@@ -28,3 +25,30 @@ export default function aggsReducer(state = {}, action) {
 	}
 	return state;
 }
+
+function compositeAggsReducer(state = {}, action) {
+	if (action.type === UPDATE_COMPOSITE_AGGS) {
+		const aggsResponse
+			= Object.values(action.aggregations) && Object.values(action.aggregations)[0];
+		if (!aggsResponse) return state;
+		const buckets = aggsResponse.buckets || [];
+		const parsedAggs = buckets.map((bucket) => {
+			// eslint-disable-next-line camelcase
+			const { doc_count, key } = bucket;
+			const _key = Object.values(key) && Object.values(key)[0];
+			const hits = Object.values(Object.values(bucket)[2])[0];
+			return {
+				_doc_count: doc_count,
+				_key,
+				...hits.hits[0],
+			};
+		});
+		return {
+			...state,
+			[action.component]: parsedAggs,
+		};
+	}
+	return state;
+}
+
+export { aggsReducer, compositeAggsReducer };
