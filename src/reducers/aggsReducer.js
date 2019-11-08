@@ -37,11 +37,12 @@ function compositeAggsReducer(state = {}, action) {
 			// eslint-disable-next-line camelcase
 			const { doc_count, key } = bucket;
 			const _key = Object.values(key) && Object.values(key)[0];
-			const hits = Object.values(Object.values(bucket)[2])[0];
+			let hits = null;
+			if (Object.values(bucket)[2]) hits = Object.values(Object.values(bucket)[2])[0];
 			return {
 				_doc_count: doc_count,
 				_key,
-				...hits.hits[0],
+				...(hits && hits.hits[0]),
 			};
 		});
 		return {
