@@ -24,7 +24,8 @@ import promotedResultsReducer from './promotedResultsReducer';
 import propsReducer from './propsReducer';
 import mapOnTopMarkerReducer from './mapOnTopMarkerReducer';
 import mapOpenMarkerReducer from './mapOpenMarkerReducer';
-import { aggsReducer, compositeAggsReducer } from './aggsReducer';
+import aggsReducer from './aggsReducer';
+import compositeAggsReducer from './compositeAggsReducer';
 
 export default combineReducers({
 	components: componentsReducer,
