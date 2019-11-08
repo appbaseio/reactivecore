@@ -31,18 +31,16 @@ function compositeAggsReducer(state = {}, action) {
 	if (action.type === UPDATE_COMPOSITE_AGGS) {
 		const aggsResponse
 			= Object.values(action.aggregations) && Object.values(action.aggregations)[0];
+		const fieldName = Object.keys(action.aggregations)[0];
 		if (!aggsResponse) return state;
 		const buckets = aggsResponse.buckets || [];
 		const parsedAggs = buckets.map((bucket) => {
 			// eslint-disable-next-line camelcase
-			const { doc_count, key } = bucket;
-			const _key = Object.values(key) && Object.values(key)[0];
-			let hits = null;
-			if (Object.values(bucket)[2]) hits = Object.values(Object.values(bucket)[2])[0];
+			const { doc_count, key, [fieldName]: hitsData } = bucket;
 			return {
 				_doc_count: doc_count,
-				_key,
-				...(hits && hits.hits[0]),
+				_key: key[fieldName],
+				...(hitsData && hitsData.hits.hits[0]),
 			};
 		});
 		return {
