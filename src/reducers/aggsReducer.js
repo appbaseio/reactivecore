@@ -12,10 +12,7 @@ export default function aggsReducer(state = {}, action) {
 				...state,
 				[action.component]: {
 					[field]: {
-						buckets: [
-							...state[action.component][field].buckets,
-							...newBuckets,
-						],
+						buckets: [...state[action.component][field].buckets, ...newBuckets],
 						...aggsData,
 					},
 				},

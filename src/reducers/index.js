@@ -8,7 +8,6 @@ import queryOptionsReducer from './queryOptionsReducer';
 import configReducer from './configReducer';
 import appbaseRefReducer from './appbaseRefReducer';
 import hitsReducer from './hitsReducer';
-import aggsReducer from './aggsReducer';
 import logsReducer from './logsReducer';
 import combinedLogsReducer from './combinedLogsReducer';
 import valueReducer from './valueReducer';
@@ -25,6 +24,8 @@ import promotedResultsReducer from './promotedResultsReducer';
 import propsReducer from './propsReducer';
 import mapOnTopMarkerReducer from './mapOnTopMarkerReducer';
 import mapOpenMarkerReducer from './mapOpenMarkerReducer';
+import aggsReducer from './aggsReducer';
+import compositeAggsReducer from './compositeAggsReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -37,6 +38,7 @@ export default combineReducers({
 	hits: hitsReducer,
 	promotedResults: promotedResultsReducer,
 	aggregations: aggsReducer,
+	compositeAggregations: compositeAggsReducer,
 	queryLog: logsReducer,
 	combinedLog: combinedLogsReducer,
 	selectedValues: valueReducer,
