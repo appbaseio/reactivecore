@@ -26,6 +26,7 @@ function aggsReducer(state = {}, action) {
 	return state;
 }
 
+// get top hits from composite aggregations response
 function compositeAggsReducer(state = {}, action) {
 	if (action.type === UPDATE_COMPOSITE_AGGS) {
 		const aggsResponse
