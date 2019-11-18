@@ -9,6 +9,7 @@ import {
 	oneOf,
 	shape,
 	number,
+	array,
 } from 'prop-types';
 
 import dateFormats from './dateFormats';
@@ -145,6 +146,7 @@ const types = {
 		'nmi',
 		'nauticalmiles',
 	]),
+	aggregationData: array,
 };
 
 export default types;
