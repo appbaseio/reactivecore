@@ -258,7 +258,7 @@ function msearch(
 
 							if (response.aggregations) {
 								dispatch(updateAggs(component, response.aggregations, appendToAggs));
-								dispatch(updateCompositeAggs(component, response.aggregations));
+								dispatch(updateCompositeAggs(component, response.aggregations, appendToAggs));
 							}
 						}
 					})

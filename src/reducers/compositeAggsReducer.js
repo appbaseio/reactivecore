@@ -19,7 +19,9 @@ export default function compositeAggsReducer(state = {}, action) {
 		});
 		return {
 			...state,
-			[action.component]: parsedAggs,
+			[action.component]: action.append
+				? [...state[action.component], ...parsedAggs]
+				: parsedAggs,
 		};
 	}
 	return state;

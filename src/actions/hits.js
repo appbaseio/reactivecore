@@ -9,11 +9,12 @@ export function updateAggs(component, aggregations, append = false) {
 	};
 }
 
-export function updateCompositeAggs(component, aggregations) {
+export function updateCompositeAggs(component, aggregations, append = false) {
 	return {
 		type: UPDATE_COMPOSITE_AGGS,
 		component,
 		aggregations,
+		append,
 	};
 }
 
