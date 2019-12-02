@@ -502,3 +502,11 @@ export const getCompositeAggsQuery = (query, props, after, showTopHits = false) 
 	}
 	return { ...clonedQuery, ...extractQueryFromDefaultQuery(props.defaultQuery) };
 };
+/**
+ * Adds click ids in the hits(useful for trigger analytics)
+ */
+export const withClickIds = (results = []) =>
+	results.map((result, index) => ({
+		...result,
+		_click_id: index,
+	}));
