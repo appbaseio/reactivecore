@@ -13,6 +13,7 @@ import {
 } from 'prop-types';
 
 import dateFormats from './dateFormats';
+import { CLEAR_ALL } from './constants';
 
 const reactKeyType = oneOfType([string, arrayOf(string), object, arrayOf(object)]);
 
@@ -147,7 +148,7 @@ const types = {
 		'nauticalmiles',
 	]),
 	aggregationData: array,
-	showClearAll: oneOf(['never', 'always', 'default', true, false]),
+	showClearAll: oneOf([CLEAR_ALL.NEVER, CLEAR_ALL.ALWAYS, CLEAR_ALL.DEFAULT, true, false]),
 };
 
 export default types;
