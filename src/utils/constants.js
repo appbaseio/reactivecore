@@ -77,3 +77,9 @@ export const validProps = [
 	'range',
 	'showSlider',
 ];
+
+export const CLEAR_ALL = {
+	NEVER: 'never',
+	ALWAYS: 'always',
+	DEFAULT: 'default',
+};
