@@ -147,6 +147,7 @@ const types = {
 		'nauticalmiles',
 	]),
 	aggregationData: array,
+	showClearAll: oneOf(['never', 'always', 'default', true, false]),
 };
 
 export default types;
