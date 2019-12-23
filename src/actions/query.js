@@ -240,8 +240,9 @@ function msearch(
 							timestamp[component] === undefined
 							|| timestamp[component] < res._timestamp
 						) {
-							if (response.promoted) {
-								dispatch(setPromotedResults(response.promoted));
+							const promotedResults = response.promoted || res.promoted;
+							if (promotedResults) {
+								dispatch(setPromotedResults(promotedResults));
 							} else {
 								dispatch(setPromotedResults());
 							}
