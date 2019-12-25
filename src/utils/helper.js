@@ -329,6 +329,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		aggregations,
 		isLoading,
 		error,
+		promotedResults,
 	} = state;
 	const searchState = {};
 
@@ -341,6 +342,22 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		});
 
 	populateState(props);
+
+	function computeResultStats() {
+		Object.keys(hits).forEach((componentId) => {
+			const { hidden, total, time } = hits[componentId];
+			searchState[componentId] = {
+				...searchState[componentId],
+				resultStats: {
+					...searchState[componentId].resultStats,
+					numberOfResults: total,
+					time,
+					promoted: promotedResults[componentId].length,
+					hidden,
+				},
+			};
+		});
+	}
 
 	Object.keys(selectedValues).forEach((componentId) => {
 		const componentState = searchState[componentId];
@@ -366,6 +383,8 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		populateState(aggregations, 'aggregations');
 		populateState(isLoading, 'isLoading');
 		populateState(error, 'error');
+		populateState(promotedResults, 'promotedResults');
+		computeResultStats();
 	}
 	populateState(dependencyTree, 'react');
 	return searchState;
