@@ -529,3 +529,16 @@ export const withClickIds = (results = []) =>
 		...result,
 		_click_id: index,
 	}));
+
+export function getResultStats(props) {
+	const {
+		total, size, time, hidden, promotedResults,
+	} = props;
+	return {
+		numberOfResults: total,
+		numberOfPages: Math.ceil(total / size),
+		time,
+		hidden,
+		promoted: promotedResults.length,
+	};
+}
