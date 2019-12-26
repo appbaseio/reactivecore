@@ -319,6 +319,23 @@ export const getOptionsFromQuery = (customQuery = {}) => {
 	return null;
 };
 
+function computeResultStats(hits, searchState, promotedResults) {
+	Object.keys(hits).forEach((componentId) => {
+		const { hidden, total, time } = hits[componentId];
+		// eslint-disable-next-line no-param-reassign
+		searchState[componentId] = {
+			...searchState[componentId],
+			resultStats: {
+				...searchState[componentId].resultStats,
+				numberOfResults: total,
+				time,
+				promoted: promotedResults[componentId] && promotedResults[componentId].length,
+				hidden,
+			},
+		};
+	});
+}
+
 export const getSearchState = (state = {}, forHeaders = false) => {
 	const {
 		selectedValues,
@@ -342,22 +359,6 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		});
 
 	populateState(props);
-
-	function computeResultStats() {
-		Object.keys(hits).forEach((componentId) => {
-			const { hidden, total, time } = hits[componentId];
-			searchState[componentId] = {
-				...searchState[componentId],
-				resultStats: {
-					...searchState[componentId].resultStats,
-					numberOfResults: total,
-					time,
-					promoted: promotedResults[componentId].length,
-					hidden,
-				},
-			};
-		});
-	}
 
 	Object.keys(selectedValues).forEach((componentId) => {
 		const componentState = searchState[componentId];
@@ -384,7 +385,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		populateState(isLoading, 'isLoading');
 		populateState(error, 'error');
 		populateState(promotedResults, 'promotedResults');
-		computeResultStats();
+		computeResultStats(hits, searchState, promotedResults);
 	}
 	populateState(dependencyTree, 'react');
 	return searchState;
@@ -536,9 +537,9 @@ export function getResultStats(props) {
 	} = props;
 	return {
 		numberOfResults: total,
-		numberOfPages: Math.ceil(total / size),
+		...(size > 0 ? { numberOfPages: Math.ceil(total / size) } : null),
 		time,
 		hidden,
-		promoted: promotedResults.length,
+		promoted: promotedResults && promotedResults.length,
 	};
 }
