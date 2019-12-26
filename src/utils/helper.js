@@ -385,7 +385,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		populateState(aggregations, 'aggregations');
 		populateState(isLoading, 'isLoading');
 		populateState(error, 'error');
-		populateState(promotedResults, 'promotedResults');
+		populateState(promotedResults, 'promotedData');
 		computeResultStats(hits, searchState, promotedResults);
 	}
 	populateState(dependencyTree, 'react');
