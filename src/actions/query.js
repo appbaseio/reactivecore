@@ -96,10 +96,11 @@ export function setHeaders(headers) {
 	};
 }
 
-export function setPromotedResults(results = []) {
+export function setPromotedResults(results = [], component) {
 	return {
 		type: SET_PROMOTED_RESULTS,
 		results,
+		component,
 	};
 }
 
@@ -242,9 +243,9 @@ function msearch(
 						) {
 							const promotedResults = response.promoted || res.promoted;
 							if (promotedResults) {
-								dispatch(setPromotedResults(promotedResults));
+								dispatch(setPromotedResults(promotedResults, component));
 							} else {
-								dispatch(setPromotedResults());
+								dispatch(setPromotedResults([], component));
 							}
 							if (response.hits) {
 								dispatch(setTimestamp(component, res._timestamp));
@@ -259,7 +260,11 @@ function msearch(
 
 							if (response.aggregations) {
 								dispatch(updateAggs(component, response.aggregations, appendToAggs));
-								dispatch(updateCompositeAggs(component, response.aggregations, appendToAggs));
+								dispatch(updateCompositeAggs(
+									component,
+									response.aggregations,
+									appendToAggs,
+								));
 							}
 						}
 					})

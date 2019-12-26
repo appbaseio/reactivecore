@@ -1,6 +1,7 @@
 /* eslint-disable */
 // when we want to perform deep equality check, especially in objects
 import dateFormats from './dateFormats';
+import getSuggestions from './suggestions'
 
 export function isEqual(x, y) {
 	if (x === y) return true;
@@ -319,6 +320,23 @@ export const getOptionsFromQuery = (customQuery = {}) => {
 	return null;
 };
 
+function computeResultStats(hits, searchState, promotedResults) {
+	Object.keys(hits).forEach((componentId) => {
+		const { hidden, total, time } = hits[componentId];
+		// eslint-disable-next-line no-param-reassign
+		searchState[componentId] = {
+			...searchState[componentId],
+			resultStats: {
+				...searchState[componentId].resultStats,
+				numberOfResults: total,
+				time,
+				promoted: promotedResults[componentId] && promotedResults[componentId].length,
+				hidden,
+			},
+		};
+	});
+}
+
 export const getSearchState = (state = {}, forHeaders = false) => {
 	const {
 		selectedValues,
@@ -329,6 +347,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		aggregations,
 		isLoading,
 		error,
+		promotedResults,
 	} = state;
 	const searchState = {};
 
@@ -366,6 +385,8 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		populateState(aggregations, 'aggregations');
 		populateState(isLoading, 'isLoading');
 		populateState(error, 'error');
+		populateState(promotedResults, 'promotedResults');
+		computeResultStats(hits, searchState, promotedResults);
 	}
 	populateState(dependencyTree, 'react');
 	return searchState;
@@ -510,3 +531,41 @@ export const withClickIds = (results = []) =>
 		...result,
 		_click_id: index,
 	}));
+
+export function getResultStats(props) {
+	const {
+		total, size, time, hidden, promotedResults,
+	} = props;
+	return {
+		numberOfResults: total,
+		...(size > 0 ? { numberOfPages: Math.ceil(total / size) } : null),
+		time,
+		hidden,
+		promoted: promotedResults && promotedResults.length,
+	};
+}
+
+export function handleOnSuggestions(results, currentValue, props) {
+	const { parseSuggestion, promotedResults } = props;
+
+	const fields = Array.isArray(props.dataField) ? props.dataField : [props.dataField];
+
+	// hits as flat structure
+	let newResults = parseHits(results);
+
+	if (promotedResults.length) {
+		const ids = promotedResults.map(item => item._id).filter(Boolean);
+		if (ids) {
+			newResults = newResults.filter(item => !ids.includes(item._id));
+		}
+		newResults = [...promotedResults, ...newResults];
+	}
+
+	const parsedSuggestions = getSuggestions(fields, newResults, currentValue.toLowerCase());
+
+	if (parseSuggestion) {
+		return parsedSuggestions.map(suggestion => parseSuggestion(suggestion));
+	}
+
+	return parsedSuggestions;
+}
