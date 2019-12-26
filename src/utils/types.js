@@ -149,6 +149,7 @@ const types = {
 	]),
 	aggregationData: array,
 	showClearAll: oneOf([CLEAR_ALL.NEVER, CLEAR_ALL.ALWAYS, CLEAR_ALL.DEFAULT, true, false]),
+	componentObject: object,
 };
 
 export default types;
