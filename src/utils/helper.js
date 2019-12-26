@@ -1,6 +1,7 @@
 /* eslint-disable */
 // when we want to perform deep equality check, especially in objects
 import dateFormats from './dateFormats';
+import getSuggestions from './suggestions'
 
 export function isEqual(x, y) {
 	if (x === y) return true;
@@ -542,4 +543,29 @@ export function getResultStats(props) {
 		hidden,
 		promoted: promotedResults && promotedResults.length,
 	};
+}
+
+export function handleOnSuggestions(results, currentValue, props) {
+	const { parseSuggestion, promotedResults } = props;
+
+	const fields = Array.isArray(props.dataField) ? props.dataField : [props.dataField];
+
+	// hits as flat structure
+	let newResults = parseHits(results);
+
+	if (promotedResults.length) {
+		const ids = promotedResults.map(item => item._id).filter(Boolean);
+		if (ids) {
+			newResults = newResults.filter(item => !ids.includes(item._id));
+		}
+		newResults = [...promotedResults, ...newResults];
+	}
+
+	const parsedSuggestions = getSuggestions(fields, newResults, currentValue.toLowerCase());
+
+	if (parseSuggestion) {
+		return parsedSuggestions.map(suggestion => parseSuggestion(suggestion));
+	}
+
+	return parsedSuggestions;
 }
