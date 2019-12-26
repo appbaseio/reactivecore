@@ -56,6 +56,7 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 				String(replaceDiacritics(val))
 					.toLowerCase()
 					.includes(replaceDiacritics(term)));
+		// promoted results should always include in suggestions even there is no match
 		if ((isWordMatch && !labelsList.includes(val)) || source._promoted) {
 			const defaultOption = {
 				label: val,
