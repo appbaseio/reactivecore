@@ -56,7 +56,7 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 				String(replaceDiacritics(val))
 					.toLowerCase()
 					.includes(replaceDiacritics(term)));
-		if (isWordMatch && !labelsList.includes(val)) {
+		if ((isWordMatch && !labelsList.includes(val)) || source._promoted) {
 			const defaultOption = {
 				label: val,
 				value: val,
@@ -114,19 +114,8 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 	};
 
 	suggestions.forEach((item) => {
-		const {
-			_score, _index, _type, _id,
-		} = item;
-
-		const source = {
-			...item._source,
-			_id,
-			_index,
-			_score,
-			_type,
-		};
 		fields.forEach((field) => {
-			parseField(source, field);
+			parseField(item, field);
 		});
 	});
 
