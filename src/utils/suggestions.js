@@ -21,7 +21,7 @@ const extractSuggestion = (val) => {
 };
 
 function replaceDiacritics(s) {
-	let str = s;
+	let str = s ? String(s) : s;
 
 	const diacritics = [
 		/[\300-\306]/g, /[\340-\346]/g, // A, a
@@ -53,7 +53,7 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 			.trim()
 			.split(' ')
 			.some(term =>
-				String(replaceDiacritics(val))
+				replaceDiacritics(val)
 					.toLowerCase()
 					.includes(replaceDiacritics(term)));
 		// promoted results should always include in suggestions even there is no match
