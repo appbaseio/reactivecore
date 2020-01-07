@@ -322,7 +322,7 @@ export const getOptionsFromQuery = (customQuery = {}) => {
 
 function computeResultStats(hits, searchState, promotedResults) {
 	Object.keys(hits).forEach((componentId) => {
-		const { hidden, total, time } = hits[componentId];
+		const { hidden, total, time } = (hits[componentId] || {});
 		// eslint-disable-next-line no-param-reassign
 		searchState[componentId] = {
 			...searchState[componentId],
@@ -331,7 +331,7 @@ function computeResultStats(hits, searchState, promotedResults) {
 				numberOfResults: total,
 				time,
 				promoted: promotedResults[componentId] && promotedResults[componentId].length,
-				hidden,
+				hidden: hidden || 0,
 			},
 		};
 	});
