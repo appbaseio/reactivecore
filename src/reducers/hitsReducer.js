@@ -9,12 +9,18 @@ export default function hitsReducer(state = {}, action) {
 					hits: [...state[action.component].hits, ...action.hits],
 					total: action.total,
 					time: action.time,
+					hidden: action.hidden,
 				},
 			};
 		}
 		return {
 			...state,
-			[action.component]: { hits: action.hits, total: action.total, time: action.time },
+			[action.component]: {
+				hits: action.hits,
+				total: action.total,
+				time: action.time,
+				hidden: action.hidden,
+			},
 		};
 	} else if (action.type === PUSH_TO_STREAM_HITS) {
 		let { total } = state[action.component];

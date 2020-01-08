@@ -540,7 +540,7 @@ export function getResultStats(props) {
 		numberOfResults: total,
 		...(size > 0 ? { numberOfPages: Math.ceil(total / size) } : null),
 		time,
-		hidden,
+		hidden: hidden || 0,
 		promoted: promotedResults && promotedResults.length,
 	};
 }
