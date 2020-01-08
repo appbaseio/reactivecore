@@ -1,7 +1,7 @@
 /* eslint-disable */
 // when we want to perform deep equality check, especially in objects
 import dateFormats from './dateFormats';
-import getSuggestions from './suggestions'
+import getSuggestions from './suggestions';
 
 export function isEqual(x, y) {
 	if (x === y) return true;
@@ -322,7 +322,7 @@ export const getOptionsFromQuery = (customQuery = {}) => {
 
 function computeResultStats(hits, searchState, promotedResults) {
 	Object.keys(hits).forEach((componentId) => {
-		const { hidden, total, time } = (hits[componentId] || {});
+		const { hidden, total, time } = hits[componentId] || {};
 		// eslint-disable-next-line no-param-reassign
 		searchState[componentId] = {
 			...searchState[componentId],
@@ -540,7 +540,7 @@ export function getResultStats(props) {
 		numberOfResults: total,
 		...(size > 0 ? { numberOfPages: Math.ceil(total / size) } : null),
 		time,
-		hidden: hidden || 0,
+		hidden,
 		promoted: promotedResults && promotedResults.length,
 	};
 }
