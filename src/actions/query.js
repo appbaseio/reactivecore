@@ -253,7 +253,7 @@ function msearch(
 									component,
 									response.hits,
 									response.took,
-									response.hits.hidden,
+									response.hits && response.hits.hidden,
 									appendToHits,
 								));
 								dispatch(setLoading(component, false));
