@@ -200,11 +200,14 @@ export function checkValueChange(componentId, value, beforeValueChange, performU
 		selectedValue = null;
 	}
 	if (beforeValueChange) {
-		beforeValueChange(selectedValue)
-			.then(performUpdate)
-			.catch((e) => {
+		const promise = beforeValueChange(selectedValue);
+		if (promise instanceof Promise) {
+			promise.then(performUpdate).catch((e) => {
 				console.warn(`${componentId} - beforeValueChange rejected the promise with `, e);
 			});
+		} else if (promise === 'truthy') {
+			performUpdate();
+		}
 	} else {
 		performUpdate();
 	}
