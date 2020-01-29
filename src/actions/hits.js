@@ -18,13 +18,14 @@ export function updateCompositeAggs(component, aggregations, append = false) {
 	};
 }
 
-export function updateHits(component, hits, time, append = false) {
+export function updateHits(component, hits, time, hidden, append = false) {
 	return {
 		type: UPDATE_HITS,
 		component,
 		hits: hits.hits,
 		// make compatible with es7
 		total: typeof hits.total === 'object' ? hits.total.value : hits.total,
+		hidden,
 		time,
 		append,
 	};
