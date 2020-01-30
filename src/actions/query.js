@@ -163,7 +163,7 @@ function msearch(
 					searchHeaders = Object.assign(
 						{
 							'X-Search-Id': searchId,
-							'X-Search-Query': searchValue,
+							'X-Search-Query': searchValue || '',
 						},
 						filterString && {
 							'X-Search-Filters': filterString,
