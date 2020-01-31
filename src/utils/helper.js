@@ -199,14 +199,20 @@ export function checkValueChange(componentId, value, beforeValueChange, performU
 	if (Array.isArray(value) && !value.length) {
 		selectedValue = null;
 	}
+	const handleError = (e) => {
+		console.warn(`${componentId} - beforeValueChange rejected the promise with `, e);
+	};
+
 	if (beforeValueChange) {
-		const promise = beforeValueChange(selectedValue);
-		if (promise instanceof Promise) {
-			promise.then(performUpdate).catch((e) => {
-				console.warn(`${componentId} - beforeValueChange rejected the promise with `, e);
-			});
-		} else if (promise === 'truthy') {
-			performUpdate();
+		try {
+			const promise = beforeValueChange(selectedValue);
+			if (promise instanceof Promise) {
+				promise.then(performUpdate).catch(handleError);
+			} else {
+				performUpdate();
+			}
+		} catch (e) {
+			handleError(e);
 		}
 	} else {
 		performUpdate();
