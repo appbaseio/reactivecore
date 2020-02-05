@@ -22,6 +22,26 @@ import { updateMapData } from './maps';
 import fetchGraphQL from '../utils/graphQL';
 import { componentTypes } from '../../lib/utils/constants';
 
+function orderKeys(obj) {
+	const keys = Object.keys(obj).sort((k1, k2) => {
+		if (k1 < k2) return -1;
+		else if (k1 > k2) return +1;
+		return 0;
+	});
+
+	let i;
+	const after = {};
+	for (i = 0; i < keys.length; i += 1) {
+	  after[keys[i]] = obj[keys[i]];
+	  delete obj[keys[i]];
+	}
+
+	for (i = 0; i < keys.length; i += 1) {
+	  obj[keys[i]] = after[keys[i]];
+	}
+	return obj;
+}
+
 export function setQuery(component, query) {
 	return {
 		type: SET_QUERY,
@@ -284,11 +304,12 @@ function msearch(
 					handleError(err);
 				});
 		} else {
+			const sortedQuery = query.map(obj => orderKeys(obj));
 			appbaseRef.setHeaders({ ...headers, ...searchHeaders });
 			appbaseRef
 				.msearch({
 					type: config.type === '*' ? '' : config.type,
-					body: query,
+					body: sortedQuery,
 				})
 				.then((res) => {
 					handleResponse(res);
