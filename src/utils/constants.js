@@ -30,6 +30,7 @@ export const componentTypes = {
 export const validProps = [
 	// common
 	'componentType',
+	'URLParams',
 	// Specific to ReactiveList
 	'dataField',
 	'includeFields',
