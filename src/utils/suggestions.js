@@ -42,14 +42,20 @@ function replaceDiacritics(s) {
 	return str;
 }
 
-const getSuggestions = (fields, suggestions, currentValue, suggestionProperties = []) => {
+const getSuggestions = (
+	fields,
+	suggestions,
+	currentValue,
+	suggestionProperties = [],
+	skipWordMatch = false,
+) => {
 	let suggestionsList = [];
 	let labelsList = [];
 
 	const populateSuggestionsList = (val, parsedSource, source) => {
 		// check if the suggestion includes the current value
 		// and not already included in other suggestions
-		const isWordMatch = currentValue
+		const isWordMatch = skipWordMatch || currentValue
 			.trim()
 			.split(' ')
 			.some(term =>
@@ -119,6 +125,23 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 			parseField(item, field);
 		});
 	});
+
+	if (suggestionsList.length < suggestions.length) {
+		/*
+			When we have synonym we set skipWordMatch to false as it may discard
+			the suggestion if word doesnt match term.
+			For eg: iphone, ios are synonyms and on searching iphone isWordMatch
+			in  populateSuggestionList may discard ios source which decreases no.
+			of items in suggestionsList
+		*/
+		return getSuggestions(
+			fields,
+			suggestions,
+			currentValue,
+			suggestionProperties,
+			true,
+		);
+	}
 
 	return suggestionsList;
 };
