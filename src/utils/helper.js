@@ -571,7 +571,12 @@ export function handleOnSuggestions(results, currentValue, props) {
 		newResults = [...promotedResults, ...newResults];
 	}
 
-	const parsedSuggestions = getSuggestions(fields, newResults, currentValue.toLowerCase());
+	const parsedSuggestions = getSuggestions({
+		fields,
+		suggestions: newResults,
+		currentValue: currentValue.toLowerCase(),
+		showDistinctSuggestions: props.showDistinctSuggestions,
+	});
 
 	if (parseSuggestion) {
 		return parsedSuggestions.map(suggestion => parseSuggestion(suggestion));

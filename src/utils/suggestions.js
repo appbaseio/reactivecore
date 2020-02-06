@@ -42,13 +42,24 @@ function replaceDiacritics(s) {
 	return str;
 }
 
-const getSuggestions = (
+const getSuggestions = ({
 	fields,
 	suggestions,
 	currentValue,
 	suggestionProperties = [],
 	skipWordMatch = false,
-) => {
+	showDistinctSuggestions = false,
+}) => {
+
+	/*
+		fields: DataFields passed on Search Components
+		suggestions: Raw Suggestions received from ES
+		currentValue: Search Term
+		skipWordMatch: Use to skip the word match logic, important for synonym
+		showDistinctSuggestions: When set to true will only return 1 suggestion per document
+	*/
+
+
 	let suggestionsList = [];
 	let labelsList = [];
 
@@ -109,22 +120,29 @@ const getSuggestions = (
 					const val = extractSuggestion(label);
 					if (val) {
 						if (Array.isArray(val)) {
-							val.forEach(suggestion =>
-								populateSuggestionsList(suggestion, parsedSource, source));
+							val.forEach(suggestion => populateSuggestionsList(suggestion, parsedSource, source));
 						} else {
 							populateSuggestionsList(val, parsedSource, source);
+							return true;
 						}
 					}
 				}
 			}
 		}
+		return false;
 	};
 
-	suggestions.forEach((item) => {
-		fields.forEach((field) => {
-			parseField(item, field);
+	if (showDistinctSuggestions) {
+		suggestions.forEach((item) => {
+			fields.every(field => parseField(item, field));
 		});
-	});
+	} else {
+		suggestions.forEach((item) => {
+			fields.forEach((field) => {
+				parseField(item, field);
+			});
+		});
+	}
 
 	if (suggestionsList.length < suggestions.length) {
 		/*
@@ -134,13 +152,14 @@ const getSuggestions = (
 			in  populateSuggestionList may discard ios source which decreases no.
 			of items in suggestionsList
 		*/
-		return getSuggestions(
+		return getSuggestions({
 			fields,
 			suggestions,
 			currentValue,
 			suggestionProperties,
-			true,
-		);
+			skipWordMatch: true,
+			showDistinctSuggestions,
+		});
 	}
 
 	return suggestionsList;
