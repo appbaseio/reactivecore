@@ -50,7 +50,6 @@ const getSuggestions = ({
 	skipWordMatch = false,
 	showDistinctSuggestions = false,
 }) => {
-
 	/*
 		fields: DataFields passed on Search Components
 		suggestions: Raw Suggestions received from ES
@@ -121,10 +120,10 @@ const getSuggestions = ({
 					if (val) {
 						if (Array.isArray(val)) {
 							val.forEach(suggestion => populateSuggestionsList(suggestion, parsedSource, source));
-						} else {
-							populateSuggestionsList(val, parsedSource, source);
 							return true;
 						}
+						populateSuggestionsList(val, parsedSource, source);
+						return true;
 					}
 				}
 			}
@@ -134,7 +133,7 @@ const getSuggestions = ({
 
 	if (showDistinctSuggestions) {
 		suggestions.forEach((item) => {
-			fields.every(field => parseField(item, field));
+			fields.some(field => parseField(item, field));
 		});
 	} else {
 		suggestions.forEach((item) => {
