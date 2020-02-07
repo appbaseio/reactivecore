@@ -22,24 +22,21 @@ import { updateMapData } from './maps';
 import fetchGraphQL from '../utils/graphQL';
 import { componentTypes } from '../../lib/utils/constants';
 
-function orderKeys(obj) {
-	const keys = Object.keys(obj).sort((k1, k2) => {
-		if (k1 < k2) return -1;
-		else if (k1 > k2) return +1;
-		return 0;
-	});
-
-	let i;
-	const after = {};
-	for (i = 0; i < keys.length; i += 1) {
-	  after[keys[i]] = obj[keys[i]];
-	  delete obj[keys[i]];
+function orderKeys(object) {
+	if (typeof object !== 'object') {
+		return object;
 	}
-
-	for (i = 0; i < keys.length; i += 1) {
-	  obj[keys[i]] = after[keys[i]];
+	if (Array.isArray(object)) {
+		return object.map(obj => orderKeys(obj));
 	}
-	return obj;
+	const newObject = {};
+	const keys = Object.keys(object);
+	keys.sort();
+	// eslint-disable-next-line no-plusplus
+	for (let i = 0; i < keys.length; i++) {
+		newObject[keys[i]] = orderKeys(object[keys[i]]);
+	}
+	return newObject;
 }
 
 export function setQuery(component, query) {
