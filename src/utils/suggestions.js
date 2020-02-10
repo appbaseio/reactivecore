@@ -58,7 +58,6 @@ const getSuggestions = ({
 		showDistinctSuggestions: When set to true will only return 1 suggestion per document
 	*/
 
-
 	let suggestionsList = [];
 	let labelsList = [];
 
@@ -143,7 +142,7 @@ const getSuggestions = ({
 		});
 	}
 
-	if (suggestionsList.length < suggestions.length) {
+	if (suggestionsList.length < suggestions.length && !skipWordMatch) {
 		/*
 			When we have synonym we set skipWordMatch to false as it may discard
 			the suggestion if word doesnt match term.
