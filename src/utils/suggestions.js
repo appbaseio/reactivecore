@@ -42,14 +42,29 @@ function replaceDiacritics(s) {
 	return str;
 }
 
-const getSuggestions = (fields, suggestions, currentValue, suggestionProperties = []) => {
+const getSuggestions = ({
+	fields,
+	suggestions,
+	currentValue,
+	suggestionProperties = [],
+	skipWordMatch = false,
+	showDistinctSuggestions = false,
+}) => {
+	/*
+		fields: DataFields passed on Search Components
+		suggestions: Raw Suggestions received from ES
+		currentValue: Search Term
+		skipWordMatch: Use to skip the word match logic, important for synonym
+		showDistinctSuggestions: When set to true will only return 1 suggestion per document
+	*/
+
 	let suggestionsList = [];
 	let labelsList = [];
 
 	const populateSuggestionsList = (val, parsedSource, source) => {
 		// check if the suggestion includes the current value
 		// and not already included in other suggestions
-		const isWordMatch = currentValue
+		const isWordMatch = skipWordMatch || currentValue
 			.trim()
 			.split(' ')
 			.some(term =>
@@ -103,22 +118,47 @@ const getSuggestions = (fields, suggestions, currentValue, suggestionProperties 
 					const val = extractSuggestion(label);
 					if (val) {
 						if (Array.isArray(val)) {
-							val.forEach(suggestion =>
-								populateSuggestionsList(suggestion, parsedSource, source));
-						} else {
-							populateSuggestionsList(val, parsedSource, source);
+							val.forEach(suggestion => populateSuggestionsList(suggestion, parsedSource, source));
+							return true;
 						}
+						populateSuggestionsList(val, parsedSource, source);
+						return true;
 					}
 				}
 			}
 		}
+		return false;
 	};
 
-	suggestions.forEach((item) => {
-		fields.forEach((field) => {
-			parseField(item, field);
+	if (showDistinctSuggestions) {
+		suggestions.forEach((item) => {
+			fields.some(field => parseField(item, field));
 		});
-	});
+	} else {
+		suggestions.forEach((item) => {
+			fields.forEach((field) => {
+				parseField(item, field);
+			});
+		});
+	}
+
+	if (suggestionsList.length < suggestions.length && !skipWordMatch) {
+		/*
+			When we have synonym we set skipWordMatch to false as it may discard
+			the suggestion if word doesnt match term.
+			For eg: iphone, ios are synonyms and on searching iphone isWordMatch
+			in  populateSuggestionList may discard ios source which decreases no.
+			of items in suggestionsList
+		*/
+		return getSuggestions({
+			fields,
+			suggestions,
+			currentValue,
+			suggestionProperties,
+			skipWordMatch: true,
+			showDistinctSuggestions,
+		});
+	}
 
 	return suggestionsList;
 };

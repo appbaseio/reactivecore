@@ -266,7 +266,7 @@ const highlightResults = (result) => {
 	return data;
 };
 
-export const parseHits = (hits) => {
+export const parseHits = (hits, showHighlighted = true) => {
 	let results = null;
 	if (hits) {
 		results = [...hits].map((item) => {
@@ -278,7 +278,8 @@ export const parseHits = (hits) => {
 				streamProps._deleted = item._deleted;
 			}
 
-			const data = highlightResults(item);
+			let data = { ...item };
+			if (showHighlighted) data = highlightResults(item);
 			const result = Object.keys(data)
 				.filter(key => key !== '_source')
 				.reduce(
@@ -560,7 +561,7 @@ export function handleOnSuggestions(results, currentValue, props) {
 	const fields = Array.isArray(props.dataField) ? props.dataField : [props.dataField];
 
 	// hits as flat structure
-	let newResults = parseHits(results);
+	let newResults = parseHits(results, false);
 
 	if (promotedResults.length) {
 		const ids = promotedResults.map(item => item._id).filter(Boolean);
@@ -570,7 +571,12 @@ export function handleOnSuggestions(results, currentValue, props) {
 		newResults = [...promotedResults, ...newResults];
 	}
 
-	const parsedSuggestions = getSuggestions(fields, newResults, currentValue.toLowerCase());
+	const parsedSuggestions = getSuggestions({
+		fields,
+		suggestions: newResults,
+		currentValue: currentValue.toLowerCase(),
+		showDistinctSuggestions: props.showDistinctSuggestions,
+	});
 
 	if (parseSuggestion) {
 		return parsedSuggestions.map(suggestion => parseSuggestion(suggestion));
