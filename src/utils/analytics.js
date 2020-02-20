@@ -110,6 +110,7 @@ export const defaultAnalyticsConfig = {
 	suggestionAnalytics: true,
 	userId: null,
 	customEvents: null,
+	enableQueryRules: true,
 };
 
 export {
