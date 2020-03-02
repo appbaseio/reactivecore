@@ -11,6 +11,7 @@ import hitsReducer from './hitsReducer';
 import logsReducer from './logsReducer';
 import combinedLogsReducer from './combinedLogsReducer';
 import valueReducer from './valueReducer';
+import internalValueReducer from './internalValueReducer';
 import loadingReducer from './loadingReducer';
 import errorReducer from './errorReducer';
 import streamingReducer from './streamingReducer';
@@ -42,6 +43,7 @@ export default combineReducers({
 	queryLog: logsReducer,
 	combinedLog: combinedLogsReducer,
 	selectedValues: valueReducer,
+	internalValues: internalValueReducer,
 	isLoading: loadingReducer,
 	error: errorReducer,
 	stream: streamingReducer,

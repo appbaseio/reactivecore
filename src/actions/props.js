@@ -28,11 +28,11 @@ export function setComponentProps(component, options) {
  * @param {String} component
  * @param {Object} options
  */
-export function updateComponentProps(component, options) {
+export function updateComponentProps(component, options, componentType) {
 	return {
 		type: UPDATE_PROPS,
 		component,
-		options: getfilteredOptions(options),
+		options: getfilteredOptions({ ...options, componentType }),
 	};
 }
 

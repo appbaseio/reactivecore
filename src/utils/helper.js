@@ -133,6 +133,26 @@ function getQuery(react, queryList) {
 	return null;
 }
 
+export function flatReactProp(reactProp) {
+	let flattenReact = [];
+	const flatReact = (react) => {
+		if (react && Object.keys(react)) {
+			Object.keys(react).forEach((r) => {
+				if (react[r]) {
+					if (typeof react[r] === 'string') {
+						flattenReact = [...flattenReact, react[r]];
+					} else if (Array.isArray(react[r])) {
+						flattenReact = [...flattenReact, ...react[r]];
+					} else if (typeof react[r] === 'object') {
+						flatReact(react[r]);
+					}
+				}
+			});
+		}
+	};
+	flatReact(reactProp);
+	return flattenReact;
+}
 function getExternalQueryOptions(react, options, component) {
 	let queryOptions = {};
 
@@ -428,6 +448,7 @@ export const updateInternalQuery = (
 		props.updateQuery({
 			componentId,
 			query,
+			value,
 			...queryParams,
 		});
 	}
