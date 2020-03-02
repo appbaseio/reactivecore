@@ -22,6 +22,7 @@ import mapDataReducer from './mapDataReducer';
 import queryListenerReducer from './queryListenerReducer';
 import analyticsReducer from './analyticsReducer';
 import promotedResultsReducer from './promotedResultsReducer';
+import customDataReducer from './customDataReducer';
 import propsReducer from './propsReducer';
 import mapOnTopMarkerReducer from './mapOnTopMarkerReducer';
 import mapOpenMarkerReducer from './mapOpenMarkerReducer';
@@ -38,6 +39,7 @@ export default combineReducers({
 	config: configReducer,
 	hits: hitsReducer,
 	promotedResults: promotedResultsReducer,
+	customData: customDataReducer,
 	aggregations: aggsReducer,
 	compositeAggregations: compositeAggsReducer,
 	queryLog: logsReducer,

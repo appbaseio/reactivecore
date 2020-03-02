@@ -12,6 +12,7 @@ import {
 	SET_ERROR,
 	SET_PROMOTED_RESULTS,
 	SET_SUGGESTIONS_SEARCH_ID,
+	SET_CUSTOM_DATA,
 } from '../constants';
 
 import { setValue, setInternalValue } from './value';
@@ -101,6 +102,14 @@ export function setPromotedResults(results = [], component) {
 	return {
 		type: SET_PROMOTED_RESULTS,
 		results,
+		component,
+	};
+}
+
+export function setCustomData(data = null, component) {
+	return {
+		type: SET_CUSTOM_DATA,
+		data,
 		component,
 	};
 }
@@ -397,6 +406,10 @@ function appbaseSearch(
 									dispatch(setPromotedResults(promotedResults, component));
 								} else {
 									dispatch(setPromotedResults([], component));
+								}
+								const customData = response.customData;
+								if (customData) {
+									dispatch(setCustomData(customData, component));
 								}
 								if (response.hits) {
 									dispatch(setTimestamp(component, res._timestamp));
