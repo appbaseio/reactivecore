@@ -23,14 +23,20 @@ import queryListenerReducer from './queryListenerReducer';
 import analyticsReducer from './analyticsReducer';
 import promotedResultsReducer from './promotedResultsReducer';
 import customDataReducer from './customDataReducer';
+import defaultQueriesReducer from './defaultQueryReducer';
+import customQueriesReducer from './customQueryReducer';
 import propsReducer from './propsReducer';
 import mapOnTopMarkerReducer from './mapOnTopMarkerReducer';
 import mapOpenMarkerReducer from './mapOpenMarkerReducer';
 import aggsReducer from './aggsReducer';
 import compositeAggsReducer from './compositeAggsReducer';
+import appliedSettingsReducer from './appliedSettingsReducer';
 
 export default combineReducers({
 	components: componentsReducer,
+	customQueries: customQueriesReducer,
+	defaultQueries: defaultQueriesReducer,
+	settings: appliedSettingsReducer,
 	watchMan: watchManReducer, // contains the list of subscribers
 	queryList: queryReducer,
 	queryOptions: queryOptionsReducer,

@@ -378,6 +378,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		isLoading,
 		error,
 		promotedResults,
+		settings,
 		customData,
 	} = state;
 	const searchState = {};
@@ -417,6 +418,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		populateState(isLoading, 'isLoading');
 		populateState(error, 'error');
 		populateState(promotedResults, 'promotedData');
+		populateState(settings, 'settings');
 		populateState(customData, 'customData');
 		computeResultStats(hits, searchState, promotedResults);
 	}
