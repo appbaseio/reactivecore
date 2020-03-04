@@ -14,6 +14,7 @@ import {
 	SET_APPLIED_SETTINGS,
 	SET_SUGGESTIONS_SEARCH_ID,
 	SET_CUSTOM_DATA,
+	SET_DEFAULT_QUERY,
 } from '../constants';
 
 import { setValue, setInternalValue } from './value';
@@ -23,11 +24,28 @@ import getFilterString, { parseCustomEvents } from '../utils/analytics';
 import { updateMapData } from './maps';
 import fetchGraphQL from '../utils/graphQL';
 import { componentTypes } from '../../lib/utils/constants';
-import { getRSQuery } from '../utils/transform';
+import { getRSQuery, extractPropsFromState } from '../utils/transform';
+import { SET_CUSTOM_QUERY } from '../../lib/constants';
 
 export function setQuery(component, query) {
 	return {
 		type: SET_QUERY,
+		component,
+		query,
+	};
+}
+
+export function setCustomQuery(component, query) {
+	return {
+		type: SET_CUSTOM_QUERY,
+		component,
+		query,
+	};
+}
+
+export function setDefaultQuery(component, query) {
+	return {
+		type: SET_DEFAULT_QUERY,
 		component,
 		query,
 	};
@@ -400,7 +418,6 @@ function appbaseSearch(
 				}
 			}
 
-
 			// handle promoted results
 			componentIds.forEach((component) => {
 				// Update applied settings
@@ -491,7 +508,6 @@ export function executeQuery(
 			queryList,
 			queryOptions,
 			queryListener,
-			props,
 			selectedValues,
 			internalValues,
 		} = getState();
@@ -615,13 +631,14 @@ export function executeQuery(
 					// push to combined query for msearch
 					if (isAppbaseEnabled) {
 						const currentValue = selectedValues[component] || internalValues[component];
-						const calcOptions = metaOptions
-							? { ...props[component], from: metaOptions.from }
-							: props[component];
 						// build query
 						const query = getRSQuery(
 							component,
-							calcOptions,
+							extractPropsFromState(
+								getState(),
+								component,
+								metaOptions ? { from: metaOptions.from } : null,
+							),
 							currentValue,
 							dependencyTree[component],
 						);
@@ -637,7 +654,7 @@ export function executeQuery(
 								// build query
 								const dependentQuery = getRSQuery(
 									dep,
-									props[dep],
+									extractPropsFromState(getState(), dep),
 									calcValues,
 									dependencyTree[dep],
 									false,
@@ -760,11 +777,10 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 
 		if (store.config && store.config.enableAppbase) {
 			let finalQuery = [];
-			const calcOptions = { ...store.props[component], from: options.from };
 			// build query
 			const query = getRSQuery(
 				component,
-				calcOptions,
+				extractPropsFromState(store, component, { from: options.from }),
 				store.selectedValues[component],
 				store.dependencyTree[component],
 			);
@@ -779,7 +795,7 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 					// build query
 					const dependentQuery = getRSQuery(
 						dep,
-						store.props[dep],
+						extractPropsFromState(store, dep),
 						calcValues,
 						store.dependencyTree[dep],
 						false,

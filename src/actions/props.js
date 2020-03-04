@@ -15,11 +15,11 @@ const getfilteredOptions = (options = {}) => {
  * @param {String} component
  * @param {Object} options
  */
-export function setComponentProps(component, options) {
+export function setComponentProps(component, options, componentType) {
 	return {
 		type: SET_PROPS,
 		component,
-		options: getfilteredOptions(options),
+		options: getfilteredOptions({ ...options, componentType }),
 	};
 }
 

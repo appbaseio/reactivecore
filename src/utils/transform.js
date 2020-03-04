@@ -71,7 +71,14 @@ export const getRSQuery = (componentId, props, selectedValue, react, execute) =>
 		nestedField: props && props.nestedField,
 		interval: props && props.interval,
 		// highlightOptions: Need to handle in a similar way like customQuery
-		// customQuery
-		// defaultQuery
+		customQuery: props && props.customQuery,
+		defaultQuery: props && props.defaultQuery,
 	};
 };
+
+export const extractPropsFromState = (store, component, customOptions) => ({
+	...store.props[component],
+	customQuery: store.customQueries[component],
+	defaultQuery: store.defaultQueries[component],
+	...customOptions,
+});

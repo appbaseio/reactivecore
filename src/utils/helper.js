@@ -609,3 +609,15 @@ export function handleOnSuggestions(results, currentValue, props) {
 
 	return parsedSuggestions;
 }
+
+export const updateCustomQuery = (componentId, props, value) => {
+	if (props.customQuery && typeof props.customQuery === 'function') {
+		props.setCustomQuery(componentId, props.customQuery(value, props));
+	}
+};
+
+export const updateDefaultQuery = (componentId, props, value) => {
+	if (props.defaultQuery && typeof props.defaultQuery === 'function') {
+		props.setDefaultQuery(componentId, props.defaultQuery(value, props));
+	}
+};
