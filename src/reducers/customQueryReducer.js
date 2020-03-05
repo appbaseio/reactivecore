@@ -1,6 +1,6 @@
 import { SET_CUSTOM_QUERY } from '../constants';
 
-export default function defaultQueryReducer(state = {}, action) {
+export default function customQueryReducer(state = {}, action) {
 	if (action.type === SET_CUSTOM_QUERY) {
 		return {
 			...state,

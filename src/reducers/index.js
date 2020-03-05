@@ -31,11 +31,13 @@ import mapOpenMarkerReducer from './mapOpenMarkerReducer';
 import aggsReducer from './aggsReducer';
 import compositeAggsReducer from './compositeAggsReducer';
 import appliedSettingsReducer from './appliedSettingsReducer';
+import customHighlightReducer from './customHighlightReducer';
 
 export default combineReducers({
 	components: componentsReducer,
 	customQueries: customQueriesReducer,
 	defaultQueries: defaultQueriesReducer,
+	customHighlightOptions: customHighlightReducer,
 	settings: appliedSettingsReducer,
 	watchMan: watchManReducer, // contains the list of subscribers
 	queryList: queryReducer,

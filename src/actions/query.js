@@ -15,16 +15,17 @@ import {
 	SET_SUGGESTIONS_SEARCH_ID,
 	SET_CUSTOM_DATA,
 	SET_DEFAULT_QUERY,
+	SET_CUSTOM_HIGHLIGHT_OPTIONS,
 } from '../constants';
 
 import { setValue, setInternalValue } from './value';
 import { updateHits, updateAggs, pushToStreamHits, updateCompositeAggs } from './hits';
-import { buildQuery, isEqual, getSearchState, flatReactProp } from '../utils/helper';
+import { buildQuery, isEqual, getSearchState } from '../utils/helper';
 import getFilterString, { parseCustomEvents } from '../utils/analytics';
 import { updateMapData } from './maps';
 import fetchGraphQL from '../utils/graphQL';
 import { componentTypes } from '../../lib/utils/constants';
-import { getRSQuery, extractPropsFromState } from '../utils/transform';
+import { getRSQuery, extractPropsFromState, getDependentQueries } from '../utils/transform';
 import { SET_CUSTOM_QUERY } from '../../lib/constants';
 
 export function setQuery(component, query) {
@@ -48,6 +49,14 @@ export function setDefaultQuery(component, query) {
 		type: SET_DEFAULT_QUERY,
 		component,
 		query,
+	};
+}
+
+export function setCustomHighlightOptions(component, data) {
+	return {
+		type: SET_CUSTOM_HIGHLIGHT_OPTIONS,
+		component,
+		data,
 	};
 }
 
@@ -341,7 +350,7 @@ const isPropertyDefined = property => property !== undefined && property !== nul
 
 function appbaseSearch(
 	query,
-	componentIds,
+	orderOfQueries,
 	appendToHits = false,
 	isInternalComponent,
 	appendToAggs = false,
@@ -382,6 +391,11 @@ function appbaseSearch(
 				: undefined;
 		}
 
+		// set loading as active for the given component
+		orderOfQueries.forEach((component) => {
+			dispatch(setLoading(component, true));
+		});
+
 		const handleTransformResponse = (res, component) => {
 			if (config.transformResponse && typeof config.transformResponse === 'function') {
 				return config.transformResponse(res, component);
@@ -391,7 +405,7 @@ function appbaseSearch(
 
 		const handleError = (error) => {
 			console.error(error);
-			componentIds.forEach((component) => {
+			orderOfQueries.forEach((component) => {
 				if (queryListener[component] && queryListener[component].onError) {
 					queryListener[component].onError(error);
 				}
@@ -419,7 +433,7 @@ function appbaseSearch(
 			}
 
 			// handle promoted results
-			componentIds.forEach((component) => {
+			orderOfQueries.forEach((component) => {
 				// Update applied settings
 				if (res.settings) {
 					dispatch(setAppliedSettings(res.settings, component));
@@ -434,7 +448,11 @@ function appbaseSearch(
 							) {
 								const promotedResults = response.promoted;
 								if (promotedResults) {
-									dispatch(setPromotedResults(promotedResults, component));
+									const parsedPromotedResults = promotedResults.map(promoted => ({
+										...promoted.doc,
+										_position: promoted.position,
+									}));
+									dispatch(setPromotedResults(parsedPromotedResults, component));
 								} else {
 									dispatch(setPromotedResults([], component));
 								}
@@ -514,6 +532,7 @@ export function executeQuery(
 
 		let componentList = [componentId];
 		let finalQuery = [];
+		let appbaseQuery = {}; // Use object to prevent duplicate query added by react prop
 		let orderOfQueries = [];
 		const isAppbaseEnabled = config && config.enableAppbase;
 		if (executeWatchList) {
@@ -643,25 +662,12 @@ export function executeQuery(
 							dependencyTree[component],
 						);
 
-						finalQuery = [...finalQuery, query];
-
 						// Apply dependent queries
-						const reactDependencies = flatReactProp(dependencyTree[component]);
-
-						reactDependencies.forEach((dep) => {
-							const calcValues = selectedValues[dep] || internalValues[dep];
-							if (calcValues) {
-								// build query
-								const dependentQuery = getRSQuery(
-									dep,
-									extractPropsFromState(getState(), dep),
-									calcValues,
-									dependencyTree[dep],
-									false,
-								);
-								finalQuery = [...finalQuery, dependentQuery];
-							}
-						});
+						appbaseQuery = {
+							...appbaseQuery,
+							...{ [component]: query },
+							...getDependentQueries(getState(), component),
+						};
 					} else {
 						finalQuery = [
 							...finalQuery,
@@ -674,6 +680,10 @@ export function executeQuery(
 				}
 			}
 		});
+
+		if (isAppbaseEnabled) {
+			finalQuery = Object.keys(appbaseQuery).map(component => appbaseQuery[component]);
+		}
 
 		if (finalQuery.length) {
 			if (isAppbaseEnabled) {
@@ -731,6 +741,7 @@ export function updateQuery(
 		// don't set filters for internal components
 		if (!componentId.endsWith('__internal')) {
 			dispatch(setValue(componentId, value, label, showFilter, URLParams, componentType, category));
+			dispatch(setInternalValue(`${componentId}__internal`, value, componentType, category));
 		} else {
 			dispatch(setInternalValue(componentId, value, componentType, category));
 		}
@@ -776,7 +787,7 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 		// TODO: handle RS API
 
 		if (store.config && store.config.enableAppbase) {
-			let finalQuery = [];
+			let appbaseQuery = {};
 			// build query
 			const query = getRSQuery(
 				component,
@@ -784,25 +795,12 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 				store.selectedValues[component],
 				store.dependencyTree[component],
 			);
-			finalQuery = [...finalQuery, query];
-
 			// Apply dependent queries
-			const reactDependencies = flatReactProp(store.dependencyTree[component]);
-			reactDependencies.forEach((dep) => {
-				const calcValues = store.selectedValues[dep] || store.internalValues[dep];
-				// Only apply component and has some value
-				if (calcValues) {
-					// build query
-					const dependentQuery = getRSQuery(
-						dep,
-						extractPropsFromState(store, dep),
-						calcValues,
-						store.dependencyTree[dep],
-						false,
-					);
-					finalQuery = [...finalQuery, dependentQuery];
-				}
-			});
+			appbaseQuery = {
+				...{ [component]: query },
+				...getDependentQueries(getState(), component),
+			};
+			const finalQuery = Object.keys(appbaseQuery).map(c => appbaseQuery[c]);
 			dispatch(appbaseSearch(finalQuery, [component], appendToHits, false, appendToAggs));
 		} else {
 			const finalQuery = [

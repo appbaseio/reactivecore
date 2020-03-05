@@ -3,6 +3,19 @@
 import dateFormats from './dateFormats';
 import getSuggestions from './suggestions';
 
+export const updateCustomQuery = (componentId, props, value) => {
+	if (props.customQuery && typeof props.customQuery === 'function') {
+		props.setCustomQuery(componentId, props.customQuery(value, props));
+	}
+};
+
+export const updateDefaultQuery = (componentId, props, value) => {
+	if (props.defaultQuery && typeof props.defaultQuery === 'function') {
+		props.setDefaultQuery(componentId, props.defaultQuery(value, props));
+	}
+};
+
+
 export function isEqual(x, y) {
 	if (x === y) return true;
 	if (!(x instanceof Object) || !(y instanceof Object)) return false;
@@ -133,26 +146,7 @@ function getQuery(react, queryList) {
 	return null;
 }
 
-export function flatReactProp(reactProp) {
-	let flattenReact = [];
-	const flatReact = (react) => {
-		if (react && Object.keys(react)) {
-			Object.keys(react).forEach((r) => {
-				if (react[r]) {
-					if (typeof react[r] === 'string') {
-						flattenReact = [...flattenReact, react[r]];
-					} else if (Array.isArray(react[r])) {
-						flattenReact = [...flattenReact, ...react[r]];
-					} else if (typeof react[r] === 'object') {
-						flatReact(react[r]);
-					}
-				}
-			});
-		}
-	};
-	flatReact(reactProp);
-	return flattenReact;
-}
+
 function getExternalQueryOptions(react, options, component) {
 	let queryOptions = {};
 
@@ -443,6 +437,8 @@ export const updateInternalQuery = (
 		const queryTobeSet = defaultQuery(value, props);
 		({ query } = queryTobeSet || {});
 		defaultQueryOptions = getOptionsFromQuery(queryTobeSet);
+		// Update calculated default query in store
+		updateDefaultQuery(componentId, props, value);
 	}
 	props.setQueryOptions(componentId, {
 		...defaultQueryOptions,
@@ -588,13 +584,16 @@ export function handleOnSuggestions(results, currentValue, props) {
 	// hits as flat structure
 	let newResults = parseHits(results, false);
 
-	if (promotedResults.length) {
-		const ids = promotedResults.map(item => item._id).filter(Boolean);
+	const parsedPromotedResults = parseHits(promotedResults, false);
+
+	if (parsedPromotedResults && parsedPromotedResults.length) {
+		const ids = parsedPromotedResults.map(item => item._id).filter(Boolean);
 		if (ids) {
 			newResults = newResults.filter(item => !ids.includes(item._id));
 		}
-		newResults = [...promotedResults, ...newResults];
+		newResults = [...parsedPromotedResults, ...newResults];
 	}
+
 
 	const parsedSuggestions = getSuggestions({
 		fields,
@@ -609,15 +608,3 @@ export function handleOnSuggestions(results, currentValue, props) {
 
 	return parsedSuggestions;
 }
-
-export const updateCustomQuery = (componentId, props, value) => {
-	if (props.customQuery && typeof props.customQuery === 'function') {
-		props.setCustomQuery(componentId, props.customQuery(value, props));
-	}
-};
-
-export const updateDefaultQuery = (componentId, props, value) => {
-	if (props.defaultQuery && typeof props.defaultQuery === 'function') {
-		props.setDefaultQuery(componentId, props.defaultQuery(value, props));
-	}
-};
