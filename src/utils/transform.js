@@ -69,21 +69,35 @@ export const getRSQuery = (componentId, props, selectedValue, react, execute) =>
 			customQuery: props.customQuery,
 			defaultQuery: props.defaultQuery,
 			categoryValue: props.categoryValue || undefined,
+			after: props.after || undefined,
 		};
 	}
 	return null;
 };
 
-export const extractPropsFromState = (store, component, customOptions) => ({
-	...store.props[component],
-	customQuery: store.customQueries[component],
-	defaultQuery: store.defaultQueries[component],
-	highlightOptions: store.customHighlightOptions[component],
-	categoryValue: store.internalValues[component]
-		? store.internalValues[component].category
-		: undefined,
-	...customOptions,
-});
+export const extractPropsFromState = (store, component, customOptions) => {
+	const componentProps = store.props[component];
+	const queryType = componentToTypeMap[componentProps.componentType];
+	let compositeAggregationField = componentProps.aggregationField;
+	// For term queries i.e list component `dataField` will be treated as aggregationField
+	if (queryType === queryTypes.term) {
+		compositeAggregationField = componentProps.dataField;
+	}
+	return {
+		...componentProps,
+		customQuery: store.customQueries[component],
+		defaultQuery: store.defaultQueries[component],
+		highlightOptions: store.customHighlightOptions[component],
+		categoryValue: store.internalValues[component]
+			? store.internalValues[component].category
+			: undefined,
+		after:
+			store.aggregations[component]
+			&& store.aggregations[component][compositeAggregationField]
+			&& store.aggregations[component][compositeAggregationField].after_key,
+		...customOptions,
+	};
+};
 
 export function flatReactProp(reactProp) {
 	let flattenReact = [];
