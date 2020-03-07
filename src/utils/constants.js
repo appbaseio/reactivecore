@@ -78,12 +78,14 @@ export const validProps = [
 	// TagCloud and ToggleButton
 	'multiSelect',
 	// Range Components
+	'includeNullValues',
 	'interval',
 	'showHistogram',
 	'snap',
 	'stepValue',
 	'range',
 	'showSlider',
+	'parseDate',
 ];
 
 export const CLEAR_ALL = {

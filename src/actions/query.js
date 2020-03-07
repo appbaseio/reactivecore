@@ -25,7 +25,12 @@ import getFilterString, { parseCustomEvents } from '../utils/analytics';
 import { updateMapData } from './maps';
 import fetchGraphQL from '../utils/graphQL';
 import { componentTypes } from '../../lib/utils/constants';
-import { getRSQuery, extractPropsFromState, getDependentQueries } from '../utils/transform';
+import {
+	getRSQuery,
+	extractPropsFromState,
+	getDependentQueries,
+	getHistogramComponentID,
+} from '../utils/transform';
 import { SET_CUSTOM_QUERY } from '../../lib/constants';
 
 export function setQuery(component, query) {
@@ -526,8 +531,6 @@ export function executeQuery(
 			queryList,
 			queryOptions,
 			queryListener,
-			selectedValues,
-			internalValues,
 		} = getState();
 
 		let componentList = [componentId];
@@ -649,7 +652,6 @@ export function executeQuery(
 
 					// push to combined query for msearch
 					if (isAppbaseEnabled) {
-						const currentValue = selectedValues[component] || internalValues[component];
 						// build query
 						const query = getRSQuery(
 							component,
@@ -658,8 +660,6 @@ export function executeQuery(
 								component,
 								metaOptions ? { from: metaOptions.from } : null,
 							),
-							currentValue,
-							dependencyTree[component],
 						);
 
 						// Apply dependent queries
@@ -741,7 +741,17 @@ export function updateQuery(
 		// don't set filters for internal components
 		if (!componentId.endsWith('__internal')) {
 			dispatch(setValue(componentId, value, label, showFilter, URLParams, componentType, category));
-			dispatch(setInternalValue(`${componentId}__internal`, value, componentType, category));
+			if (componentType === componentTypes.dynamicRangeSlider) {
+				// Dynamic Range Slider has a dependency on histogram which uses different ID
+				dispatch(setInternalValue(
+					getHistogramComponentID(componentId),
+					value,
+					componentType,
+					category,
+				));
+			} else {
+				dispatch(setInternalValue(`${componentId}__internal`, value, componentType, category));
+			}
 		} else {
 			dispatch(setInternalValue(componentId, value, componentType, category));
 		}
@@ -792,8 +802,6 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 			const query = getRSQuery(
 				component,
 				extractPropsFromState(store, component, { from: options.from }),
-				store.selectedValues[component],
-				store.dependencyTree[component],
 			);
 			// Apply dependent queries
 			appbaseQuery = {

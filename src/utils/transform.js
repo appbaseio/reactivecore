@@ -1,5 +1,6 @@
+import XDate from 'xdate';
 import { componentTypes, queryTypes } from './constants';
-// After             *map[string]interface{} `json:"after,omitempty"`
+import { formatDate } from './helper';
 
 const componentToTypeMap = {
 	// search components
@@ -30,6 +31,10 @@ const componentToTypeMap = {
 	[componentTypes.ratingsFilter]: queryTypes.range,
 	[componentTypes.rangeInput]: queryTypes.range,
 };
+
+const multiRangeComponents = [componentTypes.multiRange, componentTypes.multiDropdownRange];
+const dateRangeComponents = [componentTypes.dateRange, componentTypes.datePicker];
+
 export const getNormalizedField = (field) => {
 	if (field && field.constructor !== Array) {
 		return [field];
@@ -37,19 +42,25 @@ export const getNormalizedField = (field) => {
 	return field;
 };
 
-export const getRSQuery = (componentId, props, selectedValue, react, execute) => {
-	const isInternalComponent = componentId.endsWith('__internal');
+export const isInternalComponent = (componentID = '') => componentID.endsWith('__internal');
+
+export const getInternalComponentID = (componentID = '') => `${componentID}__internal`;
+
+export const getHistogramComponentID = (componentID = '') => `${componentID}__histogram__internal`;
+
+export const isDRSRangeComponent = (componentID = '') => componentID.endsWith('__range__internal');
+
+export const getRSQuery = (componentId, props, execute = true) => {
 	if (props) {
 		return {
 			id: componentId,
 			type: componentToTypeMap[props.componentType],
 			dataField: getNormalizedField(props.dataField),
-			execute: execute !== undefined ? execute : !isInternalComponent,
-			react,
+			execute,
+			react: props.react,
 			highlight: props.highlight,
 			highlightField: getNormalizedField(props.highlightField),
 			fuzziness: props.fuzziness,
-			value: selectedValue ? selectedValue.value : undefined,
 			searchOperators: props.searchOperators,
 			includeFields: props.includeFields,
 			excludeFields: props.excludeFields,
@@ -68,29 +79,117 @@ export const getRSQuery = (componentId, props, selectedValue, react, execute) =>
 			highlightOptions: props.highlightOptions,
 			customQuery: props.customQuery,
 			defaultQuery: props.defaultQuery,
+			value: props.value,
 			categoryValue: props.categoryValue || undefined,
 			after: props.after || undefined,
+			aggregations: props.aggregations || undefined,
 		};
 	}
 	return null;
 };
 
+
+export const getValidInterval = (interval, range = {}) => {
+	const min = Math.ceil((range.end - range.start) / 100) || 1;
+	if (!interval) {
+		return min;
+	} else if (interval < min) {
+		return min;
+	}
+	return interval;
+};
+
 export const extractPropsFromState = (store, component, customOptions) => {
 	const componentProps = store.props[component];
 	const queryType = componentToTypeMap[componentProps.componentType];
+	const calcValues = store.selectedValues[component] || store.internalValues[component];
 	let compositeAggregationField = componentProps.aggregationField;
+	let value = calcValues !== undefined && calcValues !== null ? calcValues.value : undefined;
+	let queryFormat = componentProps.queryFormat;
+	let { interval } = componentProps;
+	let aggregations;
+
 	// For term queries i.e list component `dataField` will be treated as aggregationField
 	if (queryType === queryTypes.term) {
 		compositeAggregationField = componentProps.dataField;
+		// Remove selectAllLabel value
+		if (componentProps.selectAllLabel) {
+			if (typeof value === 'string' && value === componentProps.selectAllLabel) {
+				value = '';
+			} else if (Array.isArray(value)) {
+				value = value.filter(val => val !== componentProps.selectAllLabel);
+			}
+		}
+	}
+	if (queryType === queryTypes.range) {
+		if (Array.isArray(value)) {
+			if (multiRangeComponents.includes(componentProps.componentType)) {
+				value = value.map(({ start, end }) => ({
+					start,
+					end,
+				}));
+			} else {
+				value = {
+					start: value[0],
+					end: value[1],
+				};
+			}
+		} else if (componentProps.showHistogram) {
+			const internalComponentID = getInternalComponentID(component);
+			let internalComponentValue = store.internalValues[internalComponentID];
+			if (!internalComponentValue) {
+				// Handle dynamic range slider
+				const histogramComponentID = getHistogramComponentID(component);
+				internalComponentValue = store.internalValues[histogramComponentID];
+			}
+			if (internalComponentValue && Array.isArray(internalComponentValue.value)) {
+				value = {
+					start: internalComponentValue.value[0],
+					end: internalComponentValue.value[1],
+				};
+				// Set interval
+				interval = getValidInterval(interval, value);
+			}
+		}
+		if (isDRSRangeComponent(component)) {
+			aggregations = ['min', 'max'];
+		} else if (componentProps.showHistogram) {
+			aggregations = ['histogram'];
+		}
+
+
+		if (dateRangeComponents.includes(componentProps.componentType)) {
+			// Remove query format for `date` components
+			queryFormat = 'or';
+			// Set value
+			if (value) {
+				if (typeof value === 'string') {
+					value = {
+						start: formatDate(new XDate(value).addHours(-24), componentProps),
+						end: formatDate(new XDate(value), componentProps),
+					};
+				} else if (Array.isArray(value)) {
+					value = value.map(val => ({
+						start: formatDate(new XDate(val).addHours(-24), componentProps),
+						end: formatDate(new XDate(val), componentProps),
+					}));
+				}
+			}
+		}
 	}
 	return {
 		...componentProps,
+		queryFormat,
+		aggregations,
+		interval,
+		react: store.dependencyTree[component],
 		customQuery: store.customQueries[component],
 		defaultQuery: store.defaultQueries[component],
 		highlightOptions: store.customHighlightOptions[component],
 		categoryValue: store.internalValues[component]
 			? store.internalValues[component].category
 			: undefined,
+		value,
 		after:
 			store.aggregations[component]
 			&& store.aggregations[component][compositeAggregationField]
@@ -131,8 +230,6 @@ export const getDependentQueries = (store, componentID) => {
 				const dependentQuery = getRSQuery(
 					component,
 					extractPropsFromState(store, component),
-					calcValues,
-					store.dependencyTree[component],
 					false,
 				);
 				finalQuery[component] = dependentQuery;
