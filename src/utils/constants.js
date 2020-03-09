@@ -15,6 +15,7 @@ export const componentTypes = {
 	numberBox: 'NUMBERBOX',
 	tagCloud: 'TAGCLOUD',
 	toggleButton: 'TOGGLEBUTTON',
+	reactiveComponent: 'REACTIVECOMPONENT',
 	// range components
 	datePicker: 'DATEPICKER',
 	dateRange: 'DATERANGE',

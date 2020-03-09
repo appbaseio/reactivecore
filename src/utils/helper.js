@@ -1,4 +1,3 @@
-/* eslint-disable */
 // when we want to perform deep equality check, especially in objects
 import dateFormats from './dateFormats';
 import getSuggestions from './suggestions';
@@ -21,6 +20,7 @@ export function isEqual(x, y) {
 	if (!(x instanceof Object) || !(y instanceof Object)) return false;
 	if (x.constructor !== y.constructor) return false;
 
+	/* eslint-disable */
 	for (const p in x) {
 		if (!x.hasOwnProperty(p)) continue;
 		if (!y.hasOwnProperty(p)) return false;
@@ -32,6 +32,7 @@ export function isEqual(x, y) {
 	for (const p in y) {
 		if (y.hasOwnProperty(p) && !x.hasOwnProperty(p)) return false;
 	}
+	/* eslint-enable */
 	return true;
 }
 /* eslint-enable */

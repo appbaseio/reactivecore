@@ -51,10 +51,10 @@ export const getHistogramComponentID = (componentID = '') => `${componentID}__hi
 export const isDRSRangeComponent = (componentID = '') => componentID.endsWith('__range__internal');
 
 export const getRSQuery = (componentId, props, execute = true) => {
-	if (props) {
+	if (props && componentId && props.dataField) {
 		return {
 			id: componentId,
-			type: componentToTypeMap[props.componentType],
+			type: props.type ? props.type : componentToTypeMap[props.componentType],
 			dataField: getNormalizedField(props.dataField),
 			execute,
 			react: props.react,
@@ -107,6 +107,8 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	let value = calcValues !== undefined && calcValues !== null ? calcValues.value : undefined;
 	let queryFormat = componentProps.queryFormat;
 	let { interval } = componentProps;
+	let type = componentToTypeMap[componentProps.componentType];
+	let dataField = componentProps.dataField;
 	let aggregations;
 
 	// For term queries i.e list component `dataField` will be treated as aggregationField
@@ -157,7 +159,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			aggregations = ['histogram'];
 		}
 
-
+		// handle date components
 		if (dateRangeComponents.includes(componentProps.componentType)) {
 			// Remove query format for `date` components
 			queryFormat = 'or';
@@ -177,9 +179,36 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			}
 		}
 	}
+	// handle number box, number box query changes based on the `queryFormat` value
+	if (componentProps.componentType === componentTypes.numberBox) {
+		if (queryFormat === 'exact') {
+			type = 'term';
+		} else {
+			type = 'range';
+			if (queryFormat === 'lte') {
+				value = {
+					end: value,
+					boost: 2.0,
+				};
+			} else {
+				value = {
+					start: value,
+					boost: 2.0,
+				};
+			}
+		}
+		// Remove query format
+		queryFormat = 'or';
+	}
+	// Fake dataField for ReactiveComponent
+	if (componentProps.componentType === componentTypes.reactiveComponent) {
+		dataField = 'reactive_component_field';
+	}
 	return {
 		...componentProps,
+		dataField,
 		queryFormat,
+		type,
 		aggregations,
 		interval,
 		react: store.dependencyTree[component],
@@ -232,7 +261,9 @@ export const getDependentQueries = (store, componentID) => {
 					extractPropsFromState(store, component),
 					false,
 				);
-				finalQuery[component] = dependentQuery;
+				if (dependentQuery) {
+					finalQuery[component] = dependentQuery;
+				}
 			}
 			const componentReactDependency = store.dependencyTree[component];
 			if (componentReactDependency) {

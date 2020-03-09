@@ -661,13 +661,14 @@ export function executeQuery(
 								metaOptions ? { from: metaOptions.from } : null,
 							),
 						);
-
-						// Apply dependent queries
-						appbaseQuery = {
-							...appbaseQuery,
-							...{ [component]: query },
-							...getDependentQueries(getState(), component),
-						};
+						if (query) {
+							// Apply dependent queries
+							appbaseQuery = {
+								...appbaseQuery,
+								...{ [component]: query },
+								...getDependentQueries(getState(), component),
+							};
+						}
 					} else {
 						finalQuery = [
 							...finalQuery,
