@@ -579,7 +579,6 @@ export function executeQuery(
 
 				const oldQuery = queryLog[component];
 
-				// TODO: PUT IT INSIDE CONDITION TO AVOID MUTIPLE REQUEST
 				if (mustExecuteMapQuery || !isEqual(currentQuery, oldQuery)) {
 					orderOfQueries = [...orderOfQueries, component];
 
@@ -794,8 +793,6 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 		if (isEqual(queryLog[component], currentQuery)) return;
 
 		dispatch(logQuery(component, currentQuery));
-
-		// TODO: handle RS API
 
 		if (store.config && store.config.enableAppbase) {
 			let appbaseQuery = {};
