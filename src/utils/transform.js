@@ -76,7 +76,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			showMissing: props.showMissing,
 			nestedField: props.nestedField,
 			interval: props.interval,
-			highlightOptions: props.highlightOptions,
+			customHighlight: props.customHighlight,
 			customQuery: props.customQuery,
 			defaultQuery: props.defaultQuery,
 			value: props.value,
@@ -214,7 +214,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		react: store.dependencyTree[component],
 		customQuery: store.customQueries[component],
 		defaultQuery: store.defaultQueries[component],
-		highlightOptions: store.customHighlightOptions[component],
+		customHighlight: store.customHighlightOptions[component],
 		categoryValue: store.internalValues[component]
 			? store.internalValues[component].category
 			: undefined,
