@@ -358,6 +358,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		isLoading,
 		error,
 		promotedResults,
+		rawData,
 	} = state;
 	const searchState = {};
 
@@ -396,6 +397,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		populateState(isLoading, 'isLoading');
 		populateState(error, 'error');
 		populateState(promotedResults, 'promotedData');
+		populateState(rawData, 'rawData');
 		computeResultStats(hits, searchState, promotedResults);
 	}
 	populateState(dependencyTree, 'react');

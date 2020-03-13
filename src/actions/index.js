@@ -5,3 +5,4 @@ export * from './query';
 export * from './value';
 export * from './props';
 export * from './analytics';
+export * from './rawData';
