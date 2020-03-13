@@ -11,10 +11,16 @@ export default function compositeAggsReducer(state = {}, action) {
 		const parsedAggs = buckets.map((bucket) => {
 			// eslint-disable-next-line camelcase
 			const { doc_count, key, [fieldName]: hitsData } = bucket;
+			let flatData = {};
+			let _source = {};
+			if (hitsData && hitsData.hits) {
+				({ _source, ...flatData } = hitsData.hits.hits[0]);
+			}
 			return {
 				_doc_count: doc_count,
 				_key: key[fieldName],
-				...(hitsData && hitsData.hits.hits[0]),
+				...flatData,
+				..._source,
 			};
 		});
 		return {
