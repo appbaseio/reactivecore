@@ -15,6 +15,7 @@ export const componentTypes = {
 	numberBox: 'NUMBERBOX',
 	tagCloud: 'TAGCLOUD',
 	toggleButton: 'TOGGLEBUTTON',
+	reactiveComponent: 'REACTIVECOMPONENT',
 	// range components
 	datePicker: 'DATEPICKER',
 	dateRange: 'DATERANGE',
@@ -27,9 +28,16 @@ export const componentTypes = {
 	rangeInput: 'RANGEINPUT',
 };
 
+export const queryTypes = {
+	search: 'search',
+	term: 'term',
+	range: 'range',
+	geo: 'geo',
+};
 export const validProps = [
 	// common
 	'componentType',
+	'aggregationField',
 	// Specific to ReactiveList
 	'dataField',
 	'includeFields',
@@ -52,6 +60,7 @@ export const validProps = [
 	'nestedField',
 	'placeholder',
 	'queryFormat',
+	'searchOperators',
 	// Specific to Category Search
 	'categoryField',
 	'strictSelection',
@@ -70,12 +79,14 @@ export const validProps = [
 	// TagCloud and ToggleButton
 	'multiSelect',
 	// Range Components
+	'includeNullValues',
 	'interval',
 	'showHistogram',
 	'snap',
 	'stepValue',
 	'range',
 	'showSlider',
+	'parseDate',
 ];
 
 export const CLEAR_ALL = {

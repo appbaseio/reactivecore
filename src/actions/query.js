@@ -11,16 +11,27 @@ import {
 	SET_SEARCH_ID,
 	SET_ERROR,
 	SET_PROMOTED_RESULTS,
+	SET_APPLIED_SETTINGS,
 	SET_SUGGESTIONS_SEARCH_ID,
+	SET_CUSTOM_DATA,
+	SET_DEFAULT_QUERY,
+	SET_CUSTOM_HIGHLIGHT_OPTIONS,
+	SET_CUSTOM_QUERY,
 } from '../constants';
 
-import { setValue } from './value';
+import { setValue, setInternalValue } from './value';
 import { updateHits, updateAggs, pushToStreamHits, updateCompositeAggs } from './hits';
 import { buildQuery, isEqual, getSearchState } from '../utils/helper';
 import getFilterString, { parseCustomEvents } from '../utils/analytics';
 import { updateMapData } from './maps';
 import fetchGraphQL from '../utils/graphQL';
 import { componentTypes } from '../../lib/utils/constants';
+import {
+	getRSQuery,
+	extractPropsFromState,
+	getDependentQueries,
+	getHistogramComponentID,
+} from '../utils/transform';
 import { setRawData } from './rawData';
 
 export function setQuery(component, query) {
@@ -28,6 +39,30 @@ export function setQuery(component, query) {
 		type: SET_QUERY,
 		component,
 		query,
+	};
+}
+
+export function setCustomQuery(component, query) {
+	return {
+		type: SET_CUSTOM_QUERY,
+		component,
+		query,
+	};
+}
+
+export function setDefaultQuery(component, query) {
+	return {
+		type: SET_DEFAULT_QUERY,
+		component,
+		query,
+	};
+}
+
+export function setCustomHighlightOptions(component, data) {
+	return {
+		type: SET_CUSTOM_HIGHLIGHT_OPTIONS,
+		component,
+		data,
 	};
 }
 
@@ -101,6 +136,22 @@ export function setPromotedResults(results = [], component) {
 	return {
 		type: SET_PROMOTED_RESULTS,
 		results,
+		component,
+	};
+}
+
+export function setCustomData(data = null, component) {
+	return {
+		type: SET_CUSTOM_DATA,
+		data,
+		component,
+	};
+}
+
+export function setAppliedSettings(data = null, component) {
+	return {
+		type: SET_APPLIED_SETTINGS,
+		data,
 		component,
 	};
 }
@@ -303,6 +354,161 @@ function msearch(
 	};
 }
 
+const isPropertyDefined = property => property !== undefined && property !== null;
+
+function appbaseSearch(
+	query,
+	orderOfQueries,
+	appendToHits = false,
+	isInternalComponent,
+	appendToAggs = false,
+	componentType,
+) {
+	return (dispatch, getState) => {
+		const {
+			appbaseRef, config, headers, queryListener,
+		} = getState();
+
+		let isAnalyticsEnabled = false;
+
+		if (config) {
+			if (config.analyticsConfig) {
+				if (isPropertyDefined(config.analyticsConfig.recordAnalytics)) {
+					isAnalyticsEnabled = config.analyticsConfig.recordAnalytics;
+				} else if (isPropertyDefined(config.analyticsConfig.analytics)) {
+					isAnalyticsEnabled = config.analyticsConfig.analytics;
+				}
+			} else if (isPropertyDefined(config.analytics)) {
+				isAnalyticsEnabled = config.analytics;
+			}
+		}
+
+		const settings = {
+			recordAnalytics: isAnalyticsEnabled,
+		};
+
+		if (config.analyticsConfig) {
+			settings.userId = isPropertyDefined(config.analyticsConfig.userId)
+				? config.analyticsConfig.userId
+				: undefined;
+			settings.enableQueryRules = isPropertyDefined(config.analyticsConfig.enableQueryRules)
+				? config.analyticsConfig.enableQueryRules
+				: undefined;
+			settings.customEvents = isPropertyDefined(config.analyticsConfig.customEvents)
+				? config.analyticsConfig.customEvents
+				: undefined;
+		}
+
+		// set loading as active for the given component
+		orderOfQueries.forEach((component) => {
+			dispatch(setLoading(component, true));
+		});
+
+		const handleTransformResponse = (res, component) => {
+			if (config.transformResponse && typeof config.transformResponse === 'function') {
+				return config.transformResponse(res, component);
+			}
+			return new Promise(resolve => resolve(res));
+		};
+
+		const handleError = (error) => {
+			console.error(error);
+			orderOfQueries.forEach((component) => {
+				if (queryListener[component] && queryListener[component].onError) {
+					queryListener[component].onError(error);
+				}
+				dispatch(setError(component, error));
+				dispatch(setLoading(component, false));
+			});
+		};
+
+		const handleResponse = (res) => {
+			const suggestionsComponents = [
+				componentTypes.dataSearch,
+				componentTypes.categorySearch,
+			];
+			const isSuggestionsQuery
+				= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
+			const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
+			if (searchId) {
+				if (isSuggestionsQuery) {
+					// set suggestions search id for internal request of search components
+					dispatch(setSuggestionsSearchId(searchId));
+				} else {
+					// if search id was updated set it in store
+					dispatch(setSearchId(searchId));
+				}
+			}
+
+			// handle promoted results
+			orderOfQueries.forEach((component) => {
+				// Update applied settings
+				if (res.settings) {
+					dispatch(setAppliedSettings(res.settings, component));
+				}
+				handleTransformResponse(res[component], component)
+					.then((response) => {
+						if (response) {
+							const { timestamp } = getState();
+							if (
+								timestamp[component] === undefined
+								|| timestamp[component] < res._timestamp
+							) {
+								const promotedResults = response.promoted;
+								if (promotedResults) {
+									const parsedPromotedResults = promotedResults.map(promoted => ({
+										...promoted.doc,
+										_position: promoted.position,
+									}));
+									dispatch(setPromotedResults(parsedPromotedResults, component));
+								} else {
+									dispatch(setPromotedResults([], component));
+								}
+								// Update custom data
+								if (response.customData) {
+									dispatch(setCustomData(response.customData, component));
+								}
+								if (response.hits) {
+									dispatch(setTimestamp(component, res._timestamp));
+									dispatch(updateHits(
+										component,
+										response.hits,
+										response.took,
+										response.hits && response.hits.hidden,
+										appendToHits,
+									));
+									dispatch(setLoading(component, false));
+								}
+
+								if (response.aggregations) {
+									dispatch(updateAggs(component, response.aggregations, appendToAggs));
+									dispatch(updateCompositeAggs(
+										component,
+										response.aggregations,
+										appendToAggs,
+									));
+								}
+							}
+						}
+					})
+					.catch((err) => {
+						handleError(err);
+					});
+			});
+		};
+
+		appbaseRef.setHeaders({ ...headers });
+		appbaseRef
+			.reactiveSearchv3(query, settings)
+			.then((res) => {
+				handleResponse(res);
+			})
+			.catch((err) => {
+				handleError(err);
+			});
+	};
+}
+
 function executeQueryListener(listener, oldQuery, newQuery) {
 	if (listener && listener.onQueryChange) {
 		listener.onQueryChange(oldQuery, newQuery);
@@ -314,6 +520,7 @@ export function executeQuery(
 	executeWatchList = false,
 	mustExecuteMapQuery = false,
 	componentType,
+	metaOptions,
 ) {
 	return (dispatch, getState) => {
 		const {
@@ -328,16 +535,18 @@ export function executeQuery(
 			queryOptions,
 			queryListener,
 		} = getState();
-		let orderOfQueries = [];
-		let finalQuery = [];
-		const matchAllQuery = { match_all: {} };
 
 		let componentList = [componentId];
-
+		let finalQuery = [];
+		let appbaseQuery = {}; // Use object to prevent duplicate query added by react prop
+		let orderOfQueries = [];
+		const isAppbaseEnabled = config && config.enableAppbase;
 		if (executeWatchList) {
 			const watchList = watchMan[componentId] || [];
 			componentList = [...componentList, ...watchList];
 		}
+
+		const matchAllQuery = { match_all: {} };
 
 		componentList.forEach((component) => {
 			// eslint-disable-next-line
@@ -444,27 +653,62 @@ export function executeQuery(
 					}
 
 					// push to combined query for msearch
-					finalQuery = [
-						...finalQuery,
-						{
-							preference: component,
-						},
-						currentQuery,
-					];
+					if (isAppbaseEnabled) {
+						// build query
+						const query = getRSQuery(
+							component,
+							extractPropsFromState(
+								getState(),
+								component,
+								metaOptions ? { from: metaOptions.from } : null,
+							),
+						);
+						if (query) {
+							// Apply dependent queries
+							appbaseQuery = {
+								...appbaseQuery,
+								...{ [component]: query },
+								...getDependentQueries(getState(), component),
+							};
+						}
+					} else {
+						finalQuery = [
+							...finalQuery,
+							{
+								preference: component,
+							},
+							currentQuery,
+						];
+					}
 				}
 			}
 		});
 
+		if (isAppbaseEnabled) {
+			finalQuery = Object.keys(appbaseQuery).map(component => appbaseQuery[component]);
+		}
+
 		if (finalQuery.length) {
-			// in case of an internal component the analytics headers should not be included
-			dispatch(msearch(
-				finalQuery,
-				orderOfQueries,
-				false,
-				componentId.endsWith('__internal'),
-				undefined,
-				componentType,
-			));
+			if (isAppbaseEnabled) {
+				dispatch(appbaseSearch(
+					finalQuery,
+					orderOfQueries,
+					false,
+					componentId.endsWith('__internal'),
+					undefined,
+					componentType,
+				));
+			} else {
+				// in case of an internal component the analytics headers should not be included
+				dispatch(msearch(
+					finalQuery,
+					orderOfQueries,
+					false,
+					componentId.endsWith('__internal'),
+					undefined,
+					componentType,
+				));
+			}
 		}
 	};
 }
@@ -500,6 +744,19 @@ export function updateQuery(
 		// don't set filters for internal components
 		if (!componentId.endsWith('__internal')) {
 			dispatch(setValue(componentId, value, label, showFilter, URLParams, componentType, category));
+			if (componentType === componentTypes.dynamicRangeSlider) {
+				// Dynamic Range Slider has a dependency on histogram which uses different ID
+				dispatch(setInternalValue(
+					getHistogramComponentID(componentId),
+					value,
+					componentType,
+					category,
+				));
+			} else {
+				dispatch(setInternalValue(`${componentId}__internal`, value, componentType, category));
+			}
+		} else {
+			dispatch(setInternalValue(componentId, value, componentType, category));
 		}
 		dispatch(setQuery(componentId, queryToDispatch));
 		if (execute) dispatch(executeQuery(componentId, true, false, componentType));
@@ -540,14 +797,29 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 
 		dispatch(logQuery(component, currentQuery));
 
-		const finalQuery = [
-			{
-				preference: component,
-			},
-			currentQuery,
-		];
-
-		dispatch(msearch(finalQuery, [component], appendToHits, false, appendToAggs));
+		if (store.config && store.config.enableAppbase) {
+			let appbaseQuery = {};
+			// build query
+			const query = getRSQuery(
+				component,
+				extractPropsFromState(store, component, { from: options.from }),
+			);
+			// Apply dependent queries
+			appbaseQuery = {
+				...{ [component]: query },
+				...getDependentQueries(getState(), component),
+			};
+			const finalQuery = Object.keys(appbaseQuery).map(c => appbaseQuery[c]);
+			dispatch(appbaseSearch(finalQuery, [component], appendToHits, false, appendToAggs));
+		} else {
+			const finalQuery = [
+				{
+					preference: component,
+				},
+				currentQuery,
+			];
+			dispatch(msearch(finalQuery, [component], appendToHits, false, appendToAggs));
+		}
 	};
 }
 

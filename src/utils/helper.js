@@ -1,13 +1,26 @@
-/* eslint-disable */
 // when we want to perform deep equality check, especially in objects
 import dateFormats from './dateFormats';
 import getSuggestions from './suggestions';
+
+export const updateCustomQuery = (componentId, props, value) => {
+	if (props.customQuery && typeof props.customQuery === 'function') {
+		props.setCustomQuery(componentId, props.customQuery(value, props));
+	}
+};
+
+export const updateDefaultQuery = (componentId, props, value) => {
+	if (props.defaultQuery && typeof props.defaultQuery === 'function') {
+		props.setDefaultQuery(componentId, props.defaultQuery(value, props));
+	}
+};
+
 
 export function isEqual(x, y) {
 	if (x === y) return true;
 	if (!(x instanceof Object) || !(y instanceof Object)) return false;
 	if (x.constructor !== y.constructor) return false;
 
+	/* eslint-disable */
 	for (const p in x) {
 		if (!x.hasOwnProperty(p)) continue;
 		if (!y.hasOwnProperty(p)) return false;
@@ -19,6 +32,7 @@ export function isEqual(x, y) {
 	for (const p in y) {
 		if (y.hasOwnProperty(p) && !x.hasOwnProperty(p)) return false;
 	}
+	/* eslint-enable */
 	return true;
 }
 /* eslint-enable */
@@ -132,6 +146,7 @@ function getQuery(react, queryList) {
 
 	return null;
 }
+
 
 function getExternalQueryOptions(react, options, component) {
 	let queryOptions = {};
@@ -358,6 +373,8 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		isLoading,
 		error,
 		promotedResults,
+		settings,
+		customData,
 		rawData,
 	} = state;
 	const searchState = {};
@@ -397,6 +414,8 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		populateState(isLoading, 'isLoading');
 		populateState(error, 'error');
 		populateState(promotedResults, 'promotedData');
+		populateState(settings, 'settings');
+		populateState(customData, 'customData');
 		populateState(rawData, 'rawData');
 		computeResultStats(hits, searchState, promotedResults);
 	}
@@ -421,6 +440,8 @@ export const updateInternalQuery = (
 		const queryTobeSet = defaultQuery(value, props);
 		({ query } = queryTobeSet || {});
 		defaultQueryOptions = getOptionsFromQuery(queryTobeSet);
+		// Update calculated default query in store
+		updateDefaultQuery(componentId, props, value);
 	}
 	props.setQueryOptions(componentId, {
 		...defaultQueryOptions,
@@ -430,6 +451,7 @@ export const updateInternalQuery = (
 		props.updateQuery({
 			componentId,
 			query,
+			value,
 			...queryParams,
 		});
 	}
@@ -565,13 +587,16 @@ export function handleOnSuggestions(results, currentValue, props) {
 	// hits as flat structure
 	let newResults = parseHits(results, false);
 
-	if (promotedResults.length) {
-		const ids = promotedResults.map(item => item._id).filter(Boolean);
+	const parsedPromotedResults = parseHits(promotedResults, false);
+
+	if (parsedPromotedResults && parsedPromotedResults.length) {
+		const ids = parsedPromotedResults.map(item => item._id).filter(Boolean);
 		if (ids) {
 			newResults = newResults.filter(item => !ids.includes(item._id));
 		}
-		newResults = [...promotedResults, ...newResults];
+		newResults = [...parsedPromotedResults, ...newResults];
 	}
+
 
 	const parsedSuggestions = getSuggestions({
 		fields,

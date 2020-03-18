@@ -1,4 +1,4 @@
-import { SET_VALUE, CLEAR_VALUES, PATCH_VALUE } from '../constants';
+import { SET_VALUE, CLEAR_VALUES, PATCH_VALUE, SET_INTERNAL_VALUE } from '../constants';
 
 export function setValue(component, value, label, showFilter, URLParams, componentType, category) {
 	return {
@@ -8,6 +8,16 @@ export function setValue(component, value, label, showFilter, URLParams, compone
 		label,
 		showFilter,
 		URLParams,
+		componentType,
+		category,
+	};
+}
+
+export function setInternalValue(component, value, componentType, category) {
+	return {
+		type: SET_INTERNAL_VALUE,
+		component,
+		value,
 		componentType,
 		category,
 	};

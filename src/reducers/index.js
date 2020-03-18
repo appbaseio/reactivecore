@@ -11,6 +11,7 @@ import hitsReducer from './hitsReducer';
 import logsReducer from './logsReducer';
 import combinedLogsReducer from './combinedLogsReducer';
 import valueReducer from './valueReducer';
+import internalValueReducer from './internalValueReducer';
 import loadingReducer from './loadingReducer';
 import errorReducer from './errorReducer';
 import streamingReducer from './streamingReducer';
@@ -21,15 +22,24 @@ import mapDataReducer from './mapDataReducer';
 import queryListenerReducer from './queryListenerReducer';
 import analyticsReducer from './analyticsReducer';
 import promotedResultsReducer from './promotedResultsReducer';
+import customDataReducer from './customDataReducer';
+import defaultQueriesReducer from './defaultQueryReducer';
+import customQueriesReducer from './customQueryReducer';
 import propsReducer from './propsReducer';
 import mapOnTopMarkerReducer from './mapOnTopMarkerReducer';
 import mapOpenMarkerReducer from './mapOpenMarkerReducer';
 import aggsReducer from './aggsReducer';
 import compositeAggsReducer from './compositeAggsReducer';
+import appliedSettingsReducer from './appliedSettingsReducer';
+import customHighlightReducer from './customHighlightReducer';
 import rawDataReducer from './rawDataReducer';
 
 export default combineReducers({
 	components: componentsReducer,
+	customQueries: customQueriesReducer,
+	defaultQueries: defaultQueriesReducer,
+	customHighlightOptions: customHighlightReducer,
+	settings: appliedSettingsReducer,
 	watchMan: watchManReducer, // contains the list of subscribers
 	queryList: queryReducer,
 	queryOptions: queryOptionsReducer,
@@ -38,11 +48,13 @@ export default combineReducers({
 	config: configReducer,
 	hits: hitsReducer,
 	promotedResults: promotedResultsReducer,
+	customData: customDataReducer,
 	aggregations: aggsReducer,
 	compositeAggregations: compositeAggsReducer,
 	queryLog: logsReducer,
 	combinedLog: combinedLogsReducer,
 	selectedValues: valueReducer,
+	internalValues: internalValueReducer,
 	isLoading: loadingReducer,
 	error: errorReducer,
 	stream: streamingReducer,
