@@ -16,6 +16,7 @@ import {
 	SET_CUSTOM_DATA,
 	SET_DEFAULT_QUERY,
 	SET_CUSTOM_HIGHLIGHT_OPTIONS,
+	SET_CUSTOM_QUERY,
 } from '../constants';
 
 import { setValue, setInternalValue } from './value';
@@ -31,7 +32,7 @@ import {
 	getDependentQueries,
 	getHistogramComponentID,
 } from '../utils/transform';
-import { SET_CUSTOM_QUERY } from '../../lib/constants';
+import { setRawData } from './rawData';
 
 export function setQuery(component, query) {
 	return {
@@ -292,6 +293,8 @@ function msearch(
 							timestamp[component] === undefined
 							|| timestamp[component] < res._timestamp
 						) {
+							// set raw response in rawData
+							dispatch(setRawData(component, response));
 							const promotedResults = response.promoted || res.promoted;
 							if (promotedResults) {
 								dispatch(setPromotedResults(promotedResults, component));

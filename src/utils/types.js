@@ -69,6 +69,7 @@ const types = {
 	fuzziness: oneOf([0, 1, 2, 'AUTO']),
 	headers: object,
 	hits: arrayOf(object),
+	rawData: object,
 	iconPosition: oneOf(['left', 'right']),
 	includeFields: arrayOf(string),
 	labelPosition: oneOf(['left', 'right', 'top', 'bottom']),

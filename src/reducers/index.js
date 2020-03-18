@@ -32,6 +32,7 @@ import aggsReducer from './aggsReducer';
 import compositeAggsReducer from './compositeAggsReducer';
 import appliedSettingsReducer from './appliedSettingsReducer';
 import customHighlightReducer from './customHighlightReducer';
+import rawDataReducer from './rawDataReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -66,4 +67,5 @@ export default combineReducers({
 	markerOnTop: mapOnTopMarkerReducer,
 	openMarkers: mapOpenMarkerReducer,
 	props: propsReducer,
+	rawData: rawDataReducer,
 });

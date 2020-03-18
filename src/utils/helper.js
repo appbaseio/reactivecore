@@ -375,6 +375,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		promotedResults,
 		settings,
 		customData,
+		rawData,
 	} = state;
 	const searchState = {};
 
@@ -415,6 +416,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		populateState(promotedResults, 'promotedData');
 		populateState(settings, 'settings');
 		populateState(customData, 'customData');
+		populateState(rawData, 'rawData');
 		computeResultStats(hits, searchState, promotedResults);
 	}
 	populateState(dependencyTree, 'react');
