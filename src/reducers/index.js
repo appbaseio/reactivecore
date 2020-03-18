@@ -26,6 +26,7 @@ import mapOnTopMarkerReducer from './mapOnTopMarkerReducer';
 import mapOpenMarkerReducer from './mapOpenMarkerReducer';
 import aggsReducer from './aggsReducer';
 import compositeAggsReducer from './compositeAggsReducer';
+import rawDataReducer from './rawDataReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -54,4 +55,5 @@ export default combineReducers({
 	markerOnTop: mapOnTopMarkerReducer,
 	openMarkers: mapOpenMarkerReducer,
 	props: propsReducer,
+	rawData: rawDataReducer,
 });

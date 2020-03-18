@@ -21,6 +21,7 @@ import getFilterString, { parseCustomEvents } from '../utils/analytics';
 import { updateMapData } from './maps';
 import fetchGraphQL from '../utils/graphQL';
 import { componentTypes } from '../../lib/utils/constants';
+import { setRawData } from './rawData';
 
 function orderKeys(obj) {
 	const keys = Object.keys(obj).sort((k1, k2) => {
@@ -261,6 +262,8 @@ function msearch(
 							timestamp[component] === undefined
 							|| timestamp[component] < res._timestamp
 						) {
+							// set raw response in rawData
+							dispatch(setRawData(component, response));
 							const promotedResults = response.promoted || res.promoted;
 							if (promotedResults) {
 								dispatch(setPromotedResults(promotedResults, component));
