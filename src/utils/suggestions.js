@@ -47,7 +47,6 @@ const getSuggestions = ({
 	suggestions,
 	currentValue,
 	suggestionProperties = [],
-	skipWordMatch = false,
 	showDistinctSuggestions = false,
 }) => {
 	/*
@@ -60,6 +59,7 @@ const getSuggestions = ({
 
 	let suggestionsList = [];
 	let labelsList = [];
+	let skipWordMatch = false;
 
 	const populateSuggestionsList = (val, parsedSource, source) => {
 		// check if the suggestion includes the current value
@@ -96,7 +96,13 @@ const getSuggestions = ({
 			};
 			labelsList = [...labelsList, val];
 			suggestionsList = [...suggestionsList, option];
+
+			if (showDistinctSuggestions) {
+				return true;
+			}
 		}
+
+		return false;
 	};
 
 	const parseField = (parsedSource, field, source = parsedSource) => {
@@ -118,11 +124,14 @@ const getSuggestions = ({
 					const val = extractSuggestion(label);
 					if (val) {
 						if (Array.isArray(val)) {
-							val.forEach(suggestion => populateSuggestionsList(suggestion, parsedSource, source));
-							return true;
+							if (showDistinctSuggestions) {
+								return val.some(suggestion =>
+									populateSuggestionsList(suggestion, parsedSource, source));
+							}
+							val.forEach(suggestion =>
+								populateSuggestionsList(suggestion, parsedSource, source));
 						}
-						populateSuggestionsList(val, parsedSource, source);
-						return true;
+						return populateSuggestionsList(val, parsedSource, source);
 					}
 				}
 			}
@@ -130,17 +139,21 @@ const getSuggestions = ({
 		return false;
 	};
 
-	if (showDistinctSuggestions) {
-		suggestions.forEach((item) => {
-			fields.some(field => parseField(item, field));
-		});
-	} else {
-		suggestions.forEach((item) => {
-			fields.forEach((field) => {
-				parseField(item, field);
+	const traverseSuggestions = () => {
+		if (showDistinctSuggestions) {
+			suggestions.forEach((item) => {
+				fields.some(field => parseField(item, field));
 			});
-		});
-	}
+		} else {
+			suggestions.forEach((item) => {
+				fields.forEach((field) => {
+					parseField(item, field);
+				});
+			});
+		}
+	};
+
+	traverseSuggestions();
 
 	if (suggestionsList.length < suggestions.length && !skipWordMatch) {
 		/*
@@ -150,14 +163,8 @@ const getSuggestions = ({
 			in  populateSuggestionList may discard ios source which decreases no.
 			of items in suggestionsList
 		*/
-		return getSuggestions({
-			fields,
-			suggestions,
-			currentValue,
-			suggestionProperties,
-			skipWordMatch: true,
-			showDistinctSuggestions,
-		});
+		skipWordMatch = true;
+		traverseSuggestions();
 	}
 
 	return suggestionsList;
