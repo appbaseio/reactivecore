@@ -14,7 +14,6 @@ const componentToTypeMap = {
 	[componentTypes.singleDropdownList]: queryTypes.term,
 	[componentTypes.multiDataList]: queryTypes.term,
 	[componentTypes.multiDropdownList]: queryTypes.term,
-	[componentTypes.singleDropdownRange]: queryTypes.term,
 	[componentTypes.tagCloud]: queryTypes.term,
 	[componentTypes.toggleButton]: queryTypes.term,
 	// basic components
@@ -24,6 +23,7 @@ const componentToTypeMap = {
 	[componentTypes.datePicker]: queryTypes.range,
 	[componentTypes.dateRange]: queryTypes.range,
 	[componentTypes.dynamicRangeSlider]: queryTypes.range,
+	[componentTypes.singleDropdownRange]: queryTypes.range,
 	[componentTypes.multiDropdownRange]: queryTypes.range,
 	[componentTypes.singleRange]: queryTypes.range,
 	[componentTypes.multiRange]: queryTypes.range,
