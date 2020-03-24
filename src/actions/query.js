@@ -372,14 +372,14 @@ function appbaseSearch(
 		let isAnalyticsEnabled = false;
 
 		if (config) {
-			if (config.analyticsConfig) {
+			if (isPropertyDefined(config.analytics)) {
+				isAnalyticsEnabled = config.analytics;
+			} else if (config.analyticsConfig) {
 				if (isPropertyDefined(config.analyticsConfig.recordAnalytics)) {
 					isAnalyticsEnabled = config.analyticsConfig.recordAnalytics;
 				} else if (isPropertyDefined(config.analyticsConfig.analytics)) {
 					isAnalyticsEnabled = config.analyticsConfig.analytics;
 				}
-			} else if (isPropertyDefined(config.analytics)) {
-				isAnalyticsEnabled = config.analytics;
 			}
 		}
 

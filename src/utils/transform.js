@@ -83,6 +83,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			categoryValue: props.categoryValue || undefined,
 			after: props.after || undefined,
 			aggregations: props.aggregations || undefined,
+			enableSynonyms: props.enableSynonyms,
 		};
 	}
 	return null;
