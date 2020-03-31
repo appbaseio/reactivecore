@@ -84,6 +84,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			after: props.after || undefined,
 			aggregations: props.aggregations || undefined,
 			enableSynonyms: props.enableSynonyms,
+			selectAllLabel: props.selectAllLabel,
 		};
 	}
 	return null;
@@ -115,14 +116,6 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	// For term queries i.e list component `dataField` will be treated as aggregationField
 	if (queryType === queryTypes.term) {
 		compositeAggregationField = componentProps.dataField;
-		// Remove selectAllLabel value
-		if (componentProps.selectAllLabel) {
-			if (typeof value === 'string' && value === componentProps.selectAllLabel) {
-				value = '';
-			} else if (Array.isArray(value)) {
-				value = value.filter(val => val !== componentProps.selectAllLabel);
-			}
-		}
 	}
 	if (queryType === queryTypes.range) {
 		if (Array.isArray(value)) {
@@ -220,15 +213,15 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			? store.internalValues[component].category
 			: undefined,
 		value,
-		after:
-			store.aggregations[component]
+		after: customOptions && customOptions.isPagination
+			? store.aggregations[component]
 			&& store.aggregations[component][compositeAggregationField]
-			&& store.aggregations[component][compositeAggregationField].after_key,
+			&& store.aggregations[component][compositeAggregationField].after_key : null,
 		...customOptions,
 	};
 };
 
-export function flatReactProp(reactProp) {
+export function flatReactProp(reactProp, componentID) {
 	let flattenReact = [];
 	const flatReact = (react) => {
 		if (react && Object.keys(react)) {
@@ -246,6 +239,8 @@ export function flatReactProp(reactProp) {
 		}
 	};
 	flatReact(reactProp);
+	// Remove cyclic dependencies
+	flattenReact = flattenReact.filter(react => react !== componentID);
 	return flattenReact;
 }
 
@@ -265,16 +260,17 @@ export const getDependentQueries = (store, componentID) => {
 				if (dependentQuery) {
 					finalQuery[component] = dependentQuery;
 				}
-			}
-			const componentReactDependency = store.dependencyTree[component];
-			if (componentReactDependency) {
-				const flattenReact = flatReactProp(componentReactDependency);
-				if (flattenReact.length) {
-					addDependentQueries(flattenReact, store, finalQuery);
+				// Add dependent queries
+				const componentReactDependency = store.dependencyTree[component];
+				if (componentReactDependency) {
+					const flattenReact = flatReactProp(componentReactDependency, componentID);
+					if (flattenReact.length) {
+						addDependentQueries(flattenReact, store, finalQuery);
+					}
 				}
 			}
 		});
 	};
-	addDependentQueries(flatReactProp(store.dependencyTree[componentID]), store);
+	addDependentQueries(flatReactProp(store.dependencyTree[componentID], componentID), store);
 	return finalQuery;
 };

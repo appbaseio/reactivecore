@@ -802,7 +802,10 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 			// build query
 			const query = getRSQuery(
 				component,
-				extractPropsFromState(store, component, { from: options.from }),
+				extractPropsFromState(store, component, {
+					from: options.from,
+					isPagination: true,
+				}),
 			);
 			// Apply dependent queries
 			appbaseQuery = {
