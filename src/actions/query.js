@@ -464,6 +464,8 @@ function appbaseSearch(
 								} else {
 									dispatch(setPromotedResults([], component));
 								}
+								// set raw response in rawData
+								dispatch(setRawData(component, response));
 								// Update custom data
 								if (response.customData) {
 									dispatch(setCustomData(response.customData, component));
