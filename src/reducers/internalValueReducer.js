@@ -9,6 +9,7 @@ export default function valueReducer(state = {}, action) {
 					value: action.value,
 					componentType: action.componentType,
 					category: action.category,
+					meta: action.meta,
 				},
 			};
 		case CLEAR_VALUES:

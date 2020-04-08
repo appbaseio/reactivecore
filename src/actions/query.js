@@ -467,9 +467,7 @@ function appbaseSearch(
 								// set raw response in rawData
 								dispatch(setRawData(component, response));
 								// Update custom data
-								if (response.customData) {
-									dispatch(setCustomData(response.customData, component));
-								}
+								dispatch(setCustomData(response.customData, component));
 								if (response.hits) {
 									dispatch(setTimestamp(component, res._timestamp));
 									dispatch(updateHits(
@@ -735,6 +733,7 @@ export function updateQuery(
 		URLParams = false,
 		componentType = null,
 		category = null,
+		meta = {}, // to store any meta value which gets update on value changes
 	},
 	execute = true,
 ) {
@@ -745,7 +744,7 @@ export function updateQuery(
 		}
 		// don't set filters for internal components
 		if (!componentId.endsWith('__internal')) {
-			dispatch(setValue(componentId, value, label, showFilter, URLParams, componentType, category));
+			dispatch(setValue(componentId, value, label, showFilter, URLParams, componentType, category, meta));
 			if (componentType === componentTypes.dynamicRangeSlider) {
 				// Dynamic Range Slider has a dependency on histogram which uses different ID
 				dispatch(setInternalValue(
@@ -753,12 +752,13 @@ export function updateQuery(
 					value,
 					componentType,
 					category,
+					meta,
 				));
 			} else {
-				dispatch(setInternalValue(`${componentId}__internal`, value, componentType, category));
+				dispatch(setInternalValue(`${componentId}__internal`, value, componentType, category, meta));
 			}
 		} else {
-			dispatch(setInternalValue(componentId, value, componentType, category));
+			dispatch(setInternalValue(componentId, value, componentType, category, meta));
 		}
 		dispatch(setQuery(componentId, queryToDispatch));
 		if (execute) dispatch(executeQuery(componentId, true, false, componentType));

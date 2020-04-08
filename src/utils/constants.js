@@ -26,6 +26,10 @@ export const componentTypes = {
 	rangeSlider: 'RANGESLIDER',
 	ratingsFilter: 'RATINGSFILTER',
 	rangeInput: 'RANGEINPUT',
+	// map components
+	geoDistanceDropdown: 'GEO_DISTANCE_DROPDOWN',
+	geoDistanceSlider: 'GEO_DISTANCE_SLIDER',
+	reactiveMap: 'REACTIVE_MAP',
 };
 
 export const queryTypes = {
@@ -88,6 +92,8 @@ export const validProps = [
 	'range',
 	'showSlider',
 	'parseDate',
+	// Map components
+	'unit',
 ];
 
 export const CLEAR_ALL = {

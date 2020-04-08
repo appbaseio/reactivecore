@@ -1,5 +1,7 @@
 import { SET_MAP_DATA, SET_MAP_ON_TOP_MARKER, SET_MAP_OPEN_MARKERS } from '../constants';
 import { executeQuery } from './query';
+import { setInternalValue } from './value';
+import { getInternalComponentID } from '../utils/transform';
 
 export function updateMapData(componentId, query, persistMapQuery) {
 	return {
@@ -10,7 +12,7 @@ export function updateMapData(componentId, query, persistMapQuery) {
 	};
 }
 
-export function setMapData(componentId, query, persistMapQuery, forceExecute) {
+export function setMapData(componentId, query, persistMapQuery, forceExecute, meta = {}) {
 	return (dispatch) => {
 		dispatch(updateMapData(componentId, query, persistMapQuery));
 
@@ -20,6 +22,14 @@ export function setMapData(componentId, query, persistMapQuery, forceExecute) {
 			const mustExecuteMapQuery = true;
 			dispatch(executeQuery(componentId, executeWatchList, mustExecuteMapQuery));
 		}
+		// Set meta properties for internal component to make geo bounding box work
+		dispatch(setInternalValue(
+			getInternalComponentID(componentId),
+			undefined,
+			undefined,
+			undefined,
+			meta,
+		));
 	};
 }
 

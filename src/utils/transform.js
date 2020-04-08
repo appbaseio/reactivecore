@@ -30,6 +30,11 @@ const componentToTypeMap = {
 	[componentTypes.rangeSlider]: queryTypes.range,
 	[componentTypes.ratingsFilter]: queryTypes.range,
 	[componentTypes.rangeInput]: queryTypes.range,
+
+	// map components
+	[componentTypes.geoDistanceDropdown]: queryTypes.geo,
+	[componentTypes.geoDistanceSlider]: queryTypes.geo,
+	[componentTypes.reactiveMap]: queryTypes.geo,
 };
 
 const multiRangeComponents = [componentTypes.multiRange, componentTypes.multiDropdownRange];
@@ -89,7 +94,6 @@ export const getRSQuery = (componentId, props, execute = true) => {
 	}
 	return null;
 };
-
 
 export const getValidInterval = (interval, range = {}) => {
 	const min = Math.ceil((range.end - range.start) / 100) || 1;
@@ -173,6 +177,34 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			}
 		}
 	}
+	if (queryType === queryTypes.geo) {
+		// override the value extracted from selectedValues reducer
+		value = undefined;
+		if (calcValues && calcValues.meta) {
+			if (calcValues.meta.distance && calcValues.meta.coordinates) {
+				value = {
+					distance: calcValues.meta.distance,
+					location: calcValues.meta.coordinates,
+				};
+				if (componentProps.unit) {
+					value.unit = componentProps.unit;
+				}
+			}
+			if (
+				calcValues.meta.mapBoxBounds
+				&& calcValues.meta.mapBoxBounds.top_left
+				&& calcValues.meta.mapBoxBounds.bottom_right
+			) {
+				value = {
+					// Note: format will be reverse of what we're using now
+					geoBoundingBox: {
+						topLeft: `${calcValues.meta.mapBoxBounds.top_left[1]}, ${calcValues.meta.mapBoxBounds.top_left[0]}`,
+						bottomRight: `${calcValues.meta.mapBoxBounds.bottom_right[1]}, ${calcValues.meta.mapBoxBounds.bottom_right[0]}`,
+					},
+				};
+			}
+		}
+	}
 	// handle number box, number box query changes based on the `queryFormat` value
 	if (componentProps.componentType === componentTypes.numberBox) {
 		if (queryFormat === 'exact') {
@@ -213,10 +245,12 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			? store.internalValues[component].category
 			: undefined,
 		value,
-		after: customOptions && customOptions.isPagination
-			? store.aggregations[component]
-			&& store.aggregations[component][compositeAggregationField]
-			&& store.aggregations[component][compositeAggregationField].after_key : null,
+		after:
+			customOptions && customOptions.isPagination
+				? store.aggregations[component]
+				  && store.aggregations[component][compositeAggregationField]
+				  && store.aggregations[component][compositeAggregationField].after_key
+				: null,
 		...customOptions,
 	};
 };
