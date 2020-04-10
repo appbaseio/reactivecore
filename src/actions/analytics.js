@@ -47,7 +47,8 @@ export function recordResultClick(searchPosition) {
 		if (config.analytics && searchId) {
 			const parsedHeaders = headers;
 			delete parsedHeaders['X-Search-Query'];
-			fetch(`${url}/${app}/_analytics`, {
+			const parsedURL = (url || '').replace(/\/+$/, '');
+			fetch(`${parsedURL}/${app}/_analytics`, {
 				method: 'POST',
 				headers: {
 					...parsedHeaders,
@@ -73,7 +74,8 @@ export function recordSuggestionClick(searchPosition) {
 		if (config.analytics && suggestionsSearchId) {
 			const parsedHeaders = headers;
 			delete parsedHeaders['X-Search-Query'];
-			fetch(`${url}/${app}/_analytics`, {
+			const parsedURL = (url || '').replace(/\/+$/, '');
+			fetch(`${parsedURL}/${app}/_analytics`, {
 				method: 'POST',
 				headers: {
 					...parsedHeaders,
