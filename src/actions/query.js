@@ -744,7 +744,16 @@ export function updateQuery(
 		}
 		// don't set filters for internal components
 		if (!componentId.endsWith('__internal')) {
-			dispatch(setValue(componentId, value, label, showFilter, URLParams, componentType, category, meta));
+			dispatch(setValue(
+				componentId,
+				value,
+				label,
+				showFilter,
+				URLParams,
+				componentType,
+				category,
+				meta,
+			));
 			if (componentType === componentTypes.dynamicRangeSlider) {
 				// Dynamic Range Slider has a dependency on histogram which uses different ID
 				dispatch(setInternalValue(
@@ -755,7 +764,13 @@ export function updateQuery(
 					meta,
 				));
 			} else {
-				dispatch(setInternalValue(`${componentId}__internal`, value, componentType, category, meta));
+				dispatch(setInternalValue(
+					`${componentId}__internal`,
+					value,
+					componentType,
+					category,
+					meta,
+				));
 			}
 		} else {
 			dispatch(setInternalValue(componentId, value, componentType, category, meta));

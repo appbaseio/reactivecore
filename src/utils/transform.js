@@ -107,6 +107,9 @@ export const getValidInterval = (interval, range = {}) => {
 
 export const extractPropsFromState = (store, component, customOptions) => {
 	const componentProps = store.props[component];
+	if (!componentProps) {
+		return null;
+	}
 	const queryType = componentToTypeMap[componentProps.componentType];
 	const calcValues = store.selectedValues[component] || store.internalValues[component];
 	let compositeAggregationField = componentProps.aggregationField;
@@ -248,8 +251,8 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		after:
 			customOptions && customOptions.isPagination
 				? store.aggregations[component]
-				  && store.aggregations[component][compositeAggregationField]
-				  && store.aggregations[component][compositeAggregationField].after_key
+				&& store.aggregations[component][compositeAggregationField]
+				&& store.aggregations[component][compositeAggregationField].after_key
 				: null,
 		...customOptions,
 	};
