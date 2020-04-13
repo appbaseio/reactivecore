@@ -668,7 +668,7 @@ export function executeQuery(
 							appbaseQuery = {
 								...appbaseQuery,
 								...{ [component]: query },
-								...getDependentQueries(getState(), component),
+								...getDependentQueries(getState(), component, orderOfQueries),
 							};
 						}
 					} else {
@@ -687,7 +687,6 @@ export function executeQuery(
 		if (isAppbaseEnabled) {
 			finalQuery = Object.keys(appbaseQuery).map(component => appbaseQuery[component]);
 		}
-
 		if (finalQuery.length) {
 			if (isAppbaseEnabled) {
 				dispatch(appbaseSearch(
@@ -827,7 +826,7 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 			// Apply dependent queries
 			appbaseQuery = {
 				...{ [component]: query },
-				...getDependentQueries(getState(), component),
+				...getDependentQueries(getState(), component, []),
 			};
 			const finalQuery = Object.keys(appbaseQuery).map(c => appbaseQuery[c]);
 			dispatch(appbaseSearch(finalQuery, [component], appendToHits, false, appendToAggs));

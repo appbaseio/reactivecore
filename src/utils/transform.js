@@ -39,6 +39,7 @@ const componentToTypeMap = {
 
 const multiRangeComponents = [componentTypes.multiRange, componentTypes.multiDropdownRange];
 const dateRangeComponents = [componentTypes.dateRange, componentTypes.datePicker];
+const searchComponents = [componentTypes.categorySearch, componentTypes.dataSearch];
 
 export const getNormalizedField = (field) => {
 	if (field && field.constructor !== Array) {
@@ -54,6 +55,8 @@ export const getInternalComponentID = (componentID = '') => `${componentID}__int
 export const getHistogramComponentID = (componentID = '') => `${componentID}__histogram__internal`;
 
 export const isDRSRangeComponent = (componentID = '') => componentID.endsWith('__range__internal');
+
+export const isSearchComponent = (componentType = '') => searchComponents.includes(componentType);
 
 export const getRSQuery = (componentId, props, execute = true) => {
 	if (props && componentId && props.dataField) {
@@ -281,28 +284,43 @@ export function flatReactProp(reactProp, componentID) {
 	return flattenReact;
 }
 
-export const getDependentQueries = (store, componentID) => {
+export const getDependentQueries = (store, componentID, orderOfQueries = []) => {
 	const finalQuery = {};
 	const addDependentQueries = (react = []) => {
 		react.forEach((component) => {
-			const calcValues = store.selectedValues[component] || store.internalValues[component];
-			// Only apply component that has some value
-			if (calcValues && !finalQuery[component]) {
-				// build query
-				const dependentQuery = getRSQuery(
-					component,
-					extractPropsFromState(store, component),
-					false,
-				);
-				if (dependentQuery) {
-					finalQuery[component] = dependentQuery;
-				}
-				// Add dependent queries
-				const componentReactDependency = store.dependencyTree[component];
-				if (componentReactDependency) {
-					const flattenReact = flatReactProp(componentReactDependency, componentID);
-					if (flattenReact.length) {
-						addDependentQueries(flattenReact, store, finalQuery);
+			/**
+			 * Allow internal dependent queries for search components
+			 * because it maintains value separately for suggestions
+			 */
+			const componentProps = store.props[component];
+			const shouldAddInternalQuery = componentProps
+				? isSearchComponent(componentProps.componentType)
+				: null;
+			if (!isInternalComponent(component) || shouldAddInternalQuery) {
+				const calcValues
+					= store.selectedValues[component] || store.internalValues[component];
+				// Only apply component that has some value
+				if (calcValues && !finalQuery[component]) {
+					let execute = false;
+					if (Array.isArray(orderOfQueries) && orderOfQueries.includes(component)) {
+						execute = true;
+					}
+					// build query
+					const dependentQuery = getRSQuery(
+						component,
+						extractPropsFromState(store, component),
+						execute,
+					);
+					if (dependentQuery) {
+						finalQuery[component] = dependentQuery;
+					}
+					// Add dependent queries
+					const componentReactDependency = store.dependencyTree[component];
+					if (componentReactDependency) {
+						const flattenReact = flatReactProp(componentReactDependency, componentID);
+						if (flattenReact.length) {
+							addDependentQueries(flattenReact, store, finalQuery);
+						}
 					}
 				}
 			}
