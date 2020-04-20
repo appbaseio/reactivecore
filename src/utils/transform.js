@@ -267,7 +267,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			: undefined,
 		value,
 		pagination,
-		after: pagination
+		after: pagination || componentProps.aggregationField
 			? store.aggregations[component]
 			&& store.aggregations[component][compositeAggregationField]
 			&& store.aggregations[component][compositeAggregationField].after_key
