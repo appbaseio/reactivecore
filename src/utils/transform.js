@@ -40,6 +40,12 @@ const componentToTypeMap = {
 const multiRangeComponents = [componentTypes.multiRange, componentTypes.multiDropdownRange];
 const dateRangeComponents = [componentTypes.dateRange, componentTypes.datePicker];
 const searchComponents = [componentTypes.categorySearch, componentTypes.dataSearch];
+const listComponentsWithPagination = [
+	componentTypes.singleList,
+	componentTypes.multiList,
+	componentTypes.singleDropdownList,
+	componentTypes.multiDropdownList,
+];
 
 export const getNormalizedField = (field) => {
 	if (field && field.constructor !== Array) {
@@ -57,6 +63,9 @@ export const getHistogramComponentID = (componentID = '') => `${componentID}__hi
 export const isDRSRangeComponent = (componentID = '') => componentID.endsWith('__range__internal');
 
 export const isSearchComponent = (componentType = '') => searchComponents.includes(componentType);
+
+export const hasPaginationSupport = (componentType = '') =>
+	listComponentsWithPagination.includes(componentType);
 
 export const getRSQuery = (componentId, props, execute = true) => {
 	if (props && componentId && props.dataField) {
@@ -93,6 +102,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			aggregations: props.aggregations || undefined,
 			enableSynonyms: props.enableSynonyms,
 			selectAllLabel: props.selectAllLabel,
+			pagination: props.pagination || undefined,
 		};
 	}
 	return null;
@@ -122,10 +132,15 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	let type = componentToTypeMap[componentProps.componentType];
 	let dataField = componentProps.dataField;
 	let aggregations;
+	let pagination; // pagination for `term` type of queries
 
 	// For term queries i.e list component `dataField` will be treated as aggregationField
 	if (queryType === queryTypes.term) {
 		compositeAggregationField = componentProps.dataField;
+		// Only apply pagination prop for the components which supports it otherwise it can break the UI
+		if (componentProps.showLoadMore && hasPaginationSupport(componentProps.componentType)) {
+			pagination = true;
+		}
 	}
 	if (queryType === queryTypes.range) {
 		if (Array.isArray(value)) {
@@ -251,12 +266,12 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			? store.internalValues[component].category
 			: undefined,
 		value,
-		after:
-			customOptions && customOptions.isPagination
-				? store.aggregations[component]
-				&& store.aggregations[component][compositeAggregationField]
-				&& store.aggregations[component][compositeAggregationField].after_key
-				: null,
+		pagination,
+		after: pagination
+			? store.aggregations[component]
+			&& store.aggregations[component][compositeAggregationField]
+			&& store.aggregations[component][compositeAggregationField].after_key
+			: null,
 		...customOptions,
 	};
 };
@@ -289,17 +304,16 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 	const react = flatReactProp(store.dependencyTree[componentID], componentID);
 	react.forEach((component) => {
 		/**
-			 * Allow internal dependent queries for search components
-			 * because it maintains value separately for suggestions
-			 */
+		 * Allow internal dependent queries for search components
+		 * because it maintains value separately for suggestions
+		 */
 		const componentProps = store.props[component];
 		const shouldAddInternalQuery = componentProps
 			? isSearchComponent(componentProps.componentType)
 			: null;
 		if (!isInternalComponent(component) || shouldAddInternalQuery) {
-			const calcValues
-					= store.selectedValues[component] || store.internalValues[component];
-				// Only apply component that has some value
+			const calcValues = store.selectedValues[component] || store.internalValues[component];
+			// Only apply component that has some value
 			if (calcValues && !finalQuery[component]) {
 				let execute = false;
 				if (Array.isArray(orderOfQueries) && orderOfQueries.includes(component)) {

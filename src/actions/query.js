@@ -820,7 +820,6 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 				component,
 				extractPropsFromState(store, component, {
 					from: options.from,
-					isPagination: true,
 				}),
 			);
 			// Apply dependent queries
