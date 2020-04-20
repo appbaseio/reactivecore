@@ -14,7 +14,6 @@ export const updateDefaultQuery = (componentId, props, value) => {
 	}
 };
 
-
 export function isEqual(x, y) {
 	if (x === y) return true;
 	if (!(x instanceof Object) || !(y instanceof Object)) return false;
@@ -146,7 +145,6 @@ function getQuery(react, queryList) {
 
 	return null;
 }
-
 
 function getExternalQueryOptions(react, options, component) {
 	let queryOptions = {};
@@ -500,7 +498,13 @@ export const getAggsQuery = (query, props) => {
 			},
 		};
 	}
-	return { ...clonedQuery, ...extractQueryFromDefaultQuery(props.defaultQuery) };
+	/*
+	 do not call props.defaultQuery() directly as the client may be accessing props directly
+	 E.g.
+	 <MultiList defaultQuery={(value, props) => ({query: [props.dataField]: value})} />
+	*/
+	const defaultQuery = () => props.defaultQuery;
+	return { ...clonedQuery, ...extractQueryFromDefaultQuery(defaultQuery) };
 };
 export const getCompositeAggsQuery = (query, props, after, showTopHits = false) => {
 	const clonedQuery = query;
@@ -555,7 +559,13 @@ export const getCompositeAggsQuery = (query, props, after, showTopHits = false) 
 			},
 		};
 	}
-	return { ...clonedQuery, ...extractQueryFromDefaultQuery(props.defaultQuery) };
+	/*
+	 do not call props.defaultQuery() directly as the client may be accessing props directly
+	 E.g.
+	 <MultiList defaultQuery={(value, props) => ({query: [props.dataField]: value})} />
+	*/
+	const defaultQuery = () => props.defaultQuery;
+	return { ...clonedQuery, ...extractQueryFromDefaultQuery(defaultQuery) };
 };
 /**
  * Adds click ids in the hits(useful for trigger analytics)
@@ -596,7 +606,6 @@ export function handleOnSuggestions(results, currentValue, props) {
 		}
 		newResults = [...parsedPromotedResults, ...newResults];
 	}
-
 
 	const parsedSuggestions = getSuggestions({
 		fields,
