@@ -32,17 +32,3 @@ export function setMapData(componentId, query, persistMapQuery, forceExecute, me
 		));
 	};
 }
-
-export function setMarkerOnTop(markerId) {
-	return {
-		type: SET_MAP_ON_TOP_MARKER,
-		markerId,
-	};
-}
-
-export function setOpenMarkers(openMarkers) {
-	return {
-		type: SET_MAP_OPEN_MARKERS,
-		openMarkers,
-	};
-}

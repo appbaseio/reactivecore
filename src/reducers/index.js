@@ -26,8 +26,6 @@ import customDataReducer from './customDataReducer';
 import defaultQueriesReducer from './defaultQueryReducer';
 import customQueriesReducer from './customQueryReducer';
 import propsReducer from './propsReducer';
-import mapOnTopMarkerReducer from './mapOnTopMarkerReducer';
-import mapOpenMarkerReducer from './mapOpenMarkerReducer';
 import aggsReducer from './aggsReducer';
 import compositeAggsReducer from './compositeAggsReducer';
 import appliedSettingsReducer from './appliedSettingsReducer';
@@ -64,8 +62,6 @@ export default combineReducers({
 	mapData: mapDataReducer, // holds the map id and boolean to execute geo-bound-query
 	queryListener: queryListenerReducer,
 	analytics: analyticsReducer,
-	markerOnTop: mapOnTopMarkerReducer,
-	openMarkers: mapOpenMarkerReducer,
 	props: propsReducer,
 	rawData: rawDataReducer,
 });
