@@ -455,7 +455,7 @@ export const updateInternalQuery = (
 	}
 };
 // extracts query options from defaultQuery if set
-export const extractQueryFromDefaultQuery = (defaultQuery) => {
+export const extractQueryFromDefaultQuery = (defaultQuery, props) => {
 	let queryToBeReturned = {};
 	if (defaultQuery) {
 		const evaluateQuery = defaultQuery();
@@ -463,7 +463,7 @@ export const extractQueryFromDefaultQuery = (defaultQuery) => {
 			// we should only retrieve and set the query options here.
 			// [Not implemented yet] `query` key should be handled separately for
 			// adding it to `queryList` in the redux store
-			const { query, ...options } = evaluateQuery;
+			const { query, ...options } = evaluateQuery([], props);
 			if (options) {
 				queryToBeReturned = options;
 			}
@@ -504,7 +504,7 @@ export const getAggsQuery = (query, props) => {
 	 <MultiList defaultQuery={(value, props) => ({query: [props.dataField]: value})} />
 	*/
 	const defaultQuery = () => props.defaultQuery;
-	return { ...clonedQuery, ...extractQueryFromDefaultQuery(defaultQuery) };
+	return { ...clonedQuery, ...extractQueryFromDefaultQuery(defaultQuery, props) };
 };
 export const getCompositeAggsQuery = (query, props, after, showTopHits = false) => {
 	const clonedQuery = query;
@@ -565,7 +565,7 @@ export const getCompositeAggsQuery = (query, props, after, showTopHits = false) 
 	 <MultiList defaultQuery={(value, props) => ({query: [props.dataField]: value})} />
 	*/
 	const defaultQuery = () => props.defaultQuery;
-	return { ...clonedQuery, ...extractQueryFromDefaultQuery(defaultQuery) };
+	return { ...clonedQuery, ...extractQueryFromDefaultQuery(defaultQuery, props) };
 };
 /**
  * Adds click ids in the hits(useful for trigger analytics)
