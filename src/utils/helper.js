@@ -455,15 +455,21 @@ export const updateInternalQuery = (
 	}
 };
 // extracts query options from defaultQuery if set
-export const extractQueryFromDefaultQuery = (defaultQuery, props) => {
+export const extractQueryFromDefaultQuery = (props, value) => {
 	let queryToBeReturned = {};
+	const { defaultQuery } = props;
+	/*
+	 do not call props.defaultQuery() directly as the client may be accessing props directly
+	 E.g.
+	 <MultiList defaultQuery={(value, props) => ({query: [props.dataField]: value})} />
+	*/
 	if (defaultQuery) {
-		const evaluateQuery = defaultQuery();
+		const evaluateQuery = defaultQuery(value, props);
 		if (evaluateQuery) {
 			// we should only retrieve and set the query options here.
 			// [Not implemented yet] `query` key should be handled separately for
 			// adding it to `queryList` in the redux store
-			const { query, ...options } = evaluateQuery([], props);
+			const { query, ...options } = evaluateQuery;
 			if (options) {
 				queryToBeReturned = options;
 			}
@@ -471,7 +477,7 @@ export const extractQueryFromDefaultQuery = (defaultQuery, props) => {
 	}
 	return queryToBeReturned;
 };
-export const getAggsQuery = (query, props) => {
+export const getAggsQuery = (value, query, props) => {
 	const clonedQuery = query;
 	const {
 		dataField, size, sortBy, showMissing, missingLabel,
@@ -498,15 +504,9 @@ export const getAggsQuery = (query, props) => {
 			},
 		};
 	}
-	/*
-	 do not call props.defaultQuery() directly as the client may be accessing props directly
-	 E.g.
-	 <MultiList defaultQuery={(value, props) => ({query: [props.dataField]: value})} />
-	*/
-	const defaultQuery = () => props.defaultQuery;
-	return { ...clonedQuery, ...extractQueryFromDefaultQuery(defaultQuery, props) };
+	return { ...clonedQuery, ...extractQueryFromDefaultQuery(props, value) };
 };
-export const getCompositeAggsQuery = (query, props, after, showTopHits = false) => {
+export const getCompositeAggsQuery = (value, query, props, after, showTopHits = false) => {
 	const clonedQuery = query;
 	// missing label not available in composite aggs
 	const {
@@ -559,13 +559,7 @@ export const getCompositeAggsQuery = (query, props, after, showTopHits = false) 
 			},
 		};
 	}
-	/*
-	 do not call props.defaultQuery() directly as the client may be accessing props directly
-	 E.g.
-	 <MultiList defaultQuery={(value, props) => ({query: [props.dataField]: value})} />
-	*/
-	const defaultQuery = () => props.defaultQuery;
-	return { ...clonedQuery, ...extractQueryFromDefaultQuery(defaultQuery, props) };
+	return { ...clonedQuery, ...extractQueryFromDefaultQuery(props, value) };
 };
 /**
  * Adds click ids in the hits(useful for trigger analytics)
