@@ -1,4 +1,4 @@
-import { SET_MAP_DATA, SET_MAP_ON_TOP_MARKER, SET_MAP_OPEN_MARKERS } from '../constants';
+import { SET_MAP_DATA } from '../constants';
 import { executeQuery } from './query';
 import { setInternalValue } from './value';
 import { getInternalComponentID } from '../utils/transform';
