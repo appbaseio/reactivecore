@@ -39,7 +39,7 @@ const dataFieldValidator = (props, propName, componentName) => {
 		if (typeof propValue !== 'string' && !Array.isArray(propValue)) {
 			return new Error(`Invalid ${propName} supplied to ${componentName}. Validation failed.`);
 		}
-		if (Array.isArray(propValue && propValue.length === 0)) return requiredError;
+		if (Array.isArray(propValue) && propValue.length === 0) return requiredError;
 	}
 };
 
