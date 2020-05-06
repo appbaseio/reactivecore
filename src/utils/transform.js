@@ -68,7 +68,7 @@ export const hasPaginationSupport = (componentType = '') =>
 	listComponentsWithPagination.includes(componentType);
 
 export const getRSQuery = (componentId, props, execute = true) => {
-	if (props && componentId && props.dataField) {
+	if (props && componentId) {
 		return {
 			id: componentId,
 			type: props.type ? props.type : componentToTypeMap[props.componentType],
