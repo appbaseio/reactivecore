@@ -30,6 +30,19 @@ function validateLocation(props, propName) {
 	return null;
 }
 
+// eslint-disable-next-line consistent-return
+const dataFieldValidator = (props, propName, componentName) => {
+	const requiredError = new Error(`${propName} supplied to ${componentName} is required. Validation failed.`);
+	const propValue = props[propName];
+	if (props.config && !props.config.enableAppbase) {
+		if (!propValue) return requiredError;
+		if (typeof propValue !== 'string' && !Array.isArray(propValue)) {
+			return new Error(`Invalid ${propName} supplied to ${componentName}. Validation failed.`);
+		}
+		if (Array.isArray(propValue && propValue.length === 0)) return requiredError;
+	}
+};
+
 const types = {
 	any,
 	analyticsConfig: shape({
@@ -160,6 +173,7 @@ const types = {
 	aggregationData: array,
 	showClearAll: oneOf([CLEAR_ALL.NEVER, CLEAR_ALL.ALWAYS, CLEAR_ALL.DEFAULT, true, false]),
 	componentObject: object,
+	dataFieldValidator,
 };
 
 export default types;
