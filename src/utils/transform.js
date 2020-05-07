@@ -69,9 +69,14 @@ export const hasPaginationSupport = (componentType = '') =>
 
 export const getRSQuery = (componentId, props, execute = true) => {
 	if (props && componentId) {
+		const queryType = props.type ? props.type : componentToTypeMap[props.componentType];
+		// dataField is must field for components other than search
+		if (!isSearchComponent(props.componentType) && !props.dataField) {
+			return null;
+		}
 		return {
 			id: componentId,
-			type: props.type ? props.type : componentToTypeMap[props.componentType],
+			type: queryType,
 			dataField: getNormalizedField(props.dataField),
 			execute,
 			react: props.react,
@@ -250,6 +255,10 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	// Fake dataField for ReactiveComponent
 	if (componentProps.componentType === componentTypes.reactiveComponent) {
 		dataField = 'reactive_component_field';
+	}
+	// Assign default value as an empty string for search components so search relevancy can work
+	if (isSearchComponent(componentProps.componentType) && !value) {
+		value = '';
 	}
 	return {
 		...componentProps,

@@ -105,7 +105,7 @@ const getSuggestions = ({
 		return false;
 	};
 
-	const parseField = (parsedSource, field, source = parsedSource) => {
+	const parseField = (parsedSource, field = '', source = parsedSource) => {
 		if (typeof parsedSource === 'object') {
 			const fieldNodes = field.split('.');
 			const label = parsedSource[fieldNodes[0]];

@@ -14,7 +14,6 @@ export const updateDefaultQuery = (componentId, props, value) => {
 	}
 };
 
-
 export function isEqual(x, y) {
 	if (x === y) return true;
 	if (!(x instanceof Object) || !(y instanceof Object)) return false;
@@ -146,7 +145,6 @@ function getQuery(react, queryList) {
 
 	return null;
 }
-
 
 function getExternalQueryOptions(react, options, component) {
 	let queryOptions = {};
@@ -582,7 +580,19 @@ export function getResultStats(props) {
 export function handleOnSuggestions(results, currentValue, props) {
 	const { parseSuggestion, promotedResults } = props;
 
-	const fields = Array.isArray(props.dataField) ? props.dataField : [props.dataField];
+	let fields;
+	if (props.dataField) {
+		fields = Array.isArray(props.dataField) ? props.dataField : [props.dataField];
+	} else if (
+		results
+		&& Array.isArray(results)
+		&& results.length > 0
+		&& results[0]
+		&& results[0]._source
+	) {
+		// Extract fields from _source
+		fields = Object.keys(results[0]._source);
+	}
 
 	// hits as flat structure
 	let newResults = parseHits(results, false);
@@ -596,7 +606,6 @@ export function handleOnSuggestions(results, currentValue, props) {
 		}
 		newResults = [...parsedPromotedResults, ...newResults];
 	}
-
 
 	const parsedSuggestions = getSuggestions({
 		fields,
