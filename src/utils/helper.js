@@ -14,7 +14,6 @@ export const updateDefaultQuery = (componentId, props, value) => {
 	}
 };
 
-
 export function isEqual(x, y) {
 	if (x === y) return true;
 	if (!(x instanceof Object) || !(y instanceof Object)) return false;
@@ -146,7 +145,6 @@ function getQuery(react, queryList) {
 
 	return null;
 }
-
 
 function getExternalQueryOptions(react, options, component) {
 	let queryOptions = {};
@@ -457,10 +455,16 @@ export const updateInternalQuery = (
 	}
 };
 // extracts query options from defaultQuery if set
-export const extractQueryFromDefaultQuery = (defaultQuery) => {
+export const extractQueryFromDefaultQuery = (props, value) => {
 	let queryToBeReturned = {};
+	const { defaultQuery } = props;
+	/*
+	 do not call props.defaultQuery() directly as the client may be accessing props directly
+	 E.g.
+	 <MultiList defaultQuery={(value, props) => ({query: [props.dataField]: value})} />
+	*/
 	if (defaultQuery) {
-		const evaluateQuery = defaultQuery();
+		const evaluateQuery = defaultQuery(value, props);
 		if (evaluateQuery) {
 			// we should only retrieve and set the query options here.
 			// [Not implemented yet] `query` key should be handled separately for
@@ -473,7 +477,7 @@ export const extractQueryFromDefaultQuery = (defaultQuery) => {
 	}
 	return queryToBeReturned;
 };
-export const getAggsQuery = (query, props) => {
+export const getAggsQuery = (value, query, props) => {
 	const clonedQuery = query;
 	const {
 		dataField, size, sortBy, showMissing, missingLabel,
@@ -500,9 +504,9 @@ export const getAggsQuery = (query, props) => {
 			},
 		};
 	}
-	return { ...clonedQuery, ...extractQueryFromDefaultQuery(props.defaultQuery) };
+	return { ...clonedQuery, ...extractQueryFromDefaultQuery(props, value) };
 };
-export const getCompositeAggsQuery = (query, props, after, showTopHits = false) => {
+export const getCompositeAggsQuery = (value, query, props, after, showTopHits = false) => {
 	const clonedQuery = query;
 	// missing label not available in composite aggs
 	const {
@@ -555,7 +559,7 @@ export const getCompositeAggsQuery = (query, props, after, showTopHits = false) 
 			},
 		};
 	}
-	return { ...clonedQuery, ...extractQueryFromDefaultQuery(props.defaultQuery) };
+	return { ...clonedQuery, ...extractQueryFromDefaultQuery(props, value) };
 };
 /**
  * Adds click ids in the hits(useful for trigger analytics)
@@ -596,7 +600,6 @@ export function handleOnSuggestions(results, currentValue, props) {
 		}
 		newResults = [...parsedPromotedResults, ...newResults];
 	}
-
 
 	const parsedSuggestions = getSuggestions({
 		fields,
