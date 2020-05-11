@@ -31,6 +31,7 @@ import compositeAggsReducer from './compositeAggsReducer';
 import appliedSettingsReducer from './appliedSettingsReducer';
 import customHighlightReducer from './customHighlightReducer';
 import rawDataReducer from './rawDataReducer';
+import querySuggestionsReducer from './querySuggestionsReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -64,4 +65,5 @@ export default combineReducers({
 	analytics: analyticsReducer,
 	props: propsReducer,
 	rawData: rawDataReducer,
+	querySuggestions: querySuggestionsReducer,
 });
