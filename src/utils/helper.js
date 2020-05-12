@@ -630,7 +630,7 @@ export function handleOnSuggestions(results, currentValue, props) {
 export const getTopSuggestions = (querySuggestions, currentValue = '', showDistinctSuggestions) => {
 	const parsedSuggestions = parseHits(querySuggestions, false);
 	const finalSuggestions = getSuggestions({
-		fields: ['key', 'key.autosuggest'],
+		fields: ['key', 'key.autosuggest', 'key.search'],
 		suggestions: parsedSuggestions || [],
 		currentValue: currentValue.toLowerCase(),
 		showDistinctSuggestions,

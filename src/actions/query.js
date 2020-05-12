@@ -383,7 +383,7 @@ function appbaseSearch({
 	const getSuggestionQuery = (searchOperators, enableSynonyms) => [
 		{
 			id: getQuerySuggestionsId(componentId),
-			dataField: ['key', 'key.autosuggest'],
+			dataField: ['key', 'key.autosuggest', 'key.search'],
 			searchOperators,
 			size: 5,
 			value: internalValue && internalValue.value,
