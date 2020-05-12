@@ -13,7 +13,7 @@ import {
 } from 'prop-types';
 
 import dateFormats from './dateFormats';
-import { CLEAR_ALL } from './constants';
+import { CLEAR_ALL, componentTypes } from './constants';
 
 const reactKeyType = oneOfType([string, arrayOf(string), object, arrayOf(object)]);
 
@@ -172,6 +172,7 @@ const types = {
 	]),
 	aggregationData: array,
 	showClearAll: oneOf([CLEAR_ALL.NEVER, CLEAR_ALL.ALWAYS, CLEAR_ALL.DEFAULT, true, false]),
+	componentType: oneOf(Object.values(componentTypes)),
 	componentObject: object,
 	dataFieldValidator,
 };
