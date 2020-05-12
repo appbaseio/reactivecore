@@ -365,6 +365,10 @@ function msearch(
 
 const isPropertyDefined = property => property !== undefined && property !== null;
 
+function getQuerySuggestionsId(componentId) {
+	return `${componentId}__suggestions`;
+}
+
 function appbaseSearch({
 	query,
 	orderOfQueries,
@@ -372,8 +376,21 @@ function appbaseSearch({
 	isInternalComponent,
 	appendToAggs = false,
 	componentType,
-	enableQuerySuggestions = false,
+	props = {},
+	internalValue,
+	componentId,
 }) {
+	const getSuggestionQuery = (searchOperators, enableSynonyms) => [
+		{
+			id: getQuerySuggestionsId(componentId),
+			dataField: ['key', 'key.autosuggest'],
+			searchOperators,
+			size: 5,
+			value: internalValue && internalValue.value,
+			enableSynonyms,
+		},
+	];
+
 	return (dispatch, getState) => {
 		const {
 			appbaseRef, config, headers, queryListener,
@@ -432,7 +449,7 @@ function appbaseSearch({
 			});
 		};
 
-		const handleResponse = (res, querySuggestions = {}) => {
+		const handleResponse = (res, querySuggestions = {}, internalComponentId = '') => {
 			const suggestionsComponents = [
 				componentTypes.dataSearch,
 				componentTypes.categorySearch,
@@ -458,7 +475,8 @@ function appbaseSearch({
 				}
 				handleTransformResponse(res[component], component)
 					.then((response) => {
-						const querySuggestion = querySuggestions[component];
+						const querySuggestion
+							= querySuggestions[getQuerySuggestionsId(internalComponentId)];
 						if (response) {
 							const { timestamp } = getState();
 							if (
@@ -522,14 +540,12 @@ function appbaseSearch({
 		appbaseRef
 			.reactiveSearchv3(query, settings)
 			.then(async (res) => {
+				const { enableSynonyms, enableQuerySuggestions, searchOperators } = props;
 				if (enableQuerySuggestions) {
 					try {
-						const suggQuery = query.map(q => ({
-							...q,
-							dataField: ['key', 'key,autosuggest'],
-						}));
+						const suggQuery = getSuggestionQuery(searchOperators, enableSynonyms);
 						const suggestions = await appbaseRef.getQuerySuggestions(suggQuery);
-						handleResponse(res, suggestions);
+						handleResponse(res, suggestions, componentId);
 					} catch (e) {
 						handleError(e);
 					}
@@ -567,6 +583,7 @@ export function executeQuery(
 			queryOptions,
 			queryListener,
 			props,
+			internalValues,
 		} = getState();
 
 		let componentList = [componentId];
@@ -729,7 +746,9 @@ export function executeQuery(
 					isInternalComponent: componentId.endsWith('__internal'),
 					appendToAggs: undefined,
 					componentType,
-					enableQuerySuggestions: props[componentId].enableQuerySuggestions,
+					props: props[componentId],
+					internalValue: internalValues[componentId],
+					componentId,
 				}));
 			} else {
 				// in case of an internal component the analytics headers should not be included

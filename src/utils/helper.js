@@ -626,3 +626,14 @@ export function handleOnSuggestions(results, currentValue, props) {
 
 	return parsedSuggestions;
 }
+
+export const getTopSuggestions = (querySuggestions, currentValue = '', showDistinctSuggestions) => {
+	const parsedSuggestions = parseHits(querySuggestions, false);
+	const finalSuggestions = getSuggestions({
+		fields: ['key', 'key.autosuggest'],
+		suggestions: parsedSuggestions || [],
+		currentValue: currentValue.toLowerCase(),
+		showDistinctSuggestions,
+	});
+	return withClickIds(finalSuggestions);
+};

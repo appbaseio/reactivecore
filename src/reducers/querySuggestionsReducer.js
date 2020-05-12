@@ -4,7 +4,11 @@ export default function querySuggestionsReducer(state = {}, action) {
 	if (action.type === SET_QUERY_SUGGESTIONS) {
 		return {
 			...state,
-			[action.component]: action.suggestions.map(item => ({ ...item, _suggested: true })),
+			[action.component]: action.suggestions.sort((suggFirst, suggSecond) => {
+				const { count: countFirst } = suggFirst._source || {};
+				const { count: countSecond } = suggSecond._source || {};
+				return countFirst - countSecond;
+			}),
 		};
 	}
 
