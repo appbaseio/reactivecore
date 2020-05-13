@@ -379,7 +379,7 @@ function appbaseSearch({
 	props = {},
 	internalValue,
 	componentId,
-}) {
+} = {}) {
 	const getSuggestionQuery = (searchOperators, enableSynonyms) => [
 		{
 			id: getQuerySuggestionsId(componentId),
