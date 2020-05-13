@@ -7,7 +7,7 @@ export default function querySuggestionsReducer(state = {}, action) {
 			[action.component]: action.suggestions.sort((suggFirst, suggSecond) => {
 				const { count: countFirst } = suggFirst._source || {};
 				const { count: countSecond } = suggSecond._source || {};
-				return countFirst - countSecond;
+				return countSecond - countFirst;
 			}),
 		};
 	}
