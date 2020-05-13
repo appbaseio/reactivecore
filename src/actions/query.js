@@ -548,16 +548,18 @@ function appbaseSearch({
 		appbaseRef.setHeaders({ ...headers });
 		appbaseRef
 			.reactiveSearchv3(query, settings)
-			.then(async (res) => {
+			.then((res) => {
 				const { enableSynonyms, enableQuerySuggestions, searchOperators } = props;
 				if (enableQuerySuggestions) {
-					try {
-						const suggQuery = getSuggestionQuery(searchOperators, enableSynonyms);
-						const suggestions = await appbaseRef.getQuerySuggestions(suggQuery);
-						handleResponse(res, suggestions, componentId);
-					} catch (e) {
-						handleError(e);
-					}
+					const suggQuery = getSuggestionQuery(searchOperators, enableSynonyms);
+					appbaseRef
+						.getQuerySuggestions(suggQuery)
+						.then((suggestions) => {
+							handleResponse(res, suggestions, componentId);
+						})
+						.catch((e) => {
+							handleError(e);
+						});
 				} else handleResponse(res);
 			})
 			.catch((err) => {
