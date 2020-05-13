@@ -373,7 +373,7 @@ function appbaseSearch({
 	query,
 	orderOfQueries,
 	appendToHits = false,
-	isInternalComponent,
+	isInternalComponent = false,
 	appendToAggs = false,
 	componentType,
 	props = {},
@@ -751,9 +751,7 @@ export function executeQuery(
 				dispatch(appbaseSearch({
 					query: finalQuery,
 					orderOfQueries,
-					appendToHits: false,
 					isInternalComponent: componentId.endsWith('__internal'),
-					appendToAggs: undefined,
 					componentType,
 					props: props[componentId],
 					internalValue: internalValues[componentId],
@@ -894,7 +892,6 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 				query: finalQuery,
 				orderOfQueries: [component],
 				appendToHits,
-				isInternalComponent: false,
 				appendToAggs,
 			}));
 		} else {
