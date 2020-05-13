@@ -388,6 +388,15 @@ function appbaseSearch({
 			size: 5,
 			value: internalValue && internalValue.value,
 			enableSynonyms,
+			defaultQuery: {
+				sort: [
+					{
+						count: {
+							order: 'desc',
+						},
+					},
+				],
+			},
 		},
 	];
 
