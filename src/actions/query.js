@@ -17,6 +17,7 @@ import {
 	SET_DEFAULT_QUERY,
 	SET_CUSTOM_HIGHLIGHT_OPTIONS,
 	SET_CUSTOM_QUERY,
+	SET_QUERY_SUGGESTIONS,
 } from '../constants';
 
 import { setValue, setInternalValue } from './value';
@@ -136,6 +137,14 @@ export function setPromotedResults(results = [], component) {
 	return {
 		type: SET_PROMOTED_RESULTS,
 		results,
+		component,
+	};
+}
+
+export function setQuerySuggestions(suggestions = [], component) {
+	return {
+		type: SET_QUERY_SUGGESTIONS,
+		suggestions,
 		component,
 	};
 }
@@ -356,14 +365,41 @@ function msearch(
 
 const isPropertyDefined = property => property !== undefined && property !== null;
 
-function appbaseSearch(
+function getQuerySuggestionsId(componentId) {
+	return `${componentId}__suggestions`;
+}
+
+function appbaseSearch({
 	query,
 	orderOfQueries,
 	appendToHits = false,
-	isInternalComponent,
+	isInternalComponent = false,
 	appendToAggs = false,
 	componentType,
-) {
+	props = {},
+	internalValue,
+	componentId,
+} = {}) {
+	const getSuggestionQuery = (searchOperators, enableSynonyms) => [
+		{
+			id: getQuerySuggestionsId(componentId),
+			dataField: ['key', 'key.autosuggest', 'key.search'],
+			searchOperators,
+			size: 5,
+			value: internalValue && internalValue.value,
+			enableSynonyms,
+			defaultQuery: {
+				sort: [
+					{
+						count: {
+							order: 'desc',
+						},
+					},
+				],
+			},
+		},
+	];
+
 	return (dispatch, getState) => {
 		const {
 			appbaseRef, config, headers, queryListener,
@@ -422,7 +458,7 @@ function appbaseSearch(
 			});
 		};
 
-		const handleResponse = (res) => {
+		const handleResponse = (res, querySuggestions = {}, internalComponentId = '') => {
 			const suggestionsComponents = [
 				componentTypes.dataSearch,
 				componentTypes.categorySearch,
@@ -448,6 +484,8 @@ function appbaseSearch(
 				}
 				handleTransformResponse(res[component], component)
 					.then((response) => {
+						const querySuggestion
+							= querySuggestions[getQuerySuggestionsId(internalComponentId)];
 						if (response) {
 							const { timestamp } = getState();
 							if (
@@ -488,6 +526,16 @@ function appbaseSearch(
 										appendToAggs,
 									));
 								}
+
+								// update query suggestions for search components
+								if (isSuggestionsQuery) {
+									dispatch(setQuerySuggestions(
+										querySuggestion
+												&& querySuggestion.hits
+												&& querySuggestion.hits.hits,
+										component,
+									));
+								}
 							}
 						}
 					})
@@ -500,8 +548,17 @@ function appbaseSearch(
 		appbaseRef.setHeaders({ ...headers });
 		appbaseRef
 			.reactiveSearchv3(query, settings)
-			.then((res) => {
-				handleResponse(res);
+			.then(async (res) => {
+				const { enableSynonyms, enableQuerySuggestions, searchOperators } = props;
+				if (enableQuerySuggestions) {
+					try {
+						const suggQuery = getSuggestionQuery(searchOperators, enableSynonyms);
+						const suggestions = await appbaseRef.getQuerySuggestions(suggQuery);
+						handleResponse(res, suggestions, componentId);
+					} catch (e) {
+						handleError(e);
+					}
+				} else handleResponse(res);
 			})
 			.catch((err) => {
 				handleError(err);
@@ -534,6 +591,8 @@ export function executeQuery(
 			queryList,
 			queryOptions,
 			queryListener,
+			props,
+			internalValues,
 		} = getState();
 
 		let componentList = [componentId];
@@ -689,14 +748,15 @@ export function executeQuery(
 		}
 		if (finalQuery.length) {
 			if (isAppbaseEnabled) {
-				dispatch(appbaseSearch(
-					finalQuery,
+				dispatch(appbaseSearch({
+					query: finalQuery,
 					orderOfQueries,
-					false,
-					componentId.endsWith('__internal'),
-					undefined,
+					isInternalComponent: componentId.endsWith('__internal'),
 					componentType,
-				));
+					props: props[componentId],
+					internalValue: internalValues[componentId],
+					componentId,
+				}));
 			} else {
 				// in case of an internal component the analytics headers should not be included
 				dispatch(msearch(
@@ -828,7 +888,12 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 				...getDependentQueries(getState(), component, []),
 			};
 			const finalQuery = Object.keys(appbaseQuery).map(c => appbaseQuery[c]);
-			dispatch(appbaseSearch(finalQuery, [component], appendToHits, false, appendToAggs));
+			dispatch(appbaseSearch({
+				query: finalQuery,
+				orderOfQueries: [component],
+				appendToHits,
+				appendToAggs,
+			}));
 		} else {
 			const finalQuery = [
 				{
