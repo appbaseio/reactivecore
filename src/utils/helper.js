@@ -253,7 +253,7 @@ export const checkPropChange = (prevProp, nextProp, callback) => {
 };
 
 // checks for any prop change in the propsList and invokes the callback
-export const checkSomePropChange = (prevProps, nextProps, propsList, callback) => {
+export const checkSomePropChange = (prevProps = {}, nextProps = {}, propsList, callback) => {
 	propsList.some(prop => checkPropChange(prevProps[prop], nextProps[prop], callback));
 };
 
