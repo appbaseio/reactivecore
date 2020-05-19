@@ -295,7 +295,11 @@ function msearch(
 
 			// handle promoted results
 			orderOfQueries.forEach((component, index) => {
-				handleTransformResponse(res.responses[index], component)
+				let transformResponse = res;
+				if (res && Array.isArray(res.responses) && res.responses[index]) {
+					transformResponse = res.responses[index];
+				}
+				handleTransformResponse(transformResponse, component)
 					.then((response) => {
 						const { timestamp } = getState();
 						if (
