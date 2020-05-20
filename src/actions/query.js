@@ -1,27 +1,22 @@
-import {
-	SET_QUERY,
-	SET_QUERY_OPTIONS,
-	LOG_QUERY,
-	LOG_COMBINED_QUERY,
-	SET_LOADING,
-	SET_TIMESTAMP,
-	SET_HEADERS,
-	SET_STREAMING,
-	SET_QUERY_LISTENER,
-	SET_SEARCH_ID,
-	SET_ERROR,
-	SET_PROMOTED_RESULTS,
-	SET_APPLIED_SETTINGS,
-	SET_SUGGESTIONS_SEARCH_ID,
-	SET_CUSTOM_DATA,
-	SET_DEFAULT_QUERY,
-	SET_CUSTOM_HIGHLIGHT_OPTIONS,
-	SET_CUSTOM_QUERY,
-	SET_QUERY_SUGGESTIONS,
-} from '../constants';
-
 import { setValue, setInternalValue } from './value';
-import { updateHits, updateAggs, pushToStreamHits, updateCompositeAggs } from './hits';
+import {
+	handleError,
+	isPropertyDefined,
+	getSuggestionQuery,
+	handleResponse,
+	executeQueryListener,
+	handleResponseMSearch,
+} from './utils';
+import { pushToStreamHits } from './hits';
+import {
+	logQuery,
+	setLoading,
+	logCombinedQuery,
+	setQuery,
+	setError,
+	setStreaming,
+	updateQueryOptions,
+} from './misc';
 import { buildQuery, isEqual, getSearchState } from '../utils/helper';
 import getFilterString, { parseCustomEvents } from '../utils/analytics';
 import { updateMapData } from './maps';
@@ -33,151 +28,6 @@ import {
 	getDependentQueries,
 	getHistogramComponentID,
 } from '../utils/transform';
-import { setRawData } from './rawData';
-
-export function setQuery(component, query) {
-	return {
-		type: SET_QUERY,
-		component,
-		query,
-	};
-}
-
-export function setCustomQuery(component, query) {
-	return {
-		type: SET_CUSTOM_QUERY,
-		component,
-		query,
-	};
-}
-
-export function setDefaultQuery(component, query) {
-	return {
-		type: SET_DEFAULT_QUERY,
-		component,
-		query,
-	};
-}
-
-export function setCustomHighlightOptions(component, data) {
-	return {
-		type: SET_CUSTOM_HIGHLIGHT_OPTIONS,
-		component,
-		data,
-	};
-}
-
-export function updateQueryOptions(component, options) {
-	return {
-		type: SET_QUERY_OPTIONS,
-		component,
-		options,
-	};
-}
-
-// gatekeeping for normal queries
-export function logQuery(component, query) {
-	return {
-		type: LOG_QUERY,
-		component,
-		query,
-	};
-}
-
-// gatekeeping for queries combined with map queries
-export function logCombinedQuery(component, query) {
-	return {
-		type: LOG_COMBINED_QUERY,
-		component,
-		query,
-	};
-}
-
-function setLoading(component, isLoading) {
-	return {
-		type: SET_LOADING,
-		component,
-		isLoading,
-	};
-}
-
-function setError(component, error) {
-	return {
-		type: SET_ERROR,
-		component,
-		error,
-	};
-}
-
-function setTimestamp(component, timestamp) {
-	return {
-		type: SET_TIMESTAMP,
-		component,
-		timestamp,
-	};
-}
-
-export function setStreaming(component, status = false, ref = null) {
-	return {
-		type: SET_STREAMING,
-		component,
-		status,
-		ref,
-	};
-}
-
-export function setHeaders(headers) {
-	return {
-		type: SET_HEADERS,
-		headers,
-	};
-}
-
-export function setPromotedResults(results = [], component) {
-	return {
-		type: SET_PROMOTED_RESULTS,
-		results,
-		component,
-	};
-}
-
-export function setQuerySuggestions(suggestions = [], component) {
-	return {
-		type: SET_QUERY_SUGGESTIONS,
-		suggestions,
-		component,
-	};
-}
-
-export function setCustomData(data = null, component) {
-	return {
-		type: SET_CUSTOM_DATA,
-		data,
-		component,
-	};
-}
-
-export function setAppliedSettings(data = null, component) {
-	return {
-		type: SET_APPLIED_SETTINGS,
-		data,
-		component,
-	};
-}
-
-function setSearchId(searchId = null) {
-	return {
-		type: SET_SEARCH_ID,
-		searchId,
-	};
-}
-
-function setSuggestionsSearchId(searchId = null) {
-	return {
-		type: SET_SUGGESTIONS_SEARCH_ID,
-		searchId,
-	};
-}
 
 function msearch(
 	query,
@@ -189,12 +39,7 @@ function msearch(
 ) {
 	return (dispatch, getState) => {
 		const {
-			appbaseRef,
-			config,
-			headers,
-			queryListener,
-			analytics,
-			selectedValues,
+			appbaseRef, config, headers, analytics, selectedValues,
 		} = getState();
 
 		let searchHeaders = {};
@@ -263,92 +108,30 @@ function msearch(
 			dispatch(setLoading(component, true));
 		});
 
-		const handleTransformResponse = (res, component) => {
-			if (config.transformResponse && typeof config.transformResponse === 'function') {
-				return config.transformResponse(res, component);
-			}
-			return new Promise(resolve => resolve(res));
-		};
-
-		const handleError = (error) => {
-			console.error(error);
-			orderOfQueries.forEach((component) => {
-				if (queryListener[component] && queryListener[component].onError) {
-					queryListener[component].onError(error);
-				}
-				dispatch(setError(component, error));
-				dispatch(setLoading(component, false));
-			});
-		};
-
-		const handleResponse = (res) => {
-			const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
-			if (searchId) {
-				if (isSuggestionsQuery) {
-					// set suggestions search id for internal request of search components
-					dispatch(setSuggestionsSearchId(searchId));
-				} else {
-					// if search id was updated set it in store
-					dispatch(setSearchId(searchId));
-				}
-			}
-
-			// handle promoted results
-			orderOfQueries.forEach((component, index) => {
-				let transformResponse = res;
-				if (res && Array.isArray(res.responses) && res.responses[index]) {
-					transformResponse = res.responses[index];
-				}
-				handleTransformResponse(transformResponse, component)
-					.then((response) => {
-						const { timestamp } = getState();
-						if (
-							timestamp[component] === undefined
-							|| timestamp[component] < res._timestamp
-						) {
-							// set raw response in rawData
-							dispatch(setRawData(component, response));
-							const promotedResults = response.promoted || res.promoted;
-							if (promotedResults) {
-								dispatch(setPromotedResults(promotedResults, component));
-							} else {
-								dispatch(setPromotedResults([], component));
-							}
-							if (response.hits) {
-								dispatch(setTimestamp(component, res._timestamp));
-								dispatch(updateHits(
-									component,
-									response.hits,
-									response.took,
-									response.hits && response.hits.hidden,
-									appendToHits,
-								));
-								dispatch(setLoading(component, false));
-							}
-
-							if (response.aggregations) {
-								dispatch(updateAggs(component, response.aggregations, appendToAggs));
-								dispatch(updateCompositeAggs(
-									component,
-									response.aggregations,
-									appendToAggs,
-								));
-							}
-						}
-					})
-					.catch((err) => {
-						handleError(err);
-					});
-			});
-		};
-
 		if (config.graphQLUrl) {
 			fetchGraphQL(config.graphQLUrl, config.url, config.credentials, config.app, query)
 				.then((res) => {
-					handleResponse(res);
+					handleResponseMSearch(
+						{
+							res,
+							isSuggestionsQuery,
+							orderOfQueries,
+							appendToHits,
+							appendToAggs,
+						},
+						getState,
+						dispatch,
+					);
 				})
 				.catch((err) => {
-					handleError(err);
+					handleError(
+						{
+							orderOfQueries,
+							err,
+						},
+						getState,
+						dispatch,
+					);
 				});
 		} else {
 			appbaseRef.setHeaders({ ...headers, ...searchHeaders });
@@ -358,19 +141,30 @@ function msearch(
 					body: query,
 				})
 				.then((res) => {
-					handleResponse(res);
+					handleResponseMSearch(
+						{
+							res,
+							isSuggestionsQuery,
+							orderOfQueries,
+							appendToHits,
+							appendToAggs,
+						},
+						getState,
+						dispatch,
+					);
 				})
 				.catch((err) => {
-					handleError(err);
+					handleError(
+						{
+							orderOfQueries,
+							err,
+						},
+						getState,
+						dispatch,
+					);
 				});
 		}
 	};
-}
-
-const isPropertyDefined = property => property !== undefined && property !== null;
-
-function getQuerySuggestionsId(componentId) {
-	return `${componentId}__suggestions`;
 }
 
 function appbaseSearch({
@@ -381,33 +175,10 @@ function appbaseSearch({
 	appendToAggs = false,
 	componentType,
 	props = {},
-	internalValue,
 	componentId,
 } = {}) {
-	const getSuggestionQuery = (searchOperators, enableSynonyms) => [
-		{
-			id: getQuerySuggestionsId(componentId),
-			dataField: ['key', 'key.autosuggest', 'key.search'],
-			searchOperators,
-			size: 5,
-			value: internalValue && internalValue.value,
-			enableSynonyms,
-			defaultQuery: {
-				sort: [
-					{
-						count: {
-							order: 'desc',
-						},
-					},
-				],
-			},
-		},
-	];
-
 	return (dispatch, getState) => {
-		const {
-			appbaseRef, config, headers, queryListener,
-		} = getState();
+		const { appbaseRef, config, headers } = getState();
 
 		let isAnalyticsEnabled = false;
 
@@ -444,111 +215,6 @@ function appbaseSearch({
 			dispatch(setLoading(component, true));
 		});
 
-		const handleTransformResponse = (res, component) => {
-			if (config.transformResponse && typeof config.transformResponse === 'function') {
-				return config.transformResponse(res, component);
-			}
-			return new Promise(resolve => resolve(res));
-		};
-
-		const handleError = (error) => {
-			console.error(error);
-			orderOfQueries.forEach((component) => {
-				if (queryListener[component] && queryListener[component].onError) {
-					queryListener[component].onError(error);
-				}
-				dispatch(setError(component, error));
-				dispatch(setLoading(component, false));
-			});
-		};
-
-		const handleResponse = (res, querySuggestions = {}, internalComponentId = '') => {
-			const suggestionsComponents = [
-				componentTypes.dataSearch,
-				componentTypes.categorySearch,
-			];
-			const isSuggestionsQuery
-				= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
-			const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
-			if (searchId) {
-				if (isSuggestionsQuery) {
-					// set suggestions search id for internal request of search components
-					dispatch(setSuggestionsSearchId(searchId));
-				} else {
-					// if search id was updated set it in store
-					dispatch(setSearchId(searchId));
-				}
-			}
-
-			// handle promoted results
-			orderOfQueries.forEach((component) => {
-				// Update applied settings
-				if (res.settings) {
-					dispatch(setAppliedSettings(res.settings, component));
-				}
-				handleTransformResponse(res[component], component)
-					.then((response) => {
-						const querySuggestion
-							= querySuggestions[getQuerySuggestionsId(internalComponentId)];
-						if (response) {
-							const { timestamp } = getState();
-							if (
-								timestamp[component] === undefined
-								|| timestamp[component] < res._timestamp
-							) {
-								const promotedResults = response.promoted;
-								if (promotedResults) {
-									const parsedPromotedResults = promotedResults.map(promoted => ({
-										...promoted.doc,
-										_position: promoted.position,
-									}));
-									dispatch(setPromotedResults(parsedPromotedResults, component));
-								} else {
-									dispatch(setPromotedResults([], component));
-								}
-								// set raw response in rawData
-								dispatch(setRawData(component, response));
-								// Update custom data
-								dispatch(setCustomData(response.customData, component));
-								if (response.hits) {
-									dispatch(setTimestamp(component, res._timestamp));
-									dispatch(updateHits(
-										component,
-										response.hits,
-										response.took,
-										response.hits && response.hits.hidden,
-										appendToHits,
-									));
-									dispatch(setLoading(component, false));
-								}
-
-								if (response.aggregations) {
-									dispatch(updateAggs(component, response.aggregations, appendToAggs));
-									dispatch(updateCompositeAggs(
-										component,
-										response.aggregations,
-										appendToAggs,
-									));
-								}
-
-								// update query suggestions for search components
-								if (isSuggestionsQuery) {
-									dispatch(setQuerySuggestions(
-										querySuggestion
-												&& querySuggestion.hits
-												&& querySuggestion.hits.hits,
-										component,
-									));
-								}
-							}
-						}
-					})
-					.catch((err) => {
-						handleError(err);
-					});
-			});
-		};
-
 		appbaseRef.setHeaders({ ...headers });
 		appbaseRef
 			.reactiveSearchv3(query, settings)
@@ -559,23 +225,58 @@ function appbaseSearch({
 					appbaseRef
 						.getQuerySuggestions(suggQuery)
 						.then((suggestions) => {
-							handleResponse(res, suggestions, componentId);
+							handleResponse(
+								{
+									res,
+									querySuggestions: suggestions,
+									isInternalComponent,
+									orderOfQueries,
+									appendToHits,
+									appendToAggs,
+									componentType,
+									componentId,
+								},
+								getState,
+								dispatch,
+							);
 						})
 						.catch((e) => {
-							handleError(e);
+							handleError(
+								{
+									orderOfQueries,
+									e,
+								},
+								getState,
+								dispatch,
+							);
 						});
-				} else handleResponse(res);
+				} else {
+					handleResponse(
+						{
+							res,
+							isInternalComponent,
+							orderOfQueries,
+							appendToHits,
+							appendToAggs,
+							componentType,
+							componentId,
+						},
+						getState,
+						dispatch,
+					);
+				}
 			})
 			.catch((err) => {
-				handleError(err);
+				handleError(
+					{
+						orderOfQueries,
+						err,
+					},
+					getState,
+					dispatch,
+				);
 			});
 	};
-}
-
-function executeQueryListener(listener, oldQuery, newQuery) {
-	if (listener && listener.onQueryChange) {
-		listener.onQueryChange(oldQuery, newQuery);
-	}
 }
 
 export function executeQuery(
@@ -598,7 +299,6 @@ export function executeQuery(
 			queryOptions,
 			queryListener,
 			props,
-			internalValues,
 		} = getState();
 
 		let componentList = [componentId];
@@ -760,7 +460,6 @@ export function executeQuery(
 					isInternalComponent: componentId.endsWith('__internal'),
 					componentType,
 					props: props[componentId],
-					internalValue: internalValues[componentId],
 					componentId,
 				}));
 			} else {
@@ -909,14 +608,5 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 			];
 			dispatch(msearch(finalQuery, [component], appendToHits, false, appendToAggs));
 		}
-	};
-}
-
-export function setQueryListener(component, onQueryChange, onError) {
-	return {
-		type: SET_QUERY_LISTENER,
-		component,
-		onQueryChange,
-		onError,
 	};
 }
