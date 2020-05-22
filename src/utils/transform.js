@@ -64,6 +64,8 @@ export const isDRSRangeComponent = (componentID = '') => componentID.endsWith('_
 
 export const isSearchComponent = (componentType = '') => searchComponents.includes(componentType);
 
+export const isComponentUsesLabelAsValue = (componentType = '') => componentType === componentTypes.multiDataList || componentType === componentTypes.singleDataList;
+
 export const hasPaginationSupport = (componentType = '') =>
 	listComponentsWithPagination.includes(componentType);
 
@@ -259,6 +261,33 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	// Assign default value as an empty string for search components so search relevancy can work
 	if (isSearchComponent(componentProps.componentType) && !value) {
 		value = '';
+	}
+
+	// Handle components which uses label instead of value as the selected value
+	if (isComponentUsesLabelAsValue(componentProps.componentType)) {
+		const { data } = componentProps;
+		let absValue = [];
+		if (value && Array.isArray(value)) {
+			absValue = value;
+		} else if (value && typeof value === 'string') {
+			absValue = [value];
+		}
+		const normalizedValue = [];
+		if (absValue.length) {
+			if (data && Array.isArray(data)) {
+				absValue.forEach((val) => {
+					const dataItem = data.find(o => o.label === val);
+					if (dataItem && dataItem.value) {
+						normalizedValue.push(dataItem.value);
+					}
+				});
+			}
+		}
+		if (normalizedValue.length) {
+			value = normalizedValue;
+		} else {
+			value = undefined;
+		}
 	}
 	return {
 		...componentProps,
