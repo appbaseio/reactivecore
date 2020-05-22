@@ -219,9 +219,9 @@ function appbaseSearch({
 		appbaseRef
 			.reactiveSearchv3(query, settings)
 			.then((res) => {
-				const { enableSynonyms, enableQuerySuggestions, searchOperators } = props;
+				const { enableQuerySuggestions } = props;
 				if (enableQuerySuggestions) {
-					const suggQuery = getSuggestionQuery(searchOperators, enableSynonyms);
+					const suggQuery = getSuggestionQuery(getState, componentId);
 					appbaseRef
 						.getQuerySuggestions(suggQuery)
 						.then((suggestions) => {
