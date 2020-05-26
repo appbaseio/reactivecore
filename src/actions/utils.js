@@ -38,7 +38,12 @@ export const handleError = (
 	dispatch,
 ) => {
 	const { queryListener } = getState();
-	console.error(error);
+	try {
+		console.error(JSON.stringify(error));
+	} catch (e) {
+		console.error(error);
+	}
+
 	orderOfQueries.forEach((component) => {
 		// Only update state for active components
 		if (isComponentActive(getState, component)) {
@@ -149,7 +154,7 @@ export const handleResponse = (
 					handleError(
 						{
 							orderOfQueries,
-							err,
+							error: err,
 						},
 						getState,
 						dispatch,
@@ -228,7 +233,7 @@ export const handleResponseMSearch = ({
 					handleError(
 						{
 							orderOfQueries,
-							err,
+							error: err,
 						},
 						getState,
 						dispatch,

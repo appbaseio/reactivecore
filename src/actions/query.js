@@ -127,7 +127,7 @@ function msearch(
 					handleError(
 						{
 							orderOfQueries,
-							err,
+							error: err,
 						},
 						getState,
 						dispatch,
@@ -157,7 +157,7 @@ function msearch(
 					handleError(
 						{
 							orderOfQueries,
-							err,
+							error: err,
 						},
 						getState,
 						dispatch,
@@ -244,7 +244,7 @@ function appbaseSearch({
 							handleError(
 								{
 									orderOfQueries,
-									e,
+									error: e,
 								},
 								getState,
 								dispatch,
@@ -270,7 +270,7 @@ function appbaseSearch({
 				handleError(
 					{
 						orderOfQueries,
-						err,
+						error: err,
 					},
 					getState,
 					dispatch,
