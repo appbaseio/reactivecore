@@ -106,6 +106,8 @@ function msearch(
 		// set loading as active for the given component
 		orderOfQueries.forEach((component) => {
 			dispatch(setLoading(component, true));
+			// reset error
+			dispatch(setError(component, null));
 		});
 
 		if (config.graphQLUrl) {
@@ -213,6 +215,8 @@ function appbaseSearch({
 		// set loading as active for the given component
 		orderOfQueries.forEach((component) => {
 			dispatch(setLoading(component, true));
+			// reset error
+			dispatch(setError(component, null));
 		});
 
 		appbaseRef.setHeaders({ ...headers });

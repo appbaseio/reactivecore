@@ -115,8 +115,6 @@ export const handleResponse = (
 							}
 							// set raw response in rawData
 							dispatch(setRawData(component, response));
-							// reset error on success
-							dispatch(setError(component, null));
 							// Update custom data
 							dispatch(setCustomData(response.customData, component));
 							if (response.hits) {
@@ -203,8 +201,6 @@ export const handleResponseMSearch = ({
 					) {
 						// set raw response in rawData
 						dispatch(setRawData(component, response));
-						// reset error on success
-						dispatch(setError(component, null));
 						const promotedResults = response.promoted || res.promoted;
 						if (promotedResults) {
 							dispatch(setPromotedResults(promotedResults, component));
