@@ -140,6 +140,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	let dataField = componentProps.dataField;
 	let aggregations;
 	let pagination; // pagination for `term` type of queries
+	let from; // offset for RL
 
 	// For term queries i.e list component `dataField` will be treated as aggregationField
 	if (queryType === queryTypes.term) {
@@ -289,6 +290,14 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			value = undefined;
 		}
 	}
+	if (componentProps.componentType === componentTypes.reactiveList) {
+		// We set selected page as the value in the redux store for RL.
+		// It's complex to change this logic in the component so changed it here.
+		if (value > 0) {
+			from = (value - 1) * (componentProps.size || 10);
+		}
+		value = undefined;
+	}
 	return {
 		...componentProps,
 		dataField,
@@ -310,6 +319,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			&& store.aggregations[component][compositeAggregationField]
 			&& store.aggregations[component][compositeAggregationField].after_key
 			: null,
+		from,
 		...customOptions,
 	};
 };
