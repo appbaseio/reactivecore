@@ -67,6 +67,7 @@ export const validProps = [
 	'searchOperators',
 	'enableSynonyms',
 	'enableQuerySuggestions',
+	'enableQueryString',
 	// Specific to Category Search
 	'categoryField',
 	'strictSelection',
