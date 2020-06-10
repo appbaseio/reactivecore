@@ -64,7 +64,9 @@ export const isDRSRangeComponent = (componentID = '') => componentID.endsWith('_
 
 export const isSearchComponent = (componentType = '') => searchComponents.includes(componentType);
 
-export const isComponentUsesLabelAsValue = (componentType = '') => componentType === componentTypes.multiDataList || componentType === componentTypes.singleDataList;
+export const isComponentUsesLabelAsValue = (componentType = '') =>
+	componentType === componentTypes.multiDataList
+	|| componentType === componentTypes.singleDataList;
 
 export const hasPaginationSupport = (componentType = '') =>
 	listComponentsWithPagination.includes(componentType);
@@ -306,20 +308,23 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		type,
 		aggregations,
 		interval,
-		react: store.dependencyTree[component],
-		customQuery: store.customQueries[component],
-		defaultQuery: store.defaultQueries[component],
-		customHighlight: store.customHighlightOptions[component],
+		react: store.dependencyTree ? store.dependencyTree[component] : undefined,
+		customQuery: store.customQueries ? store.customQueries[component] : undefined,
+		defaultQuery: store.defaultQueries ? store.defaultQueries[component] : undefined,
+		customHighlight: store.customHighlightOptions
+			? store.customHighlightOptions[component]
+			: undefined,
 		categoryValue: store.internalValues[component]
 			? store.internalValues[component].category
 			: undefined,
 		value,
 		pagination,
-		after: pagination || componentProps.aggregationField
-			? store.aggregations[component]
-			&& store.aggregations[component][compositeAggregationField]
-			&& store.aggregations[component][compositeAggregationField].after_key
-			: null,
+		after:
+			pagination || componentProps.aggregationField
+				? store.aggregations[component]
+				&& store.aggregations[component][compositeAggregationField]
+				&& store.aggregations[component][compositeAggregationField].after_key
+				: null,
 		from,
 		...customOptions,
 	};
