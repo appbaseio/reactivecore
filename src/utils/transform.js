@@ -112,7 +112,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			enableSynonyms: props.enableSynonyms,
 			selectAllLabel: props.selectAllLabel,
 			pagination: props.pagination,
-			queryString: props.queryString || undefined,
+			queryString: props.queryString,
 		};
 	}
 	return null;
