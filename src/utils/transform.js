@@ -48,7 +48,7 @@ const listComponentsWithPagination = [
 ];
 
 export const getNormalizedField = (field) => {
-	if (field && field.constructor !== Array) {
+	if (field && !Array.isArray(field)) {
 		return [field];
 	}
 	return field;
