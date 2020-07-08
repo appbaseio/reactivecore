@@ -32,6 +32,7 @@ import appliedSettingsReducer from './appliedSettingsReducer';
 import customHighlightReducer from './customHighlightReducer';
 import rawDataReducer from './rawDataReducer';
 import querySuggestionsReducer from './querySuggestionsReducer';
+import queryToHitsReducer from './queryToHitsReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -66,4 +67,5 @@ export default combineReducers({
 	props: propsReducer,
 	rawData: rawDataReducer,
 	querySuggestions: querySuggestionsReducer,
+	queryToHits: queryToHitsReducer, // holds the query value for last fetched `hits`
 });

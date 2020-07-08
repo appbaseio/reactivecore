@@ -12,7 +12,8 @@ import {
 	setQuerySuggestions,
 } from './misc';
 
-import { updateHits, updateAggs, updateCompositeAggs } from './hits';
+import { updateHits, updateAggs, updateCompositeAggs, saveQueryToHits } from './hits';
+import { getInternalComponentID } from '../../lib/utils/transform';
 
 export const handleTransformResponse = (res = null, config = {}, component = '') => {
 	if (config.transformResponse && typeof config.transformResponse === 'function') {
@@ -70,7 +71,7 @@ export const handleResponse = (
 	getState = () => {},
 	dispatch,
 ) => {
-	const { config } = getState();
+	const { config, internalValues } = getState();
 	const suggestionsComponents = [componentTypes.dataSearch, componentTypes.categorySearch];
 	const isSuggestionsQuery
 		= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
@@ -126,6 +127,12 @@ export const handleResponse = (
 									response.hits && response.hits.hidden,
 									appendToHits,
 								));
+								// get query value
+								const internalComponentID = getInternalComponentID(component);
+								// Store the last query value associated with `hits`
+								if (internalValues[internalComponentID]) {
+									dispatch(saveQueryToHits(component, internalValues[internalComponentID].value));
+								}
 								dispatch(setLoading(component, false));
 							}
 
@@ -191,7 +198,7 @@ export const handleResponseMSearch = ({
 			if (res && Array.isArray(res.responses) && res.responses[index]) {
 				transformResponse = res.responses[index];
 			}
-			const { config } = getState();
+			const { config, internalValues } = getState();
 			handleTransformResponse(transformResponse, config, component)
 				.then((response) => {
 					const { timestamp } = getState();
@@ -217,6 +224,12 @@ export const handleResponseMSearch = ({
 								appendToHits,
 							));
 							dispatch(setLoading(component, false));
+							// get query value
+							const internalComponentID = getInternalComponentID(component);
+							// Store the last query value associated with `hits`
+							if (internalValues[internalComponentID]) {
+								dispatch(saveQueryToHits(component, internalValues[internalComponentID].value));
+							}
 						}
 
 						if (response.aggregations) {

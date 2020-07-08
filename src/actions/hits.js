@@ -1,4 +1,5 @@
 import { UPDATE_HITS, UPDATE_AGGS, PUSH_TO_STREAM_HITS, UPDATE_COMPOSITE_AGGS } from '../constants';
+import { SET_QUERY_TO_HITS } from '../../lib/constants';
 
 export function updateAggs(component, aggregations, append = false) {
 	return {
@@ -28,6 +29,14 @@ export function updateHits(component, hits, time, hidden, append = false) {
 		hidden,
 		time,
 		append,
+	};
+}
+
+export function saveQueryToHits(component, query) {
+	return {
+		type: SET_QUERY_TO_HITS,
+		component,
+		query,
 	};
 }
 
