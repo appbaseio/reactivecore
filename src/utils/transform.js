@@ -261,6 +261,9 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	// Fake dataField for ReactiveComponent
 	if (componentProps.componentType === componentTypes.reactiveComponent) {
 		dataField = 'reactive_component_field';
+		// Don't set value property for ReactiveComponent
+		// since it is driven by `defaultQuery` and `customQuery`
+		value = undefined;
 	}
 	// Assign default value as an empty string for search components so search relevancy can work
 	if (isSearchComponent(componentProps.componentType) && !value) {
