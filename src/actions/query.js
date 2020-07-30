@@ -21,12 +21,13 @@ import { buildQuery, isEqual, getSearchState } from '../utils/helper';
 import getFilterString, { parseCustomEvents } from '../utils/analytics';
 import { updateMapData } from './maps';
 import fetchGraphQL from '../utils/graphQL';
-import { componentTypes } from '../../lib/utils/constants';
+import { componentTypes, queryTypes } from '../utils/constants';
 import {
 	getRSQuery,
 	extractPropsFromState,
 	getDependentQueries,
 	getHistogramComponentID,
+	componentToTypeMap,
 } from '../utils/transform';
 
 function msearch(
@@ -584,11 +585,21 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 
 		if (store.config && store.config.enableAppbase) {
 			let appbaseQuery = {};
+			const componentProps = store.props[component] || {};
+			let compositeAggregationField = componentProps.aggregationField;
+			const queryType = componentToTypeMap[componentProps.componentType];
+			// For term queries i.e list component `dataField` will be treated as aggregationField
+			if (queryType === queryTypes.term) {
+				compositeAggregationField = componentProps.dataField;
+			}
 			// build query
 			const query = getRSQuery(
 				component,
 				extractPropsFromState(store, component, {
 					from: options.from,
+					after: (store.aggregations[component]
+					&& store.aggregations[component][compositeAggregationField]
+					&& store.aggregations[component][compositeAggregationField].after_key) || undefined,
 				}),
 			);
 			// Apply dependent queries

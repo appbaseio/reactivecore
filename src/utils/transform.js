@@ -2,7 +2,7 @@ import XDate from 'xdate';
 import { componentTypes, queryTypes } from './constants';
 import { formatDate } from './helper';
 
-const componentToTypeMap = {
+export const componentToTypeMap = {
 	// search components
 	[componentTypes.reactiveList]: queryTypes.search,
 	[componentTypes.dataSearch]: queryTypes.search,
@@ -135,7 +135,6 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	}
 	const queryType = componentToTypeMap[componentProps.componentType];
 	const calcValues = store.selectedValues[component] || store.internalValues[component];
-	let compositeAggregationField = componentProps.aggregationField;
 	let value = calcValues !== undefined && calcValues !== null ? calcValues.value : undefined;
 	let queryFormat = componentProps.queryFormat;
 	let { interval } = componentProps;
@@ -147,7 +146,6 @@ export const extractPropsFromState = (store, component, customOptions) => {
 
 	// For term queries i.e list component `dataField` will be treated as aggregationField
 	if (queryType === queryTypes.term) {
-		compositeAggregationField = componentProps.dataField;
 		// Only apply pagination prop for the components which supports it otherwise it can break the UI
 		if (componentProps.showLoadMore && hasPaginationSupport(componentProps.componentType)) {
 			pagination = true;
@@ -322,12 +320,6 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			: undefined,
 		value,
 		pagination,
-		after:
-			pagination || componentProps.aggregationField
-				? store.aggregations[component]
-				&& store.aggregations[component][compositeAggregationField]
-				&& store.aggregations[component][compositeAggregationField].after_key
-				: null,
 		from,
 		...customOptions,
 	};
