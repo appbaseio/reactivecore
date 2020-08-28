@@ -142,7 +142,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	let dataField = componentProps.dataField;
 	let aggregations;
 	let pagination; // pagination for `term` type of queries
-	let from; // offset for RL
+	let from = componentProps.from; // offset for RL
 
 	// For term queries i.e list component `dataField` will be treated as aggregationField
 	if (queryType === queryTypes.term) {

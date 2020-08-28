@@ -47,6 +47,7 @@ export const validProps = [
 	'includeFields',
 	'excludeFields',
 	'size',
+	'from',
 	'sortBy',
 	'sortOptions',
 	'pagination',
