@@ -150,3 +150,31 @@ export function recordSuggestionClick(searchPosition, documentId) {
 		}
 	};
 }
+
+// impressions represents an array of impression objects, for e.g {"index": "test", "id": 1213}
+export function recordImpressions(queryId, impressions = []) {
+	return (dispatch, getState) => {
+		const {
+			config: { app },
+			headers,
+			appbaseRef: { url, protocol, credentials },
+		} = getState();
+		if (queryId && impressions.length) {
+			const esURL = `${protocol}://${url}`;
+			const parsedURL = esURL.replace(/\/+$/, '');
+			fetch(`${parsedURL}/${app}/_analytics/search`, {
+				method: 'PUT',
+				body: JSON.stringify({
+					query_id: queryId,
+					impressions,
+				}),
+				keepalive: true,
+				headers: {
+					...headers,
+					'Content-Type': 'application/json',
+					Authorization: `Basic ${btoa(credentials)}`,
+				},
+			});
+		}
+	};
+}
