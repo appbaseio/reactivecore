@@ -159,9 +159,9 @@ export function recordImpressions(queryId, impressions = []) {
 			headers,
 			appbaseRef: { url, protocol, credentials },
 		} = getState();
-		if (queryId && impressions.length) {
-			const esURL = `${protocol}://${url}`;
-			const parsedURL = esURL.replace(/\/+$/, '');
+		const esURL = `${protocol}://${url}`;
+		const parsedURL = esURL.replace(/\/+$/, '');
+		if (!parsedURL.includes('scalr.api.appbase.io') && queryId && impressions.length) {
 			fetch(`${parsedURL}/${app}/_analytics/search`, {
 				method: 'PUT',
 				body: JSON.stringify({
