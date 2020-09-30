@@ -258,6 +258,8 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	}
 	// Fake dataField for ReactiveComponent
 	if (componentProps.componentType === componentTypes.reactiveComponent) {
+		// Set the type to `term`
+		type = 'term';
 		dataField = 'reactive_component_field';
 		// Don't set value property for ReactiveComponent
 		// since it is driven by `defaultQuery` and `customQuery`
@@ -360,10 +362,14 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 		const shouldAddInternalQuery = componentProps
 			? isSearchComponent(componentProps.componentType)
 			: null;
+		const customQuery = store.customQueries[component];
 		if (!isInternalComponent(component) || shouldAddInternalQuery) {
 			const calcValues = store.selectedValues[component] || store.internalValues[component];
-			// Only apply component that has some value
-			if (calcValues && !finalQuery[component]) {
+			// Only include queries for that component that has `customQuery` or `value` defined
+			if (
+				(calcValues || customQuery)
+				&& !finalQuery[component]
+			) {
 				let execute = false;
 				if (Array.isArray(orderOfQueries) && orderOfQueries.includes(component)) {
 					execute = true;
