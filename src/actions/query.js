@@ -224,8 +224,9 @@ function appbaseSearch({
 		appbaseRef
 			.reactiveSearchv3(query, settings)
 			.then((res) => {
-				const { enableQuerySuggestions } = props;
-				if (enableQuerySuggestions) {
+				// TODO: Remove `enableQuerySuggestions` in v4
+				const { enableQuerySuggestions, enablePopularSuggestions } = props;
+				if (enableQuerySuggestions || enablePopularSuggestions) {
 					const suggQuery = getSuggestionQuery(getState, componentId);
 					appbaseRef
 						.getQuerySuggestions(suggQuery)
