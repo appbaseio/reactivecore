@@ -259,28 +259,68 @@ export const handleResponseMSearch = ({
 export const isPropertyDefined = property => property !== undefined && property !== null;
 
 export const getSuggestionQuery = (getState = () => {}, componentId) => {
-	const { props, internalValues } = getState();
+	const { internalValues } = getState();
 	const internalValue = internalValues[componentId];
-	const componentProps = props[componentId];
-	return [
-		{
-			id: getQuerySuggestionsId(componentId),
-			dataField: ['key', 'key.autosuggest', 'key.search'],
-			searchOperators: (componentProps && componentProps.searchOperators) || null,
-			size: 5,
-			value: internalValue && internalValue.value,
-			enableSynonyms: (componentProps && componentProps.enableSynonyms) || null,
-			defaultQuery: {
-				sort: [
-					{
-						count: {
-							order: 'desc',
+	const value = internalValue && internalValue.value;
+	return [{
+		id: getQuerySuggestionsId(componentId),
+		dataField: ['key', 'key.autosuggest'],
+		size: 5,
+		value,
+		defaultQuery: {
+			query: {
+				bool: {
+					minimum_should_match: 1,
+					should: [
+						{
+							function_score: {
+								field_value_factor: {
+									field: 'count',
+									modifier: 'sqrt',
+									missing: 1,
+								},
+							},
 						},
-					},
-				],
+						{
+							multi_match: {
+								fields: [
+									'key^9',
+									'key.autosuggest^1',
+									'key.keyword^10',
+								],
+								fuzziness: 0,
+								operator: 'or',
+								query: value,
+								type: 'best_fields',
+							},
+						},
+						{
+							multi_match: {
+								fields: [
+									'key^9',
+									'key.autosuggest^1',
+									'key.keyword^10',
+								],
+								operator: 'or',
+								query: value,
+								type: 'phrase',
+							},
+						},
+						{
+							multi_match: {
+								fields: [
+									'key^9',
+								],
+								operator: 'or',
+								query: value,
+								type: 'phrase_prefix',
+							},
+						},
+					],
+				},
 			},
 		},
-	];
+	}];
 };
 
 export function executeQueryListener(listener, oldQuery, newQuery) {

@@ -226,7 +226,7 @@ function appbaseSearch({
 			.then((res) => {
 				// TODO: Remove `enableQuerySuggestions` in v4
 				const { enableQuerySuggestions, enablePopularSuggestions } = props;
-				if (enableQuerySuggestions || enablePopularSuggestions) {
+				if (isInternalComponent && (enableQuerySuggestions || enablePopularSuggestions)) {
 					const suggQuery = getSuggestionQuery(getState, componentId);
 					appbaseRef
 						.getQuerySuggestions(suggQuery)
