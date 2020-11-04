@@ -9,7 +9,6 @@ import {
 	setRawData,
 	setCustomData,
 	setTimestamp,
-	setQuerySuggestions,
 } from './misc';
 
 import { updateHits, updateAggs, updateCompositeAggs, saveQueryToHits } from './hits';
@@ -60,13 +59,11 @@ export const handleError = (
 export const handleResponse = (
 	{
 		res,
-		querySuggestions = {},
 		orderOfQueries = [],
 		appendToHits = false,
 		appendToAggs = false,
 		isInternalComponent = false,
 		componentType = '',
-		componentId = '',
 	} = {},
 	getState = () => {},
 	dispatch,
@@ -96,8 +93,6 @@ export const handleResponse = (
 			}
 			handleTransformResponse(res[component], config, component)
 				.then((response) => {
-					const querySuggestion
-						= querySuggestions[getQuerySuggestionsId(componentId)];
 					if (response) {
 						const { timestamp } = getState();
 						if (
@@ -142,16 +137,6 @@ export const handleResponse = (
 									component,
 									response.aggregations,
 									appendToAggs,
-								));
-							}
-
-							// update query suggestions for search components
-							if (isSuggestionsQuery) {
-								dispatch(setQuerySuggestions(
-									querySuggestion
-											&& querySuggestion.hits
-											&& querySuggestion.hits.hits,
-									component,
 								));
 							}
 						}

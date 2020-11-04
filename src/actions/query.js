@@ -6,6 +6,7 @@ import {
 	handleResponse,
 	executeQueryListener,
 	handleResponseMSearch,
+	getQuerySuggestionsId,
 } from './utils';
 import { pushToStreamHits } from './hits';
 import {
@@ -16,6 +17,7 @@ import {
 	setError,
 	setStreaming,
 	updateQueryOptions,
+	setQuerySuggestions,
 } from './misc';
 import { buildQuery, isEqual, getSearchState } from '../utils/helper';
 import getFilterString, { parseCustomEvents } from '../utils/analytics';
@@ -221,56 +223,50 @@ function appbaseSearch({
 		});
 
 		appbaseRef.setHeaders({ ...headers });
-		appbaseRef
-			.reactiveSearchv3(query, settings)
-			.then((res) => {
-				// TODO: Remove `enableQuerySuggestions` in v4
-				const { enableQuerySuggestions, enablePopularSuggestions } = props;
-				if (isInternalComponent && (enableQuerySuggestions || enablePopularSuggestions)) {
-					const suggQuery = getSuggestionQuery(getState, componentId);
-					appbaseRef
-						.getQuerySuggestions(suggQuery)
-						.then((suggestions) => {
-							handleResponse(
-								{
-									res,
-									querySuggestions: suggestions,
-									isInternalComponent,
-									orderOfQueries,
-									appendToHits,
-									appendToAggs,
-									componentType,
-									componentId,
-								},
-								getState,
-								dispatch,
-							);
-						})
-						.catch((e) => {
-							handleError(
-								{
-									orderOfQueries,
-									error: e,
-								},
-								getState,
-								dispatch,
-							);
-						});
-				} else {
-					handleResponse(
+		// TODO: Remove `enableQuerySuggestions` in v4
+		const { enableQuerySuggestions, enablePopularSuggestions } = props;
+		if (isInternalComponent && (enableQuerySuggestions || enablePopularSuggestions)) {
+			const suggQuery = getSuggestionQuery(getState, componentId);
+			appbaseRef
+				.getQuerySuggestions(suggQuery)
+				.then((suggestions) => {
+					const querySuggestion
+						= suggestions[getQuerySuggestionsId(componentId)];
+						// update query suggestions for search components
+					dispatch(setQuerySuggestions(
+						querySuggestion
+									&& querySuggestion.hits
+									&& querySuggestion.hits.hits,
+						componentId.split('__internal')[0],
+					));
+				})
+				.catch((e) => {
+					handleError(
 						{
-							res,
-							isInternalComponent,
 							orderOfQueries,
-							appendToHits,
-							appendToAggs,
-							componentType,
-							componentId,
+							error: e,
 						},
 						getState,
 						dispatch,
 					);
-				}
+				});
+		}
+		appbaseRef
+			.reactiveSearchv3(query, settings)
+			.then((res) => {
+				handleResponse(
+					{
+						res,
+						isInternalComponent,
+						orderOfQueries,
+						appendToHits,
+						appendToAggs,
+						componentType,
+						componentId,
+					},
+					getState,
+					dispatch,
+				);
 			})
 			.catch((err) => {
 				handleError(
