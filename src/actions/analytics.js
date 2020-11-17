@@ -119,7 +119,14 @@ export function recordSuggestionClick(searchPosition, documentId) {
 		} = getState();
 		const { app } = config;
 		const esURL = `${protocol}://${url}`;
-		if (config.analytics && suggestionsSearchId && searchPosition !== undefined) {
+		if (
+			config.analytics
+			&& (config.analyticsConfig === undefined
+				|| config.analyticsConfig.suggestionAnalytics === undefined
+				|| config.analyticsConfig.suggestionAnalytics)
+			&& suggestionsSearchId
+			&& searchPosition !== undefined
+		) {
 			const parsedHeaders = headers;
 			delete parsedHeaders['X-Search-Query'];
 			const parsedURL = (esURL || '').replace(/\/+$/, '');
