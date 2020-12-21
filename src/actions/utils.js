@@ -246,7 +246,7 @@ export const isPropertyDefined = property => property !== undefined && property 
 export const getSuggestionQuery = (getState = () => {}, componentId) => {
 	const { internalValues } = getState();
 	const internalValue = internalValues[componentId];
-	const value = internalValue && internalValue.value;
+	const value = (internalValue && internalValue.value) || '';
 	return [{
 		id: getQuerySuggestionsId(componentId),
 		dataField: ['key', 'key.autosuggest'],
@@ -268,11 +268,7 @@ export const getSuggestionQuery = (getState = () => {}, componentId) => {
 						},
 						{
 							multi_match: {
-								fields: [
-									'key^9',
-									'key.autosuggest^1',
-									'key.keyword^10',
-								],
+								fields: ['key^9', 'key.autosuggest^1', 'key.keyword^10'],
 								fuzziness: 0,
 								operator: 'or',
 								query: value,
@@ -281,11 +277,7 @@ export const getSuggestionQuery = (getState = () => {}, componentId) => {
 						},
 						{
 							multi_match: {
-								fields: [
-									'key^9',
-									'key.autosuggest^1',
-									'key.keyword^10',
-								],
+								fields: ['key^9', 'key.autosuggest^1', 'key.keyword^10'],
 								operator: 'or',
 								query: value,
 								type: 'phrase',
@@ -293,9 +285,7 @@ export const getSuggestionQuery = (getState = () => {}, componentId) => {
 						},
 						{
 							multi_match: {
-								fields: [
-									'key^9',
-								],
+								fields: ['key^9'],
 								operator: 'or',
 								query: value,
 								type: 'phrase_prefix',

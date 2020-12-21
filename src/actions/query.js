@@ -17,7 +17,8 @@ import {
 	setError,
 	setStreaming,
 	updateQueryOptions,
-	setQuerySuggestions,
+	setPopularSuggestions,
+	setDefaultPopularSuggestions,
 } from './misc';
 import { buildQuery, isEqual, getSearchState } from '../utils/helper';
 import getFilterString, { parseCustomEvents } from '../utils/analytics';
@@ -31,6 +32,54 @@ import {
 	getHistogramComponentID,
 	componentToTypeMap,
 } from '../utils/transform';
+
+export function loadPopularSuggestions(componentId) {
+	return (dispatch, getState) => {
+		const {
+			config, appbaseRef, props, internalValues,
+		} = getState();
+		const isAppbaseEnabled = config && config.enableAppbase;
+		const componentProps = props[componentId];
+		const internalValue = internalValues[componentId];
+		const value = (internalValue && internalValue.value) || '';
+		// TODO: Remove `enableQuerySuggestions` in v4
+		if (
+			isAppbaseEnabled
+			&& (componentProps.enablePopularSuggestions
+			|| componentProps.enableQuerySuggestions)
+		) {
+			const suggQuery = getSuggestionQuery(getState, componentId);
+			appbaseRef
+				.getQuerySuggestions(suggQuery)
+				.then((suggestions) => {
+					const querySuggestion = suggestions[getQuerySuggestionsId(componentId)];
+					if (value) {
+						// update query suggestions for search components
+						dispatch(setPopularSuggestions(
+							querySuggestion && querySuggestion.hits && querySuggestion.hits.hits,
+							componentId.split('__internal')[0],
+						));
+					} else {
+						dispatch(setDefaultPopularSuggestions(
+							querySuggestion && querySuggestion.hits && querySuggestion.hits.hits,
+							componentId.split('__internal')[0],
+						));
+						// dispatch default popular suggestions
+					}
+				})
+				.catch((e) => {
+					handleError(
+						{
+							orderOfQueries: [componentId],
+							error: e,
+						},
+						getState,
+						dispatch,
+					);
+				});
+		}
+	};
+}
 
 function msearch(
 	query,
@@ -179,7 +228,6 @@ function appbaseSearch({
 	isInternalComponent = false,
 	appendToAggs = false,
 	componentType,
-	props = {},
 	componentId,
 } = {}) {
 	return (dispatch, getState) => {
@@ -223,33 +271,8 @@ function appbaseSearch({
 		});
 
 		appbaseRef.setHeaders({ ...headers });
-		// TODO: Remove `enableQuerySuggestions` in v4
-		const { enableQuerySuggestions, enablePopularSuggestions } = props;
-		if (isInternalComponent && (enableQuerySuggestions || enablePopularSuggestions)) {
-			const suggQuery = getSuggestionQuery(getState, componentId);
-			appbaseRef
-				.getQuerySuggestions(suggQuery)
-				.then((suggestions) => {
-					const querySuggestion
-						= suggestions[getQuerySuggestionsId(componentId)];
-						// update query suggestions for search components
-					dispatch(setQuerySuggestions(
-						querySuggestion
-									&& querySuggestion.hits
-									&& querySuggestion.hits.hits,
-						componentId.split('__internal')[0],
-					));
-				})
-				.catch((e) => {
-					handleError(
-						{
-							orderOfQueries,
-							error: e,
-						},
-						getState,
-						dispatch,
-					);
-				});
+		if (isInternalComponent) {
+			dispatch(loadPopularSuggestions(componentId));
 		}
 		appbaseRef
 			.reactiveSearchv3(query, settings)
@@ -302,7 +325,6 @@ export function executeQuery(
 			queryListener,
 			props,
 		} = getState();
-
 		let componentList = [componentId];
 		let finalQuery = [];
 		let appbaseQuery = {}; // Use object to prevent duplicate query added by react prop
@@ -594,9 +616,11 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 				component,
 				extractPropsFromState(store, component, {
 					from: options.from,
-					after: (store.aggregations[component]
-					&& store.aggregations[component][compositeAggregationField]
-					&& store.aggregations[component][compositeAggregationField].after_key) || undefined,
+					after:
+						(store.aggregations[component]
+							&& store.aggregations[component][compositeAggregationField]
+							&& store.aggregations[component][compositeAggregationField].after_key)
+						|| undefined,
 				}),
 			);
 			// Apply dependent queries
