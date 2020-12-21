@@ -506,7 +506,14 @@ export const getAggsQuery = (value, query, props) => {
 	}
 	return { ...clonedQuery, ...extractQueryFromDefaultQuery(props, value) };
 };
-export const getCompositeAggsQuery = (value, query, props, after, showTopHits = false) => {
+
+export const getCompositeAggsQuery = ({
+	query = {},
+	props,
+	after = null,
+	showTopHits = false,
+	value,
+} = {}) => {
 	const clonedQuery = query;
 	// missing label not available in composite aggs
 	const {
