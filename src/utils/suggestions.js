@@ -231,14 +231,14 @@ const getSuggestions = ({
 	}
 
 	if (enablePredictiveSuggestions) {
-		const phrasedSuggestions = getPredictiveSuggestions({
+		const predictiveSuggestions = getPredictiveSuggestions({
 			suggestions: suggestionsList,
 			currentValue,
 			wordsToShowAfterHighlight,
 		});
 
-		if (phrasedSuggestions.length) {
-			suggestionsList = phrasedSuggestions;
+		if (predictiveSuggestions.length) {
+			suggestionsList = predictiveSuggestions;
 		}
 	}
 
