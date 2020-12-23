@@ -42,12 +42,73 @@ function replaceDiacritics(s) {
 	return str;
 }
 
+const getPredictiveSuggestions = ({
+	suggestions, currentValue, wordsToShowAfterHighlight,
+}) => {
+	const suggestionMap = {};
+	if (currentValue) {
+		const parsedSuggestion = suggestions.reduce((agg, { label, ...rest }) => {
+			// to handle special strings with pattern '<mark>xyz</mark> <a href="test'
+			const parsedContent = new DOMParser().parseFromString(
+				label,
+				'text/html',
+			).documentElement.textContent;
+
+			// to match the partial start of word.
+			// example if searchTerm is `select` and string contains `selected`
+			let regexString = `(${currentValue})\\w+`;
+			let regex = new RegExp(regexString, 'i');
+			let regexExecution = regex.exec(parsedContent);
+			// if execution value is null it means either there is no match or there are chances
+			// that exact word is present
+			if (!regexExecution) {
+				// regex to match exact word
+				regexString = `(${currentValue})`;
+				regex = new RegExp(regexString, 'i');
+				regexExecution = regex.exec(parsedContent);
+			}
+
+			if (regexExecution) {
+				const matchedString = parsedContent.slice(regexExecution.index, parsedContent.length);
+				const suggestionPhrase = `${currentValue}<mark class="highlight">${matchedString
+					.slice(currentValue.length)
+					.split(' ')
+					.slice(0, wordsToShowAfterHighlight + 1)
+					.join(' ')}</mark>`;
+
+				// to show unique results only
+				if (!suggestionMap[suggestionPhrase]) {
+					suggestionMap[suggestionPhrase] = 1;
+					return [
+						...agg,
+						{
+							label: suggestionPhrase,
+							isPredictiveSuggestion: true,
+							...rest,
+						},
+					];
+				}
+
+				return agg;
+			}
+
+			return agg;
+		}, []);
+
+		return parsedSuggestion;
+	}
+
+	return [];
+};
+
 const getSuggestions = ({
 	fields,
 	suggestions,
 	currentValue,
 	suggestionProperties = [],
 	showDistinctSuggestions = false,
+	enablePredictiveSuggestions = false,
+	wordsToShowAfterHighlight = 2,
 }) => {
 	/*
 		fields: DataFields passed on Search Components
@@ -64,13 +125,15 @@ const getSuggestions = ({
 	const populateSuggestionsList = (val, parsedSource, source) => {
 		// check if the suggestion includes the current value
 		// and not already included in other suggestions
-		const isWordMatch = skipWordMatch || currentValue
-			.trim()
-			.split(' ')
-			.some(term =>
-				replaceDiacritics(val)
-					.toLowerCase()
-					.includes(replaceDiacritics(term)));
+		const isWordMatch
+			= skipWordMatch
+			|| currentValue
+				.trim()
+				.split(' ')
+				.some(term =>
+					replaceDiacritics(val)
+						.toLowerCase()
+						.includes(replaceDiacritics(term)));
 		// promoted results should always include in suggestions even there is no match
 		if ((isWordMatch && !labelsList.includes(val)) || source._promoted) {
 			const defaultOption = {
@@ -165,6 +228,18 @@ const getSuggestions = ({
 		*/
 		skipWordMatch = true;
 		traverseSuggestions();
+	}
+
+	if (enablePredictiveSuggestions) {
+		const predictiveSuggestions = getPredictiveSuggestions({
+			suggestions: suggestionsList,
+			currentValue,
+			wordsToShowAfterHighlight,
+		});
+
+		if (predictiveSuggestions.length) {
+			suggestionsList = predictiveSuggestions;
+		}
 	}
 
 	return suggestionsList;

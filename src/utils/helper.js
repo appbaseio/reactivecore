@@ -591,7 +591,7 @@ export function getResultStats(props) {
 }
 
 export function handleOnSuggestions(results, currentValue, props) {
-	const { parseSuggestion, promotedResults } = props;
+	const { parseSuggestion, promotedResults, enablePredictiveSuggestions } = props;
 
 	let fields;
 	if (props.dataField) {
@@ -625,6 +625,7 @@ export function handleOnSuggestions(results, currentValue, props) {
 		suggestions: newResults,
 		currentValue: currentValue.toLowerCase(),
 		showDistinctSuggestions: props.showDistinctSuggestions,
+		enablePredictiveSuggestions,
 	});
 
 	if (parseSuggestion) {
