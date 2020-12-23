@@ -42,7 +42,7 @@ function replaceDiacritics(s) {
 	return str;
 }
 
-const getPhraseSuggestions = ({
+const getPredictiveSuggestions = ({
 	suggestions, currentValue, wordsToShowAfterHighlight,
 }) => {
 	const suggestionMap = {};
@@ -83,7 +83,7 @@ const getPhraseSuggestions = ({
 						...agg,
 						{
 							label: suggestionPhrase,
-							isPhrasedSuggestion: true,
+							isPredictiveSuggestion: true,
 							...rest,
 						},
 					];
@@ -231,7 +231,7 @@ const getSuggestions = ({
 	}
 
 	if (enablePredictiveSuggestions) {
-		const phrasedSuggestions = getPhraseSuggestions({
+		const phrasedSuggestions = getPredictiveSuggestions({
 			suggestions: suggestionsList,
 			currentValue,
 			wordsToShowAfterHighlight,
