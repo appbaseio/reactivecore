@@ -17,8 +17,9 @@ import {
 	SET_DEFAULT_QUERY,
 	SET_CUSTOM_HIGHLIGHT_OPTIONS,
 	SET_CUSTOM_QUERY,
-	SET_QUERY_SUGGESTIONS,
+	SET_POPULAR_SUGGESTIONS,
 	SET_RAW_DATA,
+	SET_DEFAULT_POPULAR_SUGGESTIONS,
 } from '../constants';
 
 export function setRawData(component, response) {
@@ -149,9 +150,17 @@ export function setPromotedResults(results = [], component) {
 	};
 }
 
-export function setQuerySuggestions(suggestions = [], component) {
+export function setPopularSuggestions(suggestions = [], component) {
 	return {
-		type: SET_QUERY_SUGGESTIONS,
+		type: SET_POPULAR_SUGGESTIONS,
+		suggestions,
+		component,
+	};
+}
+
+export function setDefaultPopularSuggestions(suggestions = [], component) {
+	return {
+		type: SET_DEFAULT_POPULAR_SUGGESTIONS,
 		suggestions,
 		component,
 	};

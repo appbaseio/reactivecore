@@ -1,7 +1,7 @@
-import { SET_QUERY_SUGGESTIONS } from '../constants';
+import { SET_POPULAR_SUGGESTIONS } from '../constants';
 
 export default function querySuggestionsReducer(state = {}, action) {
-	if (action.type === SET_QUERY_SUGGESTIONS) {
+	if (action.type === SET_POPULAR_SUGGESTIONS) {
 		return {
 			...state,
 			[action.component]: action.suggestions,

@@ -21,7 +21,7 @@ const extractSuggestion = (val) => {
 };
 
 function replaceDiacritics(s) {
-	let str = s ? String(s) : s;
+	let str = s ? String(s) : '';
 
 	const diacritics = [
 		/[\300-\306]/g, /[\340-\346]/g, // A, a
