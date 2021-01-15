@@ -39,7 +39,7 @@ export function loadPopularSuggestions(componentId) {
 			config, appbaseRef, props, internalValues,
 		} = getState();
 		const isAppbaseEnabled = config && config.enableAppbase;
-		const componentProps = props[componentId];
+		const componentProps = props[componentId] || {};
 		const internalValue = internalValues[componentId];
 		const value = (internalValue && internalValue.value) || '';
 		// TODO: Remove `enableQuerySuggestions` in v4
