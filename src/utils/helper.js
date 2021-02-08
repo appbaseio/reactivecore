@@ -626,6 +626,7 @@ export function handleOnSuggestions(results, currentValue, props) {
 		currentValue: currentValue.toLowerCase(),
 		showDistinctSuggestions: props.showDistinctSuggestions,
 		enablePredictiveSuggestions,
+		enableSynonyms: props.enableSynonyms,
 	});
 
 	if (parseSuggestion) {

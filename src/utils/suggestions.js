@@ -109,6 +109,7 @@ const getSuggestions = ({
 	showDistinctSuggestions = false,
 	enablePredictiveSuggestions = false,
 	wordsToShowAfterHighlight = 2,
+	enableSynonyms,
 }) => {
 	/*
 		fields: DataFields passed on Search Components
@@ -214,7 +215,7 @@ const getSuggestions = ({
 
 	traverseSuggestions();
 
-	if (suggestionsList.length < suggestions.length && !skipWordMatch) {
+	if (suggestionsList.length < suggestions.length && !skipWordMatch && enableSynonyms) {
 		/*
 			When we have synonym we set skipWordMatch to false as it may discard
 			the suggestion if word doesnt match term.
