@@ -109,6 +109,7 @@ const getSuggestions = ({
 	showDistinctSuggestions = false,
 	enablePredictiveSuggestions = false,
 	wordsToShowAfterHighlight = 2,
+	enableSynonyms,
 }) => {
 	/*
 		fields: DataFields passed on Search Components
@@ -171,29 +172,25 @@ const getSuggestions = ({
 	const parseField = (parsedSource, field = '', source = parsedSource) => {
 		if (typeof parsedSource === 'object') {
 			const fieldNodes = field.split('.');
-			const label = parsedSource[fieldNodes[0]];
+			let label = parsedSource[fieldNodes[0]];
+
+			// if they type of field is array of strings
+			// then we need to pick first matching value as the label
+			if (Array.isArray(label)) {
+				if (label.length > 1) {
+					label = label.filter(i => i.toLowerCase().includes(currentValue.toLowerCase()));
+				}
+				label = label[0];
+			}
+
 			if (label) {
 				if (fieldNodes.length > 1) {
 					// nested fields of the 'foo.bar.zoo' variety
 					const children = field.substring(fieldNodes[0].length + 1);
-					if (Array.isArray(label)) {
-						label.forEach((arrayItem) => {
-							parseField(arrayItem, children, source);
-						});
-					} else {
-						parseField(label, children, source);
-					}
+					parseField(label, children, source);
 				} else {
 					const val = extractSuggestion(label);
 					if (val) {
-						if (Array.isArray(val)) {
-							if (showDistinctSuggestions) {
-								return val.some(suggestion =>
-									populateSuggestionsList(suggestion, parsedSource, source));
-							}
-							val.forEach(suggestion =>
-								populateSuggestionsList(suggestion, parsedSource, source));
-						}
 						return populateSuggestionsList(val, parsedSource, source);
 					}
 				}
@@ -218,7 +215,7 @@ const getSuggestions = ({
 
 	traverseSuggestions();
 
-	if (suggestionsList.length < suggestions.length && !skipWordMatch) {
+	if (suggestionsList.length < suggestions.length && !skipWordMatch && enableSynonyms) {
 		/*
 			When we have synonym we set skipWordMatch to false as it may discard
 			the suggestion if word doesnt match term.
@@ -241,7 +238,6 @@ const getSuggestions = ({
 			suggestionsList = predictiveSuggestions;
 		}
 	}
-
 	return suggestionsList;
 };
 
