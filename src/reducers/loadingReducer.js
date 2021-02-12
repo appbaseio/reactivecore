@@ -12,6 +12,8 @@ export default function loadingReducer(state = {}, action) {
 			...state,
 			[action.component]: action.isLoading,
 			[`${action.component}_active`]: requestCount,
+			// record the timestamp for the latest request
+			...action.isLoading ? { [`${action.component}_timestamp`]: new Date().getTime() } : null,
 		};
 	} else if (action.type === REMOVE_COMPONENT) {
 		const { [action.component]: del, [`${action.component}_active`]: del2, ...obj } = state;

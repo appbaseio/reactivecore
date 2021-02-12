@@ -188,6 +188,7 @@ function msearch(
 					);
 				});
 		} else {
+			const requestTime = new Date().getTime();
 			appbaseRef.setHeaders({ ...headers, ...searchHeaders });
 			appbaseRef
 				.msearch({
@@ -202,6 +203,7 @@ function msearch(
 							orderOfQueries,
 							appendToHits,
 							appendToAggs,
+							requestTime,
 						},
 						getState,
 						dispatch,
@@ -212,6 +214,7 @@ function msearch(
 						{
 							orderOfQueries,
 							error: err,
+							requestTime,
 						},
 						getState,
 						dispatch,
@@ -274,6 +277,7 @@ function appbaseSearch({
 		if (isInternalComponent) {
 			dispatch(loadPopularSuggestions(componentId));
 		}
+		const requestTime = new Date().getTime();
 		appbaseRef
 			.reactiveSearchv3(query, settings)
 			.then((res) => {
@@ -286,6 +290,7 @@ function appbaseSearch({
 						appendToAggs,
 						componentType,
 						componentId,
+						requestTime,
 					},
 					getState,
 					dispatch,
@@ -296,6 +301,7 @@ function appbaseSearch({
 					{
 						orderOfQueries,
 						error: err,
+						requestTime,
 					},
 					getState,
 					dispatch,
