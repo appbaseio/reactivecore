@@ -126,9 +126,11 @@ export const handleResponse = (
 								const internalComponentID = getInternalComponentID(component);
 								// Store the last query value associated with `hits`
 								if (internalValues[internalComponentID]) {
-									dispatch(saveQueryToHits(component, internalValues[internalComponentID].value));
+									dispatch(saveQueryToHits(
+										component,
+										internalValues[internalComponentID].value,
+									));
 								}
-								dispatch(setLoading(component, false));
 							}
 
 							if (response.aggregations) {
@@ -140,6 +142,7 @@ export const handleResponse = (
 								));
 							}
 						}
+						dispatch(setLoading(component, false));
 					}
 				})
 				.catch((err) => {
@@ -156,14 +159,17 @@ export const handleResponse = (
 	});
 };
 
-
-export const handleResponseMSearch = ({
-	res = {},
-	isSuggestionsQuery = false,
-	orderOfQueries = [],
-	appendToHits = false,
-	appendToAggs = false,
-}, getState = () => {}, dispatch) => {
+export const handleResponseMSearch = (
+	{
+		res = {},
+		isSuggestionsQuery = false,
+		orderOfQueries = [],
+		appendToHits = false,
+		appendToAggs = false,
+	},
+	getState = () => {},
+	dispatch,
+) => {
 	const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
 	if (searchId) {
 		if (isSuggestionsQuery) {
@@ -189,7 +195,7 @@ export const handleResponseMSearch = ({
 					const { timestamp } = getState();
 					if (
 						timestamp[component] === undefined
-                    || timestamp[component] < res._timestamp
+						|| timestamp[component] < res._timestamp
 					) {
 						// set raw response in rawData
 						dispatch(setRawData(component, response));
@@ -208,24 +214,23 @@ export const handleResponseMSearch = ({
 								response.hits && response.hits.hidden,
 								appendToHits,
 							));
-							dispatch(setLoading(component, false));
 							// get query value
 							const internalComponentID = getInternalComponentID(component);
 							// Store the last query value associated with `hits`
 							if (internalValues[internalComponentID]) {
-								dispatch(saveQueryToHits(component, internalValues[internalComponentID].value));
+								dispatch(saveQueryToHits(
+									component,
+									internalValues[internalComponentID].value,
+								));
 							}
 						}
 
 						if (response.aggregations) {
 							dispatch(updateAggs(component, response.aggregations, appendToAggs));
-							dispatch(updateCompositeAggs(
-								component,
-								response.aggregations,
-								appendToAggs,
-							));
+							dispatch(updateCompositeAggs(component, response.aggregations, appendToAggs));
 						}
 					}
+					dispatch(setLoading(component, false));
 				})
 				.catch((err) => {
 					handleError(
@@ -247,55 +252,57 @@ export const getSuggestionQuery = (getState = () => {}, componentId) => {
 	const { internalValues } = getState();
 	const internalValue = internalValues[componentId];
 	const value = (internalValue && internalValue.value) || '';
-	return [{
-		id: getQuerySuggestionsId(componentId),
-		dataField: ['key', 'key.autosuggest'],
-		size: 5,
-		value,
-		defaultQuery: {
-			query: {
-				bool: {
-					minimum_should_match: 1,
-					should: [
-						{
-							function_score: {
-								field_value_factor: {
-									field: 'count',
-									modifier: 'sqrt',
-									missing: 1,
+	return [
+		{
+			id: getQuerySuggestionsId(componentId),
+			dataField: ['key', 'key.autosuggest'],
+			size: 5,
+			value,
+			defaultQuery: {
+				query: {
+					bool: {
+						minimum_should_match: 1,
+						should: [
+							{
+								function_score: {
+									field_value_factor: {
+										field: 'count',
+										modifier: 'sqrt',
+										missing: 1,
+									},
 								},
 							},
-						},
-						{
-							multi_match: {
-								fields: ['key^9', 'key.autosuggest^1', 'key.keyword^10'],
-								fuzziness: 0,
-								operator: 'or',
-								query: value,
-								type: 'best_fields',
+							{
+								multi_match: {
+									fields: ['key^9', 'key.autosuggest^1', 'key.keyword^10'],
+									fuzziness: 0,
+									operator: 'or',
+									query: value,
+									type: 'best_fields',
+								},
 							},
-						},
-						{
-							multi_match: {
-								fields: ['key^9', 'key.autosuggest^1', 'key.keyword^10'],
-								operator: 'or',
-								query: value,
-								type: 'phrase',
+							{
+								multi_match: {
+									fields: ['key^9', 'key.autosuggest^1', 'key.keyword^10'],
+									operator: 'or',
+									query: value,
+									type: 'phrase',
+								},
 							},
-						},
-						{
-							multi_match: {
-								fields: ['key^9'],
-								operator: 'or',
-								query: value,
-								type: 'phrase_prefix',
+							{
+								multi_match: {
+									fields: ['key^9'],
+									operator: 'or',
+									query: value,
+									type: 'phrase_prefix',
+								},
 							},
-						},
-					],
+						],
+					},
 				},
 			},
 		},
-	}];
+	];
 };
 
 export function executeQueryListener(listener, oldQuery, newQuery) {
