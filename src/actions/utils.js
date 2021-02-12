@@ -33,7 +33,7 @@ export const isComponentActive = (getState = () => {}, componentId = '') => {
 export const getQuerySuggestionsId = (componentId = '') => `${componentId}__suggestions`;
 
 export const handleError = (
-	{ orderOfQueries = [], error = null, requestTime } = {},
+	{ orderOfQueries = [], error = null } = {},
 	getState = () => {},
 	dispatch,
 ) => {
@@ -45,11 +45,7 @@ export const handleError = (
 	}
 
 	orderOfQueries.forEach((component) => {
-		const { isLoading } = getState();
-		// If response is stale then don't process response
-		if (isLoading[`${component}_timestamp`] > requestTime) {
-			dispatch(setLoading(component, false));
-		} else if (isComponentActive(getState, component)) { // Only update state for active components
+		if (isComponentActive(getState, component)) { // Only update state for active components
 			if (queryListener[component] && queryListener[component].onError) {
 				queryListener[component].onError(error);
 			}
@@ -67,7 +63,6 @@ export const handleResponse = (
 		appendToAggs = false,
 		isInternalComponent = false,
 		componentType = '',
-		requestTime,
 	} = {},
 	getState = () => {},
 	dispatch,
@@ -91,82 +86,76 @@ export const handleResponse = (
 	orderOfQueries.forEach((component) => {
 		// Only update state for active components
 		if (isComponentActive(getState, component)) {
-			const { isLoading } = getState();
-			// If response is stale then don't process response
-			if (isLoading[`${component}_timestamp`] > requestTime) {
-				dispatch(setLoading(component, false));
-			} else {
-				// Update applied settings
-				if (res.settings) {
-					dispatch(setAppliedSettings(res.settings, component));
-				}
-				handleTransformResponse(res[component], config, component)
-					.then((response) => {
-						if (response) {
-							const { timestamp } = getState();
-							if (
-								timestamp[component] === undefined
+			// Update applied settings
+			if (res.settings) {
+				dispatch(setAppliedSettings(res.settings, component));
+			}
+			handleTransformResponse(res[component], config, component)
+				.then((response) => {
+					if (response) {
+						const { timestamp } = getState();
+						if (
+							timestamp[component] === undefined
 							|| timestamp[component] < res._timestamp
-							) {
-								const promotedResults = response.promoted;
-								if (promotedResults) {
-									const parsedPromotedResults = promotedResults.map(promoted => ({
-										...promoted.doc,
-										_position: promoted.position,
-									}));
-									dispatch(setPromotedResults(parsedPromotedResults, component));
-								} else {
-									dispatch(setPromotedResults([], component));
-								}
-								// set raw response in rawData
-								dispatch(setRawData(component, response));
-								// Update custom data
-								dispatch(setCustomData(response.customData, component));
-								if (response.hits) {
-									dispatch(setTimestamp(component, res._timestamp));
-									dispatch(updateHits(
+						) {
+							const promotedResults = response.promoted;
+							if (promotedResults) {
+								const parsedPromotedResults = promotedResults.map(promoted => ({
+									...promoted.doc,
+									_position: promoted.position,
+								}));
+								dispatch(setPromotedResults(parsedPromotedResults, component));
+							} else {
+								dispatch(setPromotedResults([], component));
+							}
+							// set raw response in rawData
+							dispatch(setRawData(component, response));
+							// Update custom data
+							dispatch(setCustomData(response.customData, component));
+							if (response.hits) {
+								dispatch(setTimestamp(component, res._timestamp));
+								dispatch(updateHits(
+									component,
+									response.hits,
+									response.took,
+									response.hits && response.hits.hidden,
+									appendToHits,
+								));
+								// get query value
+								const internalComponentID = getInternalComponentID(component);
+								// Store the last query value associated with `hits`
+								if (internalValues[internalComponentID]) {
+									dispatch(saveQueryToHits(
 										component,
-										response.hits,
-										response.took,
-										response.hits && response.hits.hidden,
-										appendToHits,
-									));
-									// get query value
-									const internalComponentID = getInternalComponentID(component);
-									// Store the last query value associated with `hits`
-									if (internalValues[internalComponentID]) {
-										dispatch(saveQueryToHits(
-											component,
-											internalValues[internalComponentID].value,
-										));
-									}
-								}
-
-								if (response.aggregations) {
-									dispatch(updateAggs(component, response.aggregations, appendToAggs));
-									dispatch(updateCompositeAggs(
-										component,
-										response.aggregations,
-										appendToAggs,
+										internalValues[internalComponentID].value,
 									));
 								}
 							}
-							dispatch(setLoading(component, false));
+
+							if (response.aggregations) {
+								dispatch(updateAggs(component, response.aggregations, appendToAggs));
+								dispatch(updateCompositeAggs(
+									component,
+									response.aggregations,
+									appendToAggs,
+								));
+							}
 						}
-					})
-					.catch((err) => {
-						handleError(
-							{
-								orderOfQueries,
-								error: err,
-								requestTime,
-							},
-							getState,
-							dispatch,
-						);
-					});
-			}
+						dispatch(setLoading(component, false));
+					}
+				})
+				.catch((err) => {
+					handleError(
+						{
+							orderOfQueries,
+							error: err,
+						},
+						getState,
+						dispatch,
+					);
+				});
 		}
+		// }
 	});
 };
 
@@ -177,18 +166,14 @@ export const handleResponseMSearch = (
 		orderOfQueries = [],
 		appendToHits = false,
 		appendToAggs = false,
-		requestTime,
 	},
 	getState = () => {},
 	dispatch,
 ) => {
 	// handle promoted results
 	orderOfQueries.forEach((component, index) => {
-		const { isLoading } = getState();
 		// If response is stale then don't process response
-		if (isLoading[`${component}_timestamp`] > requestTime) {
-			dispatch(setLoading(component, false));
-		} else if (isComponentActive(getState, component)) { // Only update state for active components
+		if (isComponentActive(getState, component)) { // Only update state for active components
 			const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
 			if (searchId) {
 				if (isSuggestionsQuery) {
@@ -251,7 +236,6 @@ export const handleResponseMSearch = (
 						{
 							orderOfQueries,
 							error: err,
-							requestTime,
 						},
 						getState,
 						dispatch,
