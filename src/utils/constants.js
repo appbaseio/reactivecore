@@ -42,6 +42,7 @@ export const validProps = [
 	// common
 	'componentType',
 	'aggregationField',
+	'aggregationSize',
 	// Specific to ReactiveList
 	'dataField',
 	'includeFields',
