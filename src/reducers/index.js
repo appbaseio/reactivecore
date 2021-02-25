@@ -34,6 +34,7 @@ import rawDataReducer from './rawDataReducer';
 import querySuggestionsReducer from './querySuggestionsReducer';
 import defaultPopularSuggestionsReducer from './defaultPopularSuggestions';
 import queryToHitsReducer from './queryToHitsReducer';
+import recentSearchesReducer from './recentSearches';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -70,4 +71,5 @@ export default combineReducers({
 	querySuggestions: querySuggestionsReducer,
 	defaultPopularSuggestions: defaultPopularSuggestionsReducer,
 	queryToHits: queryToHitsReducer, // holds the query value for last fetched `hits`
+	recentSearches: recentSearchesReducer,
 });

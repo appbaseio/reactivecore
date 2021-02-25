@@ -2,6 +2,8 @@ import {
 	SET_SUGGESTIONS_SEARCH_VALUE,
 	CLEAR_SUGGESTIONS_SEARCH_VALUE,
 	UPDATE_ANALYTICS_CONFIG,
+	RECENT_SEARCHES_SUCCESS,
+	RECENT_SEARCHES_ERROR,
 } from '../constants';
 
 /**
@@ -36,6 +38,91 @@ export function updateAnalyticsConfig(analyticsConfig) {
 	};
 }
 
+
+export function getRecentSearches(queryOptions = {
+	size: 5,
+	minChars: 3,
+}) {
+	return (dispatch, getState) => {
+		const {
+			config,
+			headers,
+			appbaseRef: { url, protocol, credentials },
+		} = getState();
+		const { app } = config;
+		const esURL = `${protocol}://${url}`;
+		const parsedURL = (esURL || '').replace(/\/+$/, '');
+
+		const requestOptions = {
+			headers: {
+				...headers,
+				'Content-Type': 'application/json',
+				Authorization: `Basic ${btoa(credentials)}`,
+			},
+		};
+		let queryString = '';
+		const addParam = (key, value) => {
+			if (queryString) {
+				queryString += `&${key}=${value}`;
+			} else {
+				queryString += `${key}=${value}`;
+			}
+		};
+		// Add user id in query param if defined
+		if (config.analyticsConfig && config.analyticsConfig.userId) {
+			addParam('user_id', config.analyticsConfig.userId);
+		}
+		if (queryOptions) {
+			if (queryOptions.size) {
+				addParam('size', String(queryOptions.size));
+			}
+			if (queryOptions.from) {
+				addParam('from', queryOptions.from);
+			}
+			if (queryOptions.to) {
+				addParam('to', queryOptions.to);
+			}
+			if (queryOptions.minChars) {
+				addParam('min_chars', String(queryOptions.minChars));
+			}
+			if (queryOptions.customEvents) {
+				Object.keys(queryOptions.customEvents).forEach((key: string) => {
+					addParam(key, queryOptions.customEvents[key]);
+				});
+			}
+		}
+		fetch(
+			`${parsedURL}/_analytics/${app}/recent-searches?${queryString}`,
+			requestOptions,
+		)
+			.then((res) => {
+				if (res.status >= 500 || res.status >= 400) {
+					return dispatch({
+						type: RECENT_SEARCHES_ERROR,
+						error: res,
+					});
+				}
+				return res
+					.json()
+					.then(recentSearches => dispatch({
+						type: RECENT_SEARCHES_SUCCESS,
+						data: (recentSearches || []).map(searchObject => ({
+							label: searchObject.key,
+							value: searchObject.key,
+						})),
+					}))
+					.catch(e => dispatch({
+						type: RECENT_SEARCHES_ERROR,
+						error: e,
+					}));
+			})
+			.catch(e => dispatch({
+				type: RECENT_SEARCHES_ERROR,
+				error: e,
+			}));
+	};
+}
+
 function recordClick({
 	url,
 	app,
@@ -67,6 +154,7 @@ function recordClick({
 		});
 	}
 }
+
 
 export function recordResultClick(searchPosition, documentId) {
 	return (dispatch, getState) => {
