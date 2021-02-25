@@ -106,10 +106,7 @@ export function getRecentSearches(queryOptions = {
 					.json()
 					.then(recentSearches => dispatch({
 						type: RECENT_SEARCHES_SUCCESS,
-						data: (recentSearches || []).map(searchObject => ({
-							label: searchObject.key,
-							value: searchObject.key,
-						})),
+						data: recentSearches,
 					}))
 					.catch(e => dispatch({
 						type: RECENT_SEARCHES_ERROR,
