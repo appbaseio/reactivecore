@@ -151,6 +151,21 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		if (componentProps.showLoadMore && hasPaginationSupport(componentProps.componentType)) {
 			pagination = true;
 		}
+		// Extract values from components that are type of objects
+		// This code handles the controlled behavior in list components for e.g ToggleButton
+		if (value != null && typeof value === 'object' && value.value) {
+			value = value.value;
+		} else if (Array.isArray(value)) {
+			const parsedValue = [];
+			value.forEach((val) => {
+				if (val != null && typeof val === 'object' && val.value) {
+					parsedValue.push(val.value);
+				} else {
+					parsedValue.push(val);
+				}
+			});
+			value = parsedValue;
+		}
 	}
 	if (queryType === queryTypes.range) {
 		if (Array.isArray(value)) {
