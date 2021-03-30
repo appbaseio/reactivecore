@@ -47,6 +47,7 @@ const getPredictiveSuggestions = ({
 }) => {
 	const suggestionMap = {};
 	if (currentValue) {
+		const currentValueTrimmed = currentValue.trim();
 		const parsedSuggestion = suggestions.reduce((agg, { label, ...rest }) => {
 			// to handle special strings with pattern '<mark>xyz</mark> <a href="test'
 			const parsedContent = new DOMParser().parseFromString(
@@ -56,22 +57,22 @@ const getPredictiveSuggestions = ({
 
 			// to match the partial start of word.
 			// example if searchTerm is `select` and string contains `selected`
-			let regexString = `(${currentValue})\\w+`;
+			let regexString = `^(${currentValueTrimmed})\\w+`;
 			let regex = new RegExp(regexString, 'i');
 			let regexExecution = regex.exec(parsedContent);
 			// if execution value is null it means either there is no match or there are chances
 			// that exact word is present
 			if (!regexExecution) {
 				// regex to match exact word
-				regexString = `(${currentValue})`;
+				regexString = `^(${currentValueTrimmed})`;
 				regex = new RegExp(regexString, 'i');
 				regexExecution = regex.exec(parsedContent);
 			}
 
 			if (regexExecution) {
 				const matchedString = parsedContent.slice(regexExecution.index, parsedContent.length);
-				const suggestionPhrase = `${currentValue}<mark class="highlight">${matchedString
-					.slice(currentValue.length)
+				const suggestionPhrase = `${currentValueTrimmed}<mark class="highlight">${matchedString
+					.slice(currentValueTrimmed.length)
 					.split(' ')
 					.slice(0, wordsToShowAfterHighlight + 1)
 					.join(' ')}</mark>`;
@@ -233,10 +234,7 @@ const getSuggestions = ({
 			currentValue,
 			wordsToShowAfterHighlight,
 		});
-
-		if (predictiveSuggestions.length) {
-			suggestionsList = predictiveSuggestions;
-		}
+		suggestionsList = predictiveSuggestions;
 	}
 	return suggestionsList;
 };
