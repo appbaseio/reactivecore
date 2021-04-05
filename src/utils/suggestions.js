@@ -71,7 +71,7 @@ const getPredictiveSuggestions = ({
 
 			if (regexExecution) {
 				const matchedString = parsedContent.slice(regexExecution.index, parsedContent.length);
-				const suggestionPhrase = `<em>${currentValueTrimmed}</em><mark class="highlight predictive-suggestions">${matchedString
+				const suggestionPhrase = `${currentValueTrimmed}<mark class="highlight">${matchedString
 					.slice(currentValueTrimmed.length)
 					.split(' ')
 					.slice(0, wordsToShowAfterHighlight + 1)
@@ -234,21 +234,7 @@ const getSuggestions = ({
 			currentValue,
 			wordsToShowAfterHighlight,
 		});
-
-		const finalSuggestions = [];
-
-		const predictiveValues = predictiveSuggestions.reduce((arr, suggestion) => {
-			finalSuggestions.push(suggestion);
-			arr.push(suggestion.value);
-			return arr;
-		}, []);
-
-		suggestionsList.forEach((suggestion) => {
-			if (!predictiveValues.includes(suggestion.value)) {
-				finalSuggestions.push(suggestion);
-			}
-		});
-		suggestionsList = finalSuggestions;
+		suggestionsList = predictiveSuggestions;
 	}
 	return suggestionsList;
 };
