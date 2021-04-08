@@ -178,7 +178,7 @@ const getSuggestions = ({
 			// then we need to pick first matching value as the label
 			if (Array.isArray(label)) {
 				if (label.length > 1) {
-					label = label.filter(i => i.toLowerCase().includes(currentValue.toLowerCase()));
+					label = label.filter(i => i && i.toString().toLowerCase().includes(currentValue.toString().toLowerCase()));
 				}
 				label = label[0];
 			}
