@@ -24,13 +24,20 @@ function replaceDiacritics(s) {
 	let str = s ? String(s) : '';
 
 	const diacritics = [
-		/[\300-\306]/g, /[\340-\346]/g, // A, a
-		/[\310-\313]/g, /[\350-\353]/g, // E, e
-		/[\314-\317]/g, /[\354-\357]/g, // I, i
-		/[\322-\330]/g, /[\362-\370]/g, // O, o
-		/[\331-\334]/g, /[\371-\374]/g, // U, u
-		/[\321]/g, /[\361]/g, // N, n
-		/[\307]/g, /[\347]/g, // C, c
+		/[\300-\306]/g,
+		/[\340-\346]/g, // A, a
+		/[\310-\313]/g,
+		/[\350-\353]/g, // E, e
+		/[\314-\317]/g,
+		/[\354-\357]/g, // I, i
+		/[\322-\330]/g,
+		/[\362-\370]/g, // O, o
+		/[\331-\334]/g,
+		/[\371-\374]/g, // U, u
+		/[\321]/g,
+		/[\361]/g, // N, n
+		/[\307]/g,
+		/[\347]/g, // C, c
 	];
 
 	const chars = ['A', 'a', 'E', 'e', 'I', 'i', 'O', 'o', 'U', 'u', 'N', 'n', 'C', 'c'];
@@ -42,18 +49,14 @@ function replaceDiacritics(s) {
 	return str;
 }
 
-const getPredictiveSuggestions = ({
-	suggestions, currentValue, wordsToShowAfterHighlight,
-}) => {
+const getPredictiveSuggestions = ({ suggestions, currentValue, wordsToShowAfterHighlight }) => {
 	const suggestionMap = {};
 	if (currentValue) {
 		const currentValueTrimmed = currentValue.trim();
 		const parsedSuggestion = suggestions.reduce((agg, { label, ...rest }) => {
 			// to handle special strings with pattern '<mark>xyz</mark> <a href="test'
-			const parsedContent = new DOMParser().parseFromString(
-				label,
-				'text/html',
-			).documentElement.textContent;
+			const parsedContent = new DOMParser().parseFromString(label, 'text/html')
+				.documentElement.textContent;
 
 			// to match the partial start of word.
 			// example if searchTerm is `select` and string contains `selected`
@@ -70,7 +73,10 @@ const getPredictiveSuggestions = ({
 			}
 
 			if (regexExecution) {
-				const matchedString = parsedContent.slice(regexExecution.index, parsedContent.length);
+				const matchedString = parsedContent.slice(
+					regexExecution.index,
+					parsedContent.length,
+				);
 				const suggestionPhrase = `${currentValueTrimmed}<mark class="highlight">${matchedString
 					.slice(currentValueTrimmed.length)
 					.split(' ')
@@ -179,7 +185,12 @@ const getSuggestions = ({
 			// then we need to pick first matching value as the label
 			if (Array.isArray(label)) {
 				if (label.length > 1) {
-					label = label.filter(i => i && i.toString().toLowerCase().includes(currentValue.toString().toLowerCase()));
+					label = label.filter(i =>
+						i
+							&& i
+								.toString()
+								.toLowerCase()
+								.includes(currentValue.toString().toLowerCase()));
 				}
 				label = label[0];
 			}
