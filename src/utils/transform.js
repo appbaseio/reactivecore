@@ -114,6 +114,8 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			selectAllLabel: props.selectAllLabel,
 			pagination: props.pagination,
 			queryString: props.queryString,
+			distinctField: props.distinctField,
+			distinctFieldConfig: props.distinctFieldConfig,
 		};
 	}
 	return null;
