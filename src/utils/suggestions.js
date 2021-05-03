@@ -82,16 +82,21 @@ const getPredictiveSuggestions = ({ suggestions, currentValue, wordsToShowAfterH
 					.split(' ')
 					.slice(0, wordsToShowAfterHighlight + 1)
 					.join(' ')}</mark>`;
-
+				const suggestionValue = `${currentValueTrimmed}${matchedString
+					.slice(currentValueTrimmed.length)
+					.split(' ')
+					.slice(0, wordsToShowAfterHighlight + 1)
+					.join(' ')}`;
 				// to show unique results only
 				if (!suggestionMap[suggestionPhrase]) {
 					suggestionMap[suggestionPhrase] = 1;
 					return [
 						...agg,
 						{
-							label: suggestionPhrase,
-							isPredictiveSuggestion: true,
 							...rest,
+							label: suggestionPhrase,
+							value: suggestionValue,
+							isPredictiveSuggestion: true,
 						},
 					];
 				}
