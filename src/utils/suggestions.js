@@ -49,6 +49,10 @@ function replaceDiacritics(s) {
 	return str;
 }
 
+function escapeRegExp(string = '') {
+	return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
 const getPredictiveSuggestions = ({ suggestions, currentValue, wordsToShowAfterHighlight }) => {
 	const suggestionMap = {};
 	if (currentValue) {
@@ -60,14 +64,14 @@ const getPredictiveSuggestions = ({ suggestions, currentValue, wordsToShowAfterH
 
 			// to match the partial start of word.
 			// example if searchTerm is `select` and string contains `selected`
-			let regexString = `^(${currentValueTrimmed})\\w+`;
+			let regexString = `^(${escapeRegExp(currentValueTrimmed)})\\w+`;
 			let regex = new RegExp(regexString, 'i');
 			let regexExecution = regex.exec(parsedContent);
 			// if execution value is null it means either there is no match or there are chances
 			// that exact word is present
 			if (!regexExecution) {
 				// regex to match exact word
-				regexString = `^(${currentValueTrimmed})`;
+				regexString = `^(${escapeRegExp(currentValueTrimmed)})`;
 				regex = new RegExp(regexString, 'i');
 				regexExecution = regex.exec(parsedContent);
 			}
@@ -77,16 +81,13 @@ const getPredictiveSuggestions = ({ suggestions, currentValue, wordsToShowAfterH
 					regexExecution.index,
 					parsedContent.length,
 				);
-				const suggestionPhrase = `${currentValueTrimmed}<mark class="highlight">${matchedString
+				const highlightedWord = matchedString
 					.slice(currentValueTrimmed.length)
 					.split(' ')
 					.slice(0, wordsToShowAfterHighlight + 1)
-					.join(' ')}</mark>`;
-				const suggestionValue = `${currentValueTrimmed}${matchedString
-					.slice(currentValueTrimmed.length)
-					.split(' ')
-					.slice(0, wordsToShowAfterHighlight + 1)
-					.join(' ')}`;
+					.join(' ');
+				const suggestionPhrase = `${currentValueTrimmed}<mark class="highlight">${highlightedWord}</mark>`;
+				const suggestionValue = `${currentValueTrimmed}${highlightedWord}`;
 				// to show unique results only
 				if (!suggestionMap[suggestionPhrase]) {
 					suggestionMap[suggestionPhrase] = 1;
