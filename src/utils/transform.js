@@ -116,6 +116,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			queryString: props.queryString,
 			distinctField: props.distinctField,
 			distinctFieldConfig: props.distinctFieldConfig,
+			index: props.index,
 		};
 	}
 	return null;
