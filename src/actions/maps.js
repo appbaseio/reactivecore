@@ -15,13 +15,6 @@ export function updateMapData(componentId, query, persistMapQuery) {
 export function setMapData(componentId, query, persistMapQuery, forceExecute, meta = {}) {
 	return (dispatch) => {
 		dispatch(updateMapData(componentId, query, persistMapQuery));
-
-		if (forceExecute) {
-			const executeWatchList = false;
-			// force execute the map query
-			const mustExecuteMapQuery = true;
-			dispatch(executeQuery(componentId, executeWatchList, mustExecuteMapQuery));
-		}
 		// Set meta properties for internal component to make geo bounding box work
 		dispatch(setInternalValue(
 			getInternalComponentID(componentId),
@@ -30,5 +23,11 @@ export function setMapData(componentId, query, persistMapQuery, forceExecute, me
 			undefined,
 			meta,
 		));
+		if (forceExecute) {
+			const executeWatchList = false;
+			// force execute the map query
+			const mustExecuteMapQuery = true;
+			dispatch(executeQuery(componentId, executeWatchList, mustExecuteMapQuery));
+		}
 	};
 }

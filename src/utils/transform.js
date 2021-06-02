@@ -146,6 +146,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	let aggregations;
 	let pagination; // pagination for `term` type of queries
 	let from = componentProps.from; // offset for RL
+	let aggregationSize = componentProps.aggregationSize;
 
 	// For term queries i.e list component `dataField` will be treated as aggregationField
 	if (queryType === queryTypes.term) {
@@ -167,6 +168,9 @@ export const extractPropsFromState = (store, component, customOptions) => {
 				}
 			});
 			value = parsedValue;
+		}
+		if (componentProps.size) {
+			aggregationSize = componentProps.size;
 		}
 	}
 	if (queryType === queryTypes.range) {
@@ -228,26 +232,30 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	if (queryType === queryTypes.geo) {
 		// override the value extracted from selectedValues reducer
 		value = undefined;
-		if (calcValues && calcValues.meta) {
-			if (calcValues.meta.distance && calcValues.meta.coordinates) {
+		const geoCalcValues
+			= store.selectedValues[component]
+			|| store.internalValues[component]
+			|| store.internalValues[getInternalComponentID(component)];
+		if (geoCalcValues && geoCalcValues.meta) {
+			if (geoCalcValues.meta.distance && geoCalcValues.meta.coordinates) {
 				value = {
-					distance: calcValues.meta.distance,
-					location: calcValues.meta.coordinates,
+					distance: geoCalcValues.meta.distance,
+					location: geoCalcValues.meta.coordinates,
 				};
 				if (componentProps.unit) {
 					value.unit = componentProps.unit;
 				}
 			}
 			if (
-				calcValues.meta.mapBoxBounds
-				&& calcValues.meta.mapBoxBounds.top_left
-				&& calcValues.meta.mapBoxBounds.bottom_right
+				geoCalcValues.meta.mapBoxBounds
+				&& geoCalcValues.meta.mapBoxBounds.top_left
+				&& geoCalcValues.meta.mapBoxBounds.bottom_right
 			) {
 				value = {
 					// Note: format will be reverse of what we're using now
 					geoBoundingBox: {
-						topLeft: `${calcValues.meta.mapBoxBounds.top_left[1]}, ${calcValues.meta.mapBoxBounds.top_left[0]}`,
-						bottomRight: `${calcValues.meta.mapBoxBounds.bottom_right[1]}, ${calcValues.meta.mapBoxBounds.bottom_right[0]}`,
+						topLeft: `${geoCalcValues.meta.mapBoxBounds.top_left[1]}, ${geoCalcValues.meta.mapBoxBounds.top_left[0]}`,
+						bottomRight: `${geoCalcValues.meta.mapBoxBounds.bottom_right[1]}, ${geoCalcValues.meta.mapBoxBounds.bottom_right[0]}`,
 					},
 				};
 			}
@@ -324,6 +332,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	}
 	return {
 		...componentProps,
+		aggregationSize,
 		dataField,
 		queryFormat,
 		type,
@@ -384,10 +393,7 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 		if (!isInternalComponent(component) || shouldAddInternalQuery) {
 			const calcValues = store.selectedValues[component] || store.internalValues[component];
 			// Only include queries for that component that has `customQuery` or `value` defined
-			if (
-				(calcValues || customQuery)
-				&& !finalQuery[component]
-			) {
+			if ((calcValues || customQuery) && !finalQuery[component]) {
 				let execute = false;
 				if (Array.isArray(orderOfQueries) && orderOfQueries.includes(component)) {
 					execute = true;
