@@ -32,6 +32,7 @@ import {
 	getHistogramComponentID,
 	componentToTypeMap,
 } from '../utils/transform';
+import { getInternalComponentID } from '../../lib/utils/transform';
 
 export function loadPopularSuggestions(componentId) {
 	return (dispatch, getState) => {
@@ -452,6 +453,7 @@ export function executeQuery(
 								metaOptions ? { from: metaOptions.from } : null,
 							),
 						);
+
 						if (query) {
 							// Apply dependent queries
 							appbaseQuery = {
@@ -459,6 +461,20 @@ export function executeQuery(
 								...{ [component]: query },
 								...getDependentQueries(getState(), component, orderOfQueries),
 							};
+						}
+						if (isMapComponent) {
+							const internalComponent = getInternalComponentID(component);
+							const internalQuery = getRSQuery(
+								internalComponent,
+								extractPropsFromState(
+									getState(),
+									internalComponent,
+									metaOptions ? { from: metaOptions.from } : null,
+								),
+							);
+							if (internalQuery) {
+								appbaseQuery[internalComponent] = { ...internalQuery, execute: false };
+							}
 						}
 					} else {
 						finalQuery = [
