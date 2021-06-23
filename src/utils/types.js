@@ -175,6 +175,7 @@ const types = {
 	componentType: oneOf(Object.values(componentTypes)),
 	componentObject: object,
 	dataFieldValidator,
+	focusShortcuts: oneOfType([arrayOf(string), arrayOf(number)]),
 };
 
 export default types;

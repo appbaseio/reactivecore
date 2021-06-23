@@ -590,6 +590,31 @@ export function getResultStats(props) {
 	};
 }
 
+// Util method to extract the fields from elasticsearch source object
+// It can handle nested objects and arrays too.
+// Example 1:
+// Input: { a: 1, b: { b_1: 2, b_2: 3}}
+// Output: ['a', 'b.b_1', 'b.b_2']
+// Example 2:
+// Input: { a: 1, b: [{c: 1}, {d: 2}, {c: 3}]}
+// Output: ['a', 'b.c', 'b.d']
+export function extractFieldsFromSource(esSource) {
+	function getFields(source = {}, prefix = '') {
+		return Object.keys(source).reduce((acc = {}, k) => {
+			let key = prefix ? `${prefix}.${k}` : k;
+			if (parseInt(k, 10)) {
+				key = prefix || k;
+			}
+			if (typeof source[k] === 'object') {
+				return { ...acc, ...getFields(source[k], key) };
+			}
+			return { ...acc, ...{ [key]: true } };
+		}, []);
+	}
+	const fields = getFields(esSource);
+	return Object.keys(fields);
+}
+
 export function handleOnSuggestions(results, currentValue, props) {
 	const { parseSuggestion, promotedResults, enablePredictiveSuggestions } = props;
 
@@ -604,7 +629,7 @@ export function handleOnSuggestions(results, currentValue, props) {
 		&& results[0]._source
 	) {
 		// Extract fields from _source
-		fields = Object.keys(results[0]._source);
+		fields = extractFieldsFromSource(results[0]._source);
 	}
 
 	// hits as flat structure
