@@ -339,6 +339,14 @@ export function executeQuery(
 		const matchAllQuery = { match_all: {} };
 
 		componentList.forEach((component) => {
+			// Clear pagination state for result components
+			// Only clear when queryLog is present i.e after executing the first query
+			// because we don't want to clear the URLParams
+			const componentProps = props[component];
+			if (queryLog[component] && componentProps.componentType === componentTypes.reactiveList) {
+				dispatch(setValue(component, null));
+			}
+
 			// eslint-disable-next-line
 			let { queryObj, options } = buildQuery(
 				component,
