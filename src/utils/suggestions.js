@@ -172,7 +172,16 @@ const getSuggestions = ({
 		if (typeof parsedSource === 'object') {
 			const fieldNodes = field.split('.');
 			let label = parsedSource[fieldNodes[0]];
-
+			// To handle field names with dots
+			// For example, if source has a top level field name is `user.name`
+			// then it would extract the suggestion from parsed source
+			if (parsedSource[field]) {
+				const topLabel = parsedSource[field];
+				const val = extractSuggestion(topLabel);
+				if (val) {
+					populateSuggestionsList(val, parsedSource, source);
+				}
+			}
 			// if they type of field is array of strings
 			// then we need to pick first matching value as the label
 			if (Array.isArray(label)) {
