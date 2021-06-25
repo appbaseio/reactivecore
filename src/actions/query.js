@@ -46,8 +46,7 @@ export function loadPopularSuggestions(componentId) {
 		// TODO: Remove `enableQuerySuggestions` in v4
 		if (
 			isAppbaseEnabled
-			&& (componentProps.enablePopularSuggestions
-			|| componentProps.enableQuerySuggestions)
+			&& (componentProps.enablePopularSuggestions || componentProps.enableQuerySuggestions)
 		) {
 			const suggQuery = getSuggestionQuery(getState, componentId);
 			appbaseRef
@@ -57,12 +56,16 @@ export function loadPopularSuggestions(componentId) {
 					if (value) {
 						// update query suggestions for search components
 						dispatch(setPopularSuggestions(
-							querySuggestion && querySuggestion.hits && querySuggestion.hits.hits,
+							querySuggestion
+									&& querySuggestion.hits
+									&& querySuggestion.hits.hits,
 							componentId.split('__internal')[0],
 						));
 					} else {
 						dispatch(setDefaultPopularSuggestions(
-							querySuggestion && querySuggestion.hits && querySuggestion.hits.hits,
+							querySuggestion
+									&& querySuggestion.hits
+									&& querySuggestion.hits.hits,
 							componentId.split('__internal')[0],
 						));
 						// dispatch default popular suggestions
@@ -343,7 +346,13 @@ export function executeQuery(
 			// Only clear when queryLog is present i.e after executing the first query
 			// because we don't want to clear the URLParams
 			const componentProps = props[component];
-			if (queryLog[component] && componentProps.componentType === componentTypes.reactiveList) {
+			if (
+				queryLog[component]
+				&& [
+					componentTypes.reactiveList,
+					componentTypes.reactiveMap,
+				].includes(componentProps.componentType)
+			) {
 				dispatch(setValue(component, null));
 			}
 
@@ -481,7 +490,10 @@ export function executeQuery(
 								),
 							);
 							if (internalQuery) {
-								appbaseQuery[internalComponent] = { ...internalQuery, execute: false };
+								appbaseQuery[internalComponent] = {
+									...internalQuery,
+									execute: false,
+								};
 							}
 						}
 					} else {
