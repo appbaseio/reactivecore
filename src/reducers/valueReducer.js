@@ -1,4 +1,10 @@
-import { SET_VALUE, CLEAR_VALUES, REMOVE_COMPONENT, PATCH_VALUE } from '../constants';
+import {
+	SET_VALUE,
+	RESET_TO_DEFAULT,
+	CLEAR_VALUES,
+	REMOVE_COMPONENT,
+	PATCH_VALUE,
+} from '../constants';
 
 export default function valueReducer(state = {}, action) {
 	switch (action.type) {
@@ -25,11 +31,15 @@ export default function valueReducer(state = {}, action) {
 			};
 		case CLEAR_VALUES:
 			return {};
-		case REMOVE_COMPONENT:
-		{
+		case REMOVE_COMPONENT: {
 			const { [action.component]: del, ...obj } = state;
 			return obj;
 		}
+		case RESET_TO_DEFAULT:
+			return {
+				...state,
+				...action.defaultValues,
+			};
 		default:
 			return state;
 	}
