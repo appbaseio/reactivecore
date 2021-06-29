@@ -42,14 +42,14 @@ export function resetValuesToDefault() {
 		Object.keys(selectedValues).forEach((component) => {
 			if (
 				!componentProps[component]
-				|| !componentProps[component].defaultValue
 				|| !componentProps[component].componentType
+				|| !componentProps[component].defaultValue
 			) {
-				return true;
-			}
-			if (
+				valueToSet = null;
+			} else if (
 				[
 					componentTypes.rangeSlider,
+					componentTypes.rangeInput,
 					componentTypes.ratingsFilter,
 					componentTypes.dateRange,
 				].includes(componentProps[component].componentType)
