@@ -49,6 +49,7 @@ export function resetValuesToDefault() {
 			} else if (
 				[
 					componentTypes.rangeSlider,
+					componentTypes.rangeInput,
 					componentTypes.ratingsFilter,
 					componentTypes.dateRange,
 				].includes(componentProps[component].componentType)
