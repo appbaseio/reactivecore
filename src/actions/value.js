@@ -1,6 +1,5 @@
-import XDate from 'xdate';
-import { componentTypes } from '../../lib/utils/constants';
-import { isEqual } from '../../lib/utils/helper';
+import { componentTypes } from '../utils/constants';
+import { isEqual } from '../utils/helper';
 import {
 	SET_VALUE,
 	CLEAR_VALUES,
@@ -49,8 +48,11 @@ export function resetValuesToDefault() {
 				return true;
 			}
 			if (
-				[componentTypes.rangeSlider, componentTypes.ratingsFilter]
-					.includes(componentProps[component].componentType)
+				[
+					componentTypes.rangeSlider,
+					componentTypes.ratingsFilter,
+					componentTypes.dateRange,
+				].includes(componentProps[component].componentType)
 			) {
 				valueToSet
 					= typeof componentProps[component].defaultValue === 'object'
@@ -84,17 +86,6 @@ export function resetValuesToDefault() {
 				valueToSet = componentProps[component].defaultValue
 					? componentProps[component].defaultValue.term
 					: '';
-			} else if (
-				[componentTypes.dateRange].includes(componentProps[component].componentType)
-			) {
-				const formatInputDate = (date) => {
-					const xdate = new XDate(date);
-					return xdate.valid() ? xdate.toString('yyyy-MM-dd') : '';
-				};
-				valueToSet = [
-					formatInputDate(componentProps[component].defaultValue.start),
-					formatInputDate(componentProps[component].defaultValue.end),
-				];
 			}
 			if (!isEqual(selectedValues[component].value, valueToSet)) {
 				defaultValues = {
