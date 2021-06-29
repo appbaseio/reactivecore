@@ -40,14 +40,12 @@ export function resetValuesToDefault() {
 
 		let valueToSet;
 		Object.keys(selectedValues).forEach((component) => {
-			if (
-				!componentProps[component]
-				|| !componentProps[component].defaultValue
-				|| !componentProps[component].componentType
-			) {
+			if (!componentProps[component] || !componentProps[component].componentType) {
 				return true;
 			}
-			if (
+			if (!componentProps[component].defaultValue) {
+				valueToSet = null;
+			} else if (
 				[
 					componentTypes.rangeSlider,
 					componentTypes.ratingsFilter,
@@ -55,7 +53,7 @@ export function resetValuesToDefault() {
 				].includes(componentProps[component].componentType)
 			) {
 				valueToSet
-					= typeof componentProps[component].defaultValue === 'object'
+						= typeof componentProps[component].defaultValue === 'object'
 						? [
 							componentProps[component].defaultValue.start,
 							componentProps[component].defaultValue.end,

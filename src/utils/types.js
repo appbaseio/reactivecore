@@ -50,7 +50,7 @@ const types = {
 		emptyQuery: bool,
 		suggestionAnalytics: bool,
 		userId: string,
-		customEvents: object,
+		customEvents: object, // eslint-disable-line
 	}),
 	appbaseConfig: shape({
 		enableQueryRules: bool,
@@ -59,7 +59,7 @@ const types = {
 		emptyQuery: bool,
 		suggestionAnalytics: bool,
 		userId: string,
-		customEvents: object,
+		customEvents: object, // eslint-disable-line
 	}),
 	bool,
 	boolRequired: bool.isRequired,
