@@ -45,6 +45,7 @@ export const validProps = [
 	'aggregationSize',
 	'distinctField',
 	'distinctFieldConfig',
+	'index',
 	// Specific to ReactiveList
 	'dataField',
 	'includeFields',

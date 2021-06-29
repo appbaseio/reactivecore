@@ -116,6 +116,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			queryString: props.queryString,
 			distinctField: props.distinctField,
 			distinctFieldConfig: props.distinctFieldConfig,
+			index: props.index,
 		};
 	}
 	return null;
@@ -146,7 +147,6 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	let aggregations;
 	let pagination; // pagination for `term` type of queries
 	let from = componentProps.from; // offset for RL
-	let aggregationSize = componentProps.aggregationSize;
 
 	// For term queries i.e list component `dataField` will be treated as aggregationField
 	if (queryType === queryTypes.term) {
@@ -168,9 +168,6 @@ export const extractPropsFromState = (store, component, customOptions) => {
 				}
 			});
 			value = parsedValue;
-		}
-		if (componentProps.size) {
-			aggregationSize = componentProps.size;
 		}
 	}
 	if (queryType === queryTypes.range) {
@@ -332,7 +329,6 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	}
 	return {
 		...componentProps,
-		aggregationSize,
 		dataField,
 		queryFormat,
 		type,

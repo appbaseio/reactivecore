@@ -1,3 +1,5 @@
+import diacritics from './diacritics';
+
 // flattens a nested array
 const flatten = arr =>
 	arr.reduce(
@@ -23,27 +25,11 @@ const extractSuggestion = (val) => {
 function replaceDiacritics(s) {
 	let str = s ? String(s) : '';
 
-	const diacritics = [
-		/[\300-\306]/g,
-		/[\340-\346]/g, // A, a
-		/[\310-\313]/g,
-		/[\350-\353]/g, // E, e
-		/[\314-\317]/g,
-		/[\354-\357]/g, // I, i
-		/[\322-\330]/g,
-		/[\362-\370]/g, // O, o
-		/[\331-\334]/g,
-		/[\371-\374]/g, // U, u
-		/[\321]/g,
-		/[\361]/g, // N, n
-		/[\307]/g,
-		/[\347]/g, // C, c
-	];
-
-	const chars = ['A', 'a', 'E', 'e', 'I', 'i', 'O', 'o', 'U', 'u', 'N', 'n', 'C', 'c'];
-
-	for (let i = 0; i < diacritics.length; i += 1) {
-		str = str.replace(diacritics[i], chars[i]);
+	for (let i = 0; i < str.length; i++) {
+		const currentChar = str.charAt(i);
+		if (diacritics[currentChar]) {
+			str = str.replaceAll(currentChar, diacritics[currentChar]);
+		}
 	}
 
 	return str;
@@ -186,7 +172,16 @@ const getSuggestions = ({
 		if (typeof parsedSource === 'object') {
 			const fieldNodes = field.split('.');
 			let label = parsedSource[fieldNodes[0]];
-
+			// To handle field names with dots
+			// For example, if source has a top level field name is `user.name`
+			// then it would extract the suggestion from parsed source
+			if (parsedSource[field]) {
+				const topLabel = parsedSource[field];
+				const val = extractSuggestion(topLabel);
+				if (val) {
+					populateSuggestionsList(val, parsedSource, source);
+				}
+			}
 			// if they type of field is array of strings
 			// then we need to pick first matching value as the label
 			if (Array.isArray(label)) {
