@@ -45,7 +45,7 @@ export function resetValuesToDefault() {
 				|| !componentProps[component].componentType
 				|| !componentProps[component].defaultValue
 			) {
-				return true;
+				valueToSet = null;
 			} else if (
 				[
 					componentTypes.rangeSlider,
