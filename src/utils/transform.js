@@ -74,7 +74,9 @@ export const hasPaginationSupport = (componentType = '') =>
 export const getRSQuery = (componentId, props, execute = true) => {
 	if (props && componentId) {
 		const queryType = props.type ? props.type : componentToTypeMap[props.componentType];
-		// dataField is must field for components other than search
+		// dataField is a required field for components other than search
+		// TODO: Revisit this logic based on the Appbase version
+		// dataField is no longer a required field in RS API
 		if (!isSearchComponent(props.componentType) && !props.dataField) {
 			return null;
 		}
@@ -280,6 +282,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		queryFormat = 'or';
 	}
 	// Fake dataField for ReactiveComponent
+	// TODO: Remove it after some time. The `dataField` is no longer required
 	if (componentProps.componentType === componentTypes.reactiveComponent) {
 		// Set the type to `term`
 		type = 'term';

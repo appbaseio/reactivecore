@@ -615,12 +615,45 @@ export function extractFieldsFromSource(esSource) {
 	return Object.keys(fields);
 }
 
+// Normalizes the dataField into an array of objects
+// { "field": x, "weight": y }
+export function normalizeDataField(dataField, fieldWeights = []) {
+	if (typeof dataField === 'string') {
+		return [{
+			field: dataField,
+			weight: fieldWeights.length ? fieldWeights[0] : undefined,
+		}];
+	}
+	if (Array.isArray(dataField)) {
+		return dataField.map((field, index) => {
+			const normalizedField = {};
+			if (typeof field === 'string') {
+				normalizedField.field = field;
+				if (fieldWeights.length > index) {
+					normalizedField.weight = fieldWeights[index];
+				}
+			} else if (typeof field === 'object' && field && field.field) {
+				normalizedField.field = field.field;
+				normalizedField.weight = field.weight;
+			}
+			return normalizedField;
+		});
+	}
+	if (typeof dataField === 'object' && dataField) {
+		return [{
+			field: dataField.field,
+			weight: dataField.weight,
+		}];
+	}
+	return [];
+}
+
 export function handleOnSuggestions(results, currentValue, props) {
 	const { parseSuggestion, promotedResults, enablePredictiveSuggestions } = props;
 
-	let fields;
+	let fields = [];
 	if (props.dataField) {
-		fields = Array.isArray(props.dataField) ? props.dataField : [props.dataField];
+		fields = normalizeDataField(props.dataField).map(f => f.field);
 	} else if (
 		results
 		&& Array.isArray(results)
