@@ -283,14 +283,6 @@ export const parseHits = (hits, showHighlighted = true) => {
 	let results = null;
 	if (hits) {
 		results = [...hits].map((item) => {
-			const streamProps = {};
-
-			if (item._updated) {
-				streamProps._updated = item._updated;
-			} else if (item._deleted) {
-				streamProps._deleted = item._deleted;
-			}
-
 			let data = { ...item };
 			if (showHighlighted) data = highlightResults(item);
 			const result = Object.keys(data)
@@ -304,7 +296,6 @@ export const parseHits = (hits, showHighlighted = true) => {
 					{
 						highlight: data.highlight || {},
 						...data._source,
-						...streamProps,
 					},
 				);
 			return result;
