@@ -8,14 +8,12 @@ import {
 	handleResponseMSearch,
 	getQuerySuggestionsId,
 } from './utils';
-import { pushToStreamHits } from './hits';
 import {
 	logQuery,
 	setLoading,
 	logCombinedQuery,
 	setQuery,
 	setError,
-	setStreaming,
 	updateQueryOptions,
 	setPopularSuggestions,
 	setDefaultPopularSuggestions,
@@ -318,8 +316,6 @@ export function executeQuery(
 	return (dispatch, getState) => {
 		const {
 			queryLog,
-			stream,
-			appbaseRef,
 			config,
 			mapData,
 			watchMan,
@@ -424,40 +420,6 @@ export function executeQuery(
 					}
 
 					executeQueryListener(queryListener[component], oldQuery, currentQuery);
-
-					// execute streaming query if applicable
-					if (stream[component] && stream[component].status) {
-						if (stream[component].ref) {
-							stream[component].ref.stop();
-						}
-
-						const ref = appbaseRef.searchStream(
-							{
-								type: config.type === '*' ? '' : config.type,
-								body: currentQuery,
-							},
-							(response) => {
-								if (response._id) {
-									dispatch(pushToStreamHits(component, response));
-								}
-							},
-							(error) => {
-								if (queryListener[component] && queryListener[component].onError) {
-									queryListener[component].onError(error);
-								}
-								/**
-								 * In android devices, sometime websocket throws error when there is no activity
-								 * for a long time, console.error crashes the app, so changed it to console.warn
-								 */
-								console.warn(error);
-								dispatch(setError(component, error));
-								dispatch(setLoading(component, false));
-							},
-						);
-
-						// update streaming ref
-						dispatch(setStreaming(component, true, ref));
-					}
 
 					// push to combined query for msearch
 					if (isAppbaseEnabled) {

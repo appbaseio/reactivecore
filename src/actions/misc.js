@@ -6,7 +6,6 @@ import {
 	SET_LOADING,
 	SET_TIMESTAMP,
 	SET_HEADERS,
-	SET_STREAMING,
 	SET_QUERY_LISTENER,
 	SET_SEARCH_ID,
 	SET_ERROR,
@@ -123,15 +122,6 @@ export function logCombinedQuery(component, query) {
 		type: LOG_COMBINED_QUERY,
 		component,
 		query,
-	};
-}
-
-export function setStreaming(component, status = false, ref = null) {
-	return {
-		type: SET_STREAMING,
-		component,
-		status,
-		ref,
 	};
 }
 

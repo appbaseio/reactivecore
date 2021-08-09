@@ -1,4 +1,4 @@
-import { UPDATE_HITS, PUSH_TO_STREAM_HITS, REMOVE_COMPONENT } from '../constants';
+import { UPDATE_HITS, REMOVE_COMPONENT } from '../constants';
 
 export default function hitsReducer(state = {}, action) {
 	if (action.type === UPDATE_HITS) {
@@ -20,22 +20,6 @@ export default function hitsReducer(state = {}, action) {
 				total: action.total,
 				time: action.time,
 				hidden: action.hidden || 0,
-			},
-		};
-	} else if (action.type === PUSH_TO_STREAM_HITS) {
-		let { total } = state[action.component];
-
-		if (action.hit._deleted) {
-			total -= 1;
-		} else if (!action.hit._updated) {
-			total += 1;
-		}
-
-		return {
-			...state,
-			[action.component]: {
-				...state[action.component],
-				total,
 			},
 		};
 	} else if (action.type === REMOVE_COMPONENT) {
