@@ -149,7 +149,6 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	let aggregations;
 	let pagination; // pagination for `term` type of queries
 	let from = componentProps.from; // offset for RL
-
 	// For term queries i.e list component `dataField` will be treated as aggregationField
 	if (queryType === queryTypes.term) {
 		// Only apply pagination prop for the components which supports it otherwise it can break the UI
@@ -384,9 +383,12 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 		 * Allow internal dependent queries for search components
 		 * because it maintains value separately for suggestions
 		 */
+		// Avoid setting internal query if default query is defined
 		const componentProps = store.props[component];
+		const searchComponentID = component ? component.split('__internal')[0] : '';
+		const defaultQuery = store.defaultQueries[searchComponentID];
 		const shouldAddInternalQuery = componentProps
-			? isSearchComponent(componentProps.componentType)
+			? isSearchComponent(componentProps.componentType) && !(defaultQuery && defaultQuery.query)
 			: null;
 		const customQuery = store.customQueries[component];
 		if (!isInternalComponent(component) || shouldAddInternalQuery) {
