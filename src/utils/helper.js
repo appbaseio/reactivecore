@@ -596,7 +596,7 @@ export function extractFieldsFromSource(esSource) {
 			if (parseInt(k, 10)) {
 				key = prefix || k;
 			}
-			if (typeof source[k] === 'object') {
+			if (source[k] && typeof source[k] === 'object') {
 				return { ...acc, ...getFields(source[k], key) };
 			}
 			return { ...acc, ...{ [key]: true } };
