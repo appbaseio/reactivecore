@@ -178,8 +178,8 @@ const getSuggestions = ({
 			if (parsedSource[field]) {
 				const topLabel = parsedSource[field];
 				const val = extractSuggestion(topLabel);
-				if (val) {
-					populateSuggestionsList(val, parsedSource, source);
+				if (val && typeof val === 'string') {
+					return populateSuggestionsList(val, parsedSource, source);
 				}
 			}
 			// if they type of field is array of strings
@@ -215,7 +215,7 @@ const getSuggestions = ({
 	const traverseSuggestions = () => {
 		if (showDistinctSuggestions) {
 			suggestions.forEach((item) => {
-				fields.some(field => parseField(item, field));
+				fields.every(field => parseField(item, field));
 			});
 		} else {
 			suggestions.forEach((item) => {

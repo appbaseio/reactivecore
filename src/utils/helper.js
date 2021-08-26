@@ -593,7 +593,7 @@ export function extractFieldsFromSource(esSource) {
 	function getFields(source = {}, prefix = '') {
 		return Object.keys(source).reduce((acc = {}, k) => {
 			let key = prefix ? `${prefix}.${k}` : k;
-			if (parseInt(k, 10)) {
+			if (!Number.isNaN(parseInt(k, 10))) {
 				key = prefix || k;
 			}
 			if (source[k] && typeof source[k] === 'object') {
