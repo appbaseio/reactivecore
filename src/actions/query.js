@@ -227,10 +227,9 @@ function appbaseSearch({
 	query,
 	orderOfQueries,
 	appendToHits = false,
-	isInternalComponent = false,
+	isSuggestionsQuery = false,
+	searchComponentID,
 	appendToAggs = false,
-	componentType,
-	componentId,
 } = {}) {
 	return (dispatch, getState) => {
 		const { appbaseRef, config, headers } = getState();
@@ -273,8 +272,9 @@ function appbaseSearch({
 		});
 
 		appbaseRef.setHeaders({ ...headers });
-		if (isInternalComponent) {
-			dispatch(loadPopularSuggestions(componentId));
+
+		if (isSuggestionsQuery && searchComponentID) {
+			dispatch(loadPopularSuggestions(searchComponentID));
 		}
 		appbaseRef
 			.reactiveSearchv3(query, settings)
@@ -282,12 +282,9 @@ function appbaseSearch({
 				handleResponse(
 					{
 						res,
-						isInternalComponent,
 						orderOfQueries,
 						appendToHits,
 						appendToAggs,
-						componentType,
-						componentId,
 					},
 					getState,
 					dispatch,
@@ -305,6 +302,10 @@ function appbaseSearch({
 			});
 	};
 }
+
+// latest request would be at the end
+let requestStack = [];
+let lock = false;
 
 export function executeQuery(
 	componentId,
@@ -324,7 +325,10 @@ export function executeQuery(
 			queryOptions,
 			queryListener,
 			props,
+			selectedValues,
 		} = getState();
+		const lockTime = config.initialQueriesSyncTime;
+		const initialTimestamp = config.initialTimestamp;
 		let componentList = [componentId];
 		let finalQuery = [];
 		let appbaseQuery = {}; // Use object to prevent duplicate query added by react prop
@@ -337,23 +341,21 @@ export function executeQuery(
 
 		const matchAllQuery = { match_all: {} };
 
+
 		componentList.forEach((component) => {
 			// Clear pagination state for result components
-			// Only clear when queryLog is present i.e after executing the first query
-			// because we don't want to clear the URLParams
+			// Only clear when value is not set by URL params
 			const componentProps = props[component];
-			if (
-				queryLog[component]
-				&& [
-					componentTypes.reactiveList,
-					componentTypes.reactiveMap,
-				].includes(componentProps.componentType)
+			if (selectedValues[componentId] && selectedValues[componentId].reference !== 'URL' && [
+				componentTypes.reactiveList,
+				componentTypes.reactiveMap,
+			].includes(componentProps.componentType)
 			) {
 				dispatch(setValue(component, null));
 			}
 
 			// eslint-disable-next-line
-			let { queryObj, options } = buildQuery(
+				let { queryObj, options } = buildQuery(
 				component,
 				dependencyTree,
 				queryList,
@@ -364,7 +366,7 @@ export function executeQuery(
 			// check if query or options are valid - non-empty
 			if (
 				(queryObj && !!Object.keys(queryObj).length)
-				|| (options && Object.keys(options).some(item => validOptions.includes(item)))
+					|| (options && Object.keys(options).some(item => validOptions.includes(item)))
 			) {
 				// attach a match-all-query if empty
 				if (!queryObj || (queryObj && !Object.keys(queryObj).length)) {
@@ -476,14 +478,83 @@ export function executeQuery(
 		}
 		if (finalQuery.length) {
 			if (isAppbaseEnabled) {
-				dispatch(appbaseSearch({
-					query: finalQuery,
-					orderOfQueries,
-					isInternalComponent: componentId.endsWith('__internal'),
-					componentType,
-					props: props[componentId],
-					componentId,
-				}));
+				const suggestionsComponents = [componentTypes.dataSearch, componentTypes.categorySearch];
+				const isInternalComponent = componentId.endsWith('__internal');
+				const isSuggestionsQuery
+						= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
+				const currentTime = new Date().getTime();
+				if (currentTime - initialTimestamp < lockTime) {
+					// set timeout if lock is not false
+					if (!lock) {
+						setTimeout(() => {
+							let finalOrderOfQueries = [];
+							let finalIsSuggestionsQuery = false;
+							let finalSearchComponentID = '';
+							const orderOfQueriesMap = {};
+							const processedQueriesMap = {};
+							const queryExecutionMap = {};
+
+							// construct the request body with latest requests
+							// dispatch the `appbaseSearch` action with a single request
+							requestStack.forEach((request) => {
+								if (!finalIsSuggestionsQuery) {
+									finalIsSuggestionsQuery = request.isSuggestionsQuery;
+								}
+								if (!finalSearchComponentID) {
+									finalSearchComponentID = request.searchComponentID;
+								}
+								if (Array.isArray(request.query)) {
+									request.query.forEach((query) => {
+										if (query.execute) {
+											queryExecutionMap[query.id] = query.execute;
+										}
+										const newQuery = query;
+										// override by the latest query
+										// set the query execution to true if map has value
+										if (queryExecutionMap[query.id]) {
+											newQuery.execute = true;
+										}
+										processedQueriesMap[query.id] = newQuery;
+									});
+								}
+								if (Array.isArray(request.orderOfQueries)) {
+									request.orderOfQueries.forEach((query) => {
+										if (!orderOfQueriesMap[query.id]) {
+											finalOrderOfQueries = [query, ...finalOrderOfQueries];
+										} else {
+											orderOfQueriesMap[query.id] = true;
+										}
+									});
+								}
+							});
+							const finalCombinedQuery = Object.values(processedQueriesMap);
+							if (finalCombinedQuery.length) {
+								dispatch(appbaseSearch({
+									query: finalCombinedQuery,
+									orderOfQueries: finalOrderOfQueries,
+									isSuggestionsQuery: finalIsSuggestionsQuery,
+									searchComponentID: finalSearchComponentID,
+								}));
+							}
+							// empty the request stack
+							requestStack = [];
+						}, lockTime);
+					}
+					lock = true;
+					requestStack.push({
+						query: finalQuery,
+						orderOfQueries,
+						isSuggestionsQuery,
+						searchComponentID: componentId,
+					});
+				} else {
+					dispatch(appbaseSearch({
+						query: finalQuery,
+						orderOfQueries,
+						isSuggestionsQuery,
+						searchComponentID: componentId,
+					}));
+				}
 			} else {
 				// in case of an internal component the analytics headers should not be included
 				dispatch(msearch(

@@ -19,6 +19,7 @@ export default function valueReducer(state = {}, action) {
 					componentType: action.componentType,
 					category: action.category,
 					meta: action.meta,
+					reference: action.reference,
 				},
 			};
 		case PATCH_VALUE:

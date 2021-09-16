@@ -18,16 +18,27 @@ export function setValue(
 	category,
 	meta,
 ) {
-	return {
-		type: SET_VALUE,
-		component,
-		value,
-		label,
-		showFilter,
-		URLParams,
-		componentType,
-		category,
-		meta,
+	return (dispatch, getState) => {
+		const {
+			urlValues,
+		} = getState();
+		// set the value reference
+		let reference;
+		if (isEqual(urlValues[component], value)) {
+			reference = 'URL';
+		}
+		dispatch({
+			type: SET_VALUE,
+			component,
+			reference,
+			value,
+			label,
+			showFilter,
+			URLParams,
+			componentType,
+			category,
+			meta,
+		});
 	};
 }
 

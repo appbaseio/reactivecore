@@ -1,4 +1,3 @@
-import { componentTypes } from '../../lib/utils/constants';
 import {
 	setError,
 	setLoading,
@@ -61,16 +60,12 @@ export const handleResponse = (
 		orderOfQueries = [],
 		appendToHits = false,
 		appendToAggs = false,
-		isInternalComponent = false,
-		componentType = '',
+		isSuggestionsQuery = false,
 	} = {},
 	getState = () => {},
 	dispatch,
 ) => {
 	const { config, internalValues } = getState();
-	const suggestionsComponents = [componentTypes.dataSearch, componentTypes.categorySearch];
-	const isSuggestionsQuery
-		= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
 	const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
 	if (searchId) {
 		if (isSuggestionsQuery) {

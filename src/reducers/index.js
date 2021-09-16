@@ -68,4 +68,5 @@ export default combineReducers({
 	defaultPopularSuggestions: defaultPopularSuggestionsReducer,
 	queryToHits: queryToHitsReducer, // holds the query value for last fetched `hits`
 	recentSearches: recentSearchesReducer,
+	urlValues: (state = {}) => state,
 });
