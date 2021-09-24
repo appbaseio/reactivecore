@@ -213,17 +213,11 @@ const getSuggestions = ({
 	};
 
 	const traverseSuggestions = () => {
-		if (showDistinctSuggestions) {
-			suggestions.forEach((item) => {
-				fields.every(field => parseField(item, field));
+		suggestions.forEach((item) => {
+			fields.forEach((field) => {
+				parseField(item, field);
 			});
-		} else {
-			suggestions.forEach((item) => {
-				fields.forEach((field) => {
-					parseField(item, field);
-				});
-			});
-		}
+		});
 	};
 
 	traverseSuggestions();
@@ -239,7 +233,6 @@ const getSuggestions = ({
 		skipWordMatch = true;
 		traverseSuggestions();
 	}
-
 	if (enablePredictiveSuggestions) {
 		const predictiveSuggestions = getPredictiveSuggestions({
 			suggestions: suggestionsList,
@@ -247,6 +240,20 @@ const getSuggestions = ({
 			wordsToShowAfterHighlight,
 		});
 		suggestionsList = predictiveSuggestions;
+	}
+	if (showDistinctSuggestions) {
+		const idMap = {};
+		const filteredSuggestions = [];
+		suggestionsList.forEach((suggestion) => {
+			if (suggestion.source && suggestion.source._id) {
+				if (!idMap[suggestion.source._id]) {
+					filteredSuggestions.push(suggestion);
+					idMap[suggestion.source._id] = true;
+				}
+			}
+		});
+
+		return filteredSuggestions;
 	}
 	return suggestionsList;
 };
