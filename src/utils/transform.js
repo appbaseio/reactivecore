@@ -140,7 +140,10 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		return null;
 	}
 	const queryType = componentToTypeMap[componentProps.componentType];
-	const calcValues = store.selectedValues[component] || store.internalValues[component];
+	let calcValues = store.selectedValues[component] || store.internalValues[component];
+	if (isSearchComponent(componentProps.componentType) && !calcValues) {
+		calcValues = store.internalValues[getInternalComponentID(component)];
+	}
 	let value = calcValues !== undefined && calcValues !== null ? calcValues.value : undefined;
 	let queryFormat = componentProps.queryFormat;
 	let { interval } = componentProps;
@@ -380,16 +383,8 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 	const finalQuery = {};
 	const react = flatReactProp(store.dependencyTree[componentID], componentID);
 	react.forEach((component) => {
-		/**
-		 * Allow internal dependent queries for search components
-		 * because it maintains value separately for suggestions
-		 */
-		const componentProps = store.props[component];
-		const shouldAddInternalQuery = componentProps
-			? isSearchComponent(componentProps.componentType)
-			: null;
 		const customQuery = store.customQueries[component];
-		if (!isInternalComponent(component) || shouldAddInternalQuery) {
+		if (!isInternalComponent(component)) {
 			const calcValues = store.selectedValues[component] || store.internalValues[component];
 			// Only include queries for that component that has `customQuery` or `value` defined
 			if ((calcValues || customQuery) && !finalQuery[component]) {
