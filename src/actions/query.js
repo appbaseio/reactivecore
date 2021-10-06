@@ -29,6 +29,7 @@ import {
 	getDependentQueries,
 	getHistogramComponentID,
 	componentToTypeMap,
+	isSearchComponent,
 } from '../utils/transform';
 import { getInternalComponentID } from '../../lib/utils/transform';
 
@@ -232,7 +233,9 @@ function appbaseSearch({
 	appendToAggs = false,
 } = {}) {
 	return (dispatch, getState) => {
-		const { appbaseRef, config, headers } = getState();
+		const {
+			appbaseRef, config, headers,
+		} = getState();
 
 		let isAnalyticsEnabled = false;
 
@@ -326,6 +329,7 @@ export function executeQuery(
 			queryListener,
 			props,
 			selectedValues,
+			internalValues,
 		} = getState();
 		const lockTime = config.initialQueriesSyncTime;
 		const initialTimestamp = config.initialTimestamp;
@@ -425,13 +429,20 @@ export function executeQuery(
 
 					// push to combined query for msearch
 					if (isAppbaseEnabled) {
+						// use internal value for suggestions query
+						let value;
+						const isInternalComponent = componentId.endsWith('__internal');
+						const mainComponentProps = props[componentId];
+						if (isInternalComponent && isSearchComponent(mainComponentProps.componentType)) {
+							value = internalValues[componentId] && internalValues[componentId].value;
+						}
 						// build query
 						const query = getRSQuery(
 							component,
 							extractPropsFromState(
 								getState(),
 								component,
-								metaOptions ? { from: metaOptions.from } : null,
+								{ value, ...metaOptions ? { from: metaOptions.from } : null },
 							),
 						);
 

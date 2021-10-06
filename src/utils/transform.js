@@ -140,10 +140,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		return null;
 	}
 	const queryType = componentToTypeMap[componentProps.componentType];
-	let calcValues = store.selectedValues[component] || store.internalValues[component];
-	if (isSearchComponent(componentProps.componentType) && !calcValues) {
-		calcValues = store.internalValues[getInternalComponentID(component)];
-	}
+	const calcValues = store.selectedValues[component] || store.internalValues[component];
 	let value = calcValues !== undefined && calcValues !== null ? calcValues.value : undefined;
 	let queryFormat = componentProps.queryFormat;
 	let { interval } = componentProps;
