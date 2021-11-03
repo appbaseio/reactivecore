@@ -233,9 +233,7 @@ function appbaseSearch({
 	appendToAggs = false,
 } = {}) {
 	return (dispatch, getState) => {
-		const {
-			appbaseRef, config, headers,
-		} = getState();
+		const { appbaseRef, config, headers } = getState();
 
 		let isAnalyticsEnabled = false;
 
@@ -345,21 +343,23 @@ export function executeQuery(
 
 		const matchAllQuery = { match_all: {} };
 
-
 		componentList.forEach((component) => {
 			// Clear pagination state for result components
 			// Only clear when value is not set by URL params
 			const componentProps = props[component];
-			if (selectedValues[componentId] && selectedValues[componentId].reference !== 'URL' && [
-				componentTypes.reactiveList,
-				componentTypes.reactiveMap,
-			].includes(componentProps.componentType)
+			if (
+				selectedValues[componentId]
+				&& selectedValues[componentId].reference !== 'URL'
+				&& [
+					componentTypes.reactiveList,
+					componentTypes.reactiveMap,
+				].includes(componentProps.componentType)
 			) {
 				dispatch(setValue(component, null));
 			}
 
 			// eslint-disable-next-line
-				let { queryObj, options } = buildQuery(
+			let { queryObj, options } = buildQuery(
 				component,
 				dependencyTree,
 				queryList,
@@ -370,7 +370,7 @@ export function executeQuery(
 			// check if query or options are valid - non-empty
 			if (
 				(queryObj && !!Object.keys(queryObj).length)
-					|| (options && Object.keys(options).some(item => validOptions.includes(item)))
+				|| (options && Object.keys(options).some(item => validOptions.includes(item)))
 			) {
 				// attach a match-all-query if empty
 				if (!queryObj || (queryObj && !Object.keys(queryObj).length)) {
@@ -433,17 +433,20 @@ export function executeQuery(
 						let value;
 						const isInternalComponent = componentId.endsWith('__internal');
 						const mainComponentProps = props[componentId];
-						if (isInternalComponent && isSearchComponent(mainComponentProps.componentType)) {
-							value = internalValues[componentId] && internalValues[componentId].value;
+						if (
+							isInternalComponent
+							&& isSearchComponent(mainComponentProps.componentType)
+						) {
+							value
+								= internalValues[componentId] && internalValues[componentId].value;
 						}
 						// build query
 						const query = getRSQuery(
 							component,
-							extractPropsFromState(
-								getState(),
-								component,
-								{ value, ...metaOptions ? { from: metaOptions.from } : null },
-							),
+							extractPropsFromState(getState(), component, {
+								...(value ? { value } : null),
+								...(metaOptions ? { from: metaOptions.from } : null),
+							}),
 						);
 
 						if (query) {
@@ -489,10 +492,13 @@ export function executeQuery(
 		}
 		if (finalQuery.length) {
 			if (isAppbaseEnabled) {
-				const suggestionsComponents = [componentTypes.dataSearch, componentTypes.categorySearch];
+				const suggestionsComponents = [
+					componentTypes.dataSearch,
+					componentTypes.categorySearch,
+				];
 				const isInternalComponent = componentId.endsWith('__internal');
 				const isSuggestionsQuery
-						= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
+					= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
 				const currentTime = new Date().getTime();
 				if (currentTime - initialTimestamp < lockTime) {
 					// set timeout if lock is not false
