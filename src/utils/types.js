@@ -36,7 +36,11 @@ const dataFieldValidator = (props, propName, componentName) => {
 	const propValue = props[propName];
 	if ((props.config && !props.config.enableAppbase) || !props.enableAppbase) {
 		if (!propValue) return requiredError;
-		if (typeof propValue !== 'string' && typeof propValue !== 'object' && !Array.isArray(propValue)) {
+		if (
+			typeof propValue !== 'string'
+			&& typeof propValue !== 'object'
+			&& !Array.isArray(propValue)
+		) {
 			return new Error(`Invalid ${propName} supplied to ${componentName}. Validation failed.`);
 		}
 		if (Array.isArray(propValue) && propValue.length === 0) return requiredError;
@@ -60,6 +64,7 @@ const types = {
 		suggestionAnalytics: bool,
 		userId: string,
 		customEvents: object, // eslint-disable-line
+		enableTelemetry: bool,
 	}),
 	bool,
 	boolRequired: bool.isRequired,
