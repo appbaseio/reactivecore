@@ -350,6 +350,7 @@ export function executeQuery(
 			if (
 				selectedValues[componentId]
 				&& selectedValues[componentId].reference !== 'URL'
+				&& componentProps
 				&& [
 					componentTypes.reactiveList,
 					componentTypes.reactiveMap,
