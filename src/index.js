@@ -26,7 +26,6 @@ const Reducers = {
 	propsReducer,
 };
 export { helper, causes, suggestions, Actions, storeKey, polyfills, Reducers, constants };
-
 const composeEnhancers
 	= typeof window === 'object' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
 		? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({})

@@ -7,6 +7,7 @@ export const componentToTypeMap = {
 	[componentTypes.reactiveList]: queryTypes.search,
 	[componentTypes.dataSearch]: queryTypes.search,
 	[componentTypes.categorySearch]: queryTypes.search,
+	[componentTypes.searchBox]: queryTypes.suggestion,
 	// term components
 	[componentTypes.singleList]: queryTypes.term,
 	[componentTypes.multiList]: queryTypes.term,
@@ -39,7 +40,8 @@ export const componentToTypeMap = {
 
 const multiRangeComponents = [componentTypes.multiRange, componentTypes.multiDropdownRange];
 const dateRangeComponents = [componentTypes.dateRange, componentTypes.datePicker];
-const searchComponents = [componentTypes.categorySearch, componentTypes.dataSearch];
+const searchComponents = [componentTypes.categorySearch,
+	componentTypes.dataSearch, componentTypes.searchBox];
 const listComponentsWithPagination = [
 	componentTypes.singleList,
 	componentTypes.multiList,
@@ -124,6 +126,60 @@ export const getRSQuery = (componentId, props, execute = true) => {
 	return null;
 };
 
+export const getSuggestionsQuery = (componentId, props) => {
+	if (props && componentId) {
+		const queryType = queryTypes.suggestion;
+
+		return {
+			id: componentId,
+			type: queryType,
+			dataField: getNormalizedField(props.dataField),
+			react: props.react,
+			highlight: props.highlight,
+			highlightField: getNormalizedField(props.highlightField),
+			fuzziness: props.fuzziness,
+			searchOperators: props.searchOperators,
+			includeFields: props.includeFields,
+			excludeFields: props.excludeFields,
+			size: props.size,
+			aggregationSize: props.aggregationSize,
+			from: props.from, // Need to maintain for RL
+			queryFormat: props.queryFormat,
+			sortBy: props.sortBy,
+			fieldWeights: getNormalizedField(props.fieldWeights),
+			includeNullValues: props.includeNullValues,
+			aggregationField: props.aggregationField || undefined,
+			categoryField: props.categoryField || undefined,
+			missingLabel: props.missingLabel || undefined,
+			showMissing: props.showMissing,
+			nestedField: props.nestedField || undefined,
+			interval: props.interval,
+			customHighlight: props.customHighlight,
+			customQuery: props.customQuery,
+			defaultQuery: props.defaultQuery,
+			value: props.value,
+			categoryValue: props.categoryValue || undefined,
+			after: props.after || undefined,
+			aggregations: props.aggregations || undefined,
+			enableSynonyms: props.enableSynonyms,
+			selectAllLabel: props.selectAllLabel,
+			pagination: props.pagination,
+			queryString: props.queryString,
+			distinctField: props.distinctField,
+			distinctFieldConfig: props.distinctFieldConfig,
+			index: props.index,
+			enablePopularSuggestions: props.enablePopularSuggestions,
+			enableRecentSuggestions: props.enableRecentSuggestions,
+			popularSuggestionsConfig: props.popularSuggestionsConfig,
+			recentSuggestionsConfig: props.recentSuggestionsConfig,
+			applyStopwords: props.applyStopwords,
+			customStopwords: props.customStopwords,
+			enablePredictiveSuggestions: props.enablePredictiveSuggestions,
+		};
+	}
+	return null;
+};
+
 export const getValidInterval = (interval, range = {}) => {
 	const min = Math.ceil((range.end - range.start) / 100) || 1;
 	if (!interval) {
@@ -144,7 +200,10 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	let value = calcValues !== undefined && calcValues !== null ? calcValues.value : undefined;
 	let queryFormat = componentProps.queryFormat;
 	let { interval } = componentProps;
-	let type = componentToTypeMap[componentProps.componentType];
+	let type
+		= componentProps.componentType === componentTypes.searchBox
+			&& !component.includes('__internal') ? queryTypes.search : componentToTypeMap[componentProps.componentType
+			];
 	let dataField = componentProps.dataField;
 	let aggregations;
 	let pagination; // pagination for `term` type of queries

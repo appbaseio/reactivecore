@@ -17,6 +17,7 @@ import {
 	updateQueryOptions,
 	setPopularSuggestions,
 	setDefaultPopularSuggestions,
+	setSuggestions,
 } from './misc';
 import { buildQuery, isEqual, getSearchState } from '../utils/helper';
 import getFilterString, { parseCustomEvents } from '../utils/analytics';
@@ -30,6 +31,7 @@ import {
 	getHistogramComponentID,
 	componentToTypeMap,
 	isSearchComponent,
+	getSuggestionsQuery,
 } from '../utils/transform';
 import { getInternalComponentID } from '../../lib/utils/transform';
 
@@ -69,6 +71,47 @@ export function loadPopularSuggestions(componentId) {
 						));
 						// dispatch default popular suggestions
 					}
+				})
+				.catch((e) => {
+					handleError(
+						{
+							orderOfQueries: [componentId],
+							error: e,
+						},
+						getState,
+						dispatch,
+					);
+				});
+		}
+	};
+}
+
+// specific to SearchBox.js under Search components
+export function fetchSuggestions(componentId) {
+	return (dispatch, getState) => {
+		const {
+			config, appbaseRef, props, internalValues,
+		} = getState();
+		const isAppbaseEnabled = config && config.enableAppbase;
+		let value;
+		const isInternalComponent = componentId.endsWith('__internal');
+		const mainComponentProps = props[componentId];
+		if (isInternalComponent && isSearchComponent(mainComponentProps.componentType)) {
+			value = internalValues[componentId] && internalValues[componentId].value;
+		}
+		const componentProps = { ...(value ? { value } : {}), ...(props[componentId] || {}) };
+		const query = getSuggestionsQuery(componentId, componentProps);
+		if (isAppbaseEnabled) {
+			appbaseRef
+				.reactiveSearchv3([query], {
+					recordAnalytics: config.analytics,
+				})
+				.then((suggestions) => {
+					const querySuggestion = suggestions[componentId];
+					dispatch(setSuggestions(
+						querySuggestion && querySuggestion.hits && querySuggestion.hits.hits,
+						componentId,
+					));
 				})
 				.catch((e) => {
 					handleError(
@@ -231,6 +274,7 @@ function appbaseSearch({
 	isSuggestionsQuery = false,
 	searchComponentID,
 	appendToAggs = false,
+	isSearchBoxQuery = false,
 } = {}) {
 	return (dispatch, getState) => {
 		const { appbaseRef, config, headers } = getState();
@@ -273,8 +317,9 @@ function appbaseSearch({
 		});
 
 		appbaseRef.setHeaders({ ...headers });
-
-		if (isSuggestionsQuery && searchComponentID) {
+		if (isSearchBoxQuery && searchComponentID) {
+			dispatch(fetchSuggestions(searchComponentID));
+		} else if (isSuggestionsQuery && searchComponentID) {
 			dispatch(loadPopularSuggestions(searchComponentID));
 		}
 		appbaseRef
@@ -340,7 +385,6 @@ export function executeQuery(
 			const watchList = watchMan[componentId] || [];
 			componentList = [...componentList, ...watchList];
 		}
-
 		const matchAllQuery = { match_all: {} };
 
 		componentList.forEach((component) => {
@@ -350,11 +394,8 @@ export function executeQuery(
 			if (
 				selectedValues[componentId]
 				&& selectedValues[componentId].reference !== 'URL'
-				&& componentProps
-				&& [
-					componentTypes.reactiveList,
-					componentTypes.reactiveMap,
-				].includes(componentProps.componentType)
+				&& [componentTypes.reactiveList, componentTypes.reactiveMap]
+					.includes(componentProps.componentType)
 			) {
 				dispatch(setValue(component, null));
 			}
@@ -366,11 +407,11 @@ export function executeQuery(
 				queryList,
 				queryOptions,
 			);
-
 			const validOptions = ['aggs', 'from', 'sort'];
 			// check if query or options are valid - non-empty
 			if (
-				(queryObj && !!Object.keys(queryObj).length)
+				componentType === componentTypes.searchBox
+				|| (queryObj && !!Object.keys(queryObj).length)
 				|| (options && Object.keys(options).some(item => validOptions.includes(item)))
 			) {
 				// attach a match-all-query if empty
@@ -383,7 +424,6 @@ export function executeQuery(
 					...options,
 					...queryOptions[component],
 				};
-
 				const queryToLog = {
 					query: { ...queryObj },
 					...options,
@@ -391,14 +431,16 @@ export function executeQuery(
 				};
 
 				const oldQuery = queryLog[component];
-
-				if (mustExecuteMapQuery || !isEqual(currentQuery, oldQuery)) {
+				if (
+					mustExecuteMapQuery
+					|| !isEqual(currentQuery, oldQuery)
+					|| componentType === componentTypes.searchBox
+				) {
 					orderOfQueries = [...orderOfQueries, component];
 
 					// log query before adding the map query,
 					// since we don't do gatekeeping on the map query in the `queryLog`
 					dispatch(logQuery(component, queryToLog));
-
 					// add maps query here
 					const isMapComponent = Object.keys(mapData).includes(component);
 
@@ -445,7 +487,7 @@ export function executeQuery(
 						const query = getRSQuery(
 							component,
 							extractPropsFromState(getState(), component, {
-								...(value ? { value } : null),
+								value,
 								...(metaOptions ? { from: metaOptions.from } : null),
 							}),
 						);
@@ -491,6 +533,7 @@ export function executeQuery(
 		if (isAppbaseEnabled) {
 			finalQuery = Object.keys(appbaseQuery).map(component => appbaseQuery[component]);
 		}
+
 		if (finalQuery.length) {
 			if (isAppbaseEnabled) {
 				const suggestionsComponents = [
@@ -500,6 +543,8 @@ export function executeQuery(
 				const isInternalComponent = componentId.endsWith('__internal');
 				const isSuggestionsQuery
 					= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
+				const isSearchBoxQuery
+					= isInternalComponent && componentType === componentTypes.searchBox;
 				const currentTime = new Date().getTime();
 				if (currentTime - initialTimestamp < lockTime) {
 					// set timeout if lock is not false
@@ -507,6 +552,7 @@ export function executeQuery(
 						setTimeout(() => {
 							let finalOrderOfQueries = [];
 							let finalIsSuggestionsQuery = false;
+							let finalIsSearchBoxQuery = false;
 							let finalSearchComponentID = '';
 							const orderOfQueriesMap = {};
 							const processedQueriesMap = {};
@@ -515,6 +561,9 @@ export function executeQuery(
 							// construct the request body with latest requests
 							// dispatch the `appbaseSearch` action with a single request
 							requestStack.forEach((request) => {
+								if (!finalIsSearchBoxQuery) {
+									finalIsSearchBoxQuery = request.isSearchBoxQuery;
+								}
 								if (!finalIsSuggestionsQuery) {
 									finalIsSuggestionsQuery = request.isSuggestionsQuery;
 								}
@@ -552,6 +601,7 @@ export function executeQuery(
 									orderOfQueries: finalOrderOfQueries,
 									isSuggestionsQuery: finalIsSuggestionsQuery,
 									searchComponentID: finalSearchComponentID,
+									isSearchBoxQuery: finalIsSearchBoxQuery,
 								}));
 							}
 							// empty the request stack
@@ -564,6 +614,7 @@ export function executeQuery(
 						orderOfQueries,
 						isSuggestionsQuery,
 						searchComponentID: componentId,
+						isSearchBoxQuery,
 					});
 				} else {
 					dispatch(appbaseSearch({
@@ -571,6 +622,7 @@ export function executeQuery(
 						orderOfQueries,
 						isSuggestionsQuery,
 						searchComponentID: componentId,
+						isSearchBoxQuery,
 					}));
 				}
 			} else {
@@ -613,6 +665,7 @@ export function updateQuery(
 	execute = true,
 ) {
 	return (dispatch) => {
+		// eslint-disable-next-line
 		let queryToDispatch = query;
 		if (query && query.query) {
 			queryToDispatch = query.query;

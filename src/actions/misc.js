@@ -19,6 +19,7 @@ import {
 	SET_POPULAR_SUGGESTIONS,
 	SET_RAW_DATA,
 	SET_DEFAULT_POPULAR_SUGGESTIONS,
+	SET_SUGGESTIONS,
 } from '../constants';
 
 export function setRawData(component, response) {
@@ -143,6 +144,14 @@ export function setPromotedResults(results = [], component) {
 export function setPopularSuggestions(suggestions = [], component) {
 	return {
 		type: SET_POPULAR_SUGGESTIONS,
+		suggestions,
+		component,
+	};
+}
+
+export function setSuggestions(suggestions = [], component) {
+	return {
+		type: SET_SUGGESTIONS,
 		suggestions,
 		component,
 	};
