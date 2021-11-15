@@ -30,7 +30,6 @@ import appliedSettingsReducer from './appliedSettingsReducer';
 import customHighlightReducer from './customHighlightReducer';
 import rawDataReducer from './rawDataReducer';
 import querySuggestionsReducer from './querySuggestionsReducer';
-import suggestionsReducer from './suggestionsReducer';
 import defaultPopularSuggestionsReducer from './defaultPopularSuggestions';
 import queryToHitsReducer from './queryToHitsReducer';
 import recentSearchesReducer from './recentSearches';
@@ -70,5 +69,4 @@ export default combineReducers({
 	queryToHits: queryToHitsReducer, // holds the query value for last fetched `hits`
 	recentSearches: recentSearchesReducer,
 	urlValues: (state = {}) => state,
-	suggestions: suggestionsReducer,
 });
