@@ -181,6 +181,10 @@ const types = {
 	componentObject: object,
 	dataFieldValidator,
 	focusShortcuts: oneOfType([arrayOf(string), arrayOf(number)]),
+	mongodb: shape({
+		db: string,
+		collection: string,
+	}),
 };
 
 export default types;
