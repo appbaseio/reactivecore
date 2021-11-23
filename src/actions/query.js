@@ -476,10 +476,12 @@ export function executeQuery(
 							}
 						}
 					} else {
+						const preference = config && config.analyticsConfig && config.analyticsConfig.userId
+							? `${config.analyticsConfig.userId}_${component}` : component;
 						finalQuery = [
 							...finalQuery,
 							{
-								preference: component,
+								preference,
 							},
 							currentQuery,
 						];
@@ -723,9 +725,13 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 				appendToAggs,
 			}));
 		} else {
+			const preference = store.config
+				&& store.config.analyticsConfig
+				&& store.config.analyticsConfig.userId
+				? `${store.config.analyticsConfig.userId}_${component}` : component;
 			const finalQuery = [
 				{
-					preference: component,
+					preference,
 				},
 				currentQuery,
 			];
