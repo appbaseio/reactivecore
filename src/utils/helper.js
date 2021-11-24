@@ -575,7 +575,7 @@ export function getResultStats(props) {
 	return {
 		numberOfResults: total,
 		...(size > 0 ? { numberOfPages: Math.ceil(total / size) } : null),
-		time,
+		time: time || 0,
 		hidden,
 		promoted: promotedResults && promotedResults.length,
 	};
