@@ -38,7 +38,6 @@ export function updateAnalyticsConfig(analyticsConfig) {
 	};
 }
 
-
 export function getRecentSearches(queryOptions = {
 	size: 5,
 	minChars: 3,
@@ -49,7 +48,7 @@ export function getRecentSearches(queryOptions = {
 			headers,
 			appbaseRef: { url, protocol, credentials },
 		} = getState();
-		const { app } = config;
+		const { app, mongodb } = config;
 		const esURL = `${protocol}://${url}`;
 		const parsedURL = (esURL || '').replace(/\/+$/, '');
 
@@ -91,10 +90,13 @@ export function getRecentSearches(queryOptions = {
 				});
 			}
 		}
-		fetch(
-			`${parsedURL}/_analytics/${app}/recent-searches?${queryString}`,
-			requestOptions,
-		)
+		if (mongodb) {
+			return dispatch({
+				type: RECENT_SEARCHES_SUCCESS,
+				data: [],
+			});
+		}
+		return fetch(`${parsedURL}/_analytics/${app}/recent-searches?${queryString}`, requestOptions)
 			.then((res) => {
 				if (res.status >= 500 || res.status >= 400) {
 					return dispatch({
@@ -104,19 +106,22 @@ export function getRecentSearches(queryOptions = {
 				}
 				return res
 					.json()
-					.then(recentSearches => dispatch({
-						type: RECENT_SEARCHES_SUCCESS,
-						data: recentSearches,
-					}))
-					.catch(e => dispatch({
-						type: RECENT_SEARCHES_ERROR,
-						error: e,
-					}));
+					.then(recentSearches =>
+						dispatch({
+							type: RECENT_SEARCHES_SUCCESS,
+							data: recentSearches,
+						}))
+					.catch(e =>
+						dispatch({
+							type: RECENT_SEARCHES_ERROR,
+							error: e,
+						}));
 			})
-			.catch(e => dispatch({
-				type: RECENT_SEARCHES_ERROR,
-				error: e,
-			}));
+			.catch(e =>
+				dispatch({
+					type: RECENT_SEARCHES_ERROR,
+					error: e,
+				}));
 	};
 }
 
@@ -151,7 +156,6 @@ function recordClick({
 		});
 	}
 }
-
 
 export function recordResultClick(searchPosition, documentId) {
 	return (dispatch, getState) => {

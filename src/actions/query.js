@@ -47,6 +47,10 @@ export function loadPopularSuggestions(componentId) {
 			isAppbaseEnabled
 			&& (componentProps.enablePopularSuggestions || componentProps.enableQuerySuggestions)
 		) {
+			if (config.mongodb) {
+				dispatch(setDefaultPopularSuggestions([], componentId.split('__internal')[0]));
+				return;
+			}
 			const suggQuery = getSuggestionQuery(getState, componentId);
 			appbaseRef
 				.getQuerySuggestions(suggQuery)
@@ -273,7 +277,6 @@ function appbaseSearch({
 		});
 
 		appbaseRef.setHeaders({ ...headers });
-
 		if (isSuggestionsQuery && searchComponentID) {
 			dispatch(loadPopularSuggestions(searchComponentID));
 		}
@@ -351,10 +354,8 @@ export function executeQuery(
 				selectedValues[componentId]
 				&& selectedValues[componentId].reference !== 'URL'
 				&& componentProps
-				&& [
-					componentTypes.reactiveList,
-					componentTypes.reactiveMap,
-				].includes(componentProps.componentType)
+				&& [componentTypes.reactiveList, componentTypes.reactiveMap]
+					.includes(componentProps.componentType)
 			) {
 				dispatch(setValue(component, null));
 			}
