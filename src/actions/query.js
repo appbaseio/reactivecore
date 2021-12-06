@@ -315,6 +315,7 @@ export function executeQuery(
 	componentType,
 	metaOptions,
 ) {
+	window.console.log('----------------------------------------------------------------');
 	return (dispatch, getState) => {
 		const {
 			queryLog,
@@ -340,10 +341,10 @@ export function executeQuery(
 			const watchList = watchMan[componentId] || [];
 			componentList = [...componentList, ...watchList];
 		}
-
 		const matchAllQuery = { match_all: {} };
-
+		console.log('componentList', componentList);
 		componentList.forEach((component) => {
+			window.console.log('current component', component);
 			// Clear pagination state for result components
 			// Only clear when value is not set by URL params
 			const componentProps = props[component];
@@ -351,12 +352,10 @@ export function executeQuery(
 				selectedValues[componentId]
 				&& selectedValues[componentId].reference !== 'URL'
 				&& componentProps
-				&& [componentTypes.reactiveList, componentTypes.reactiveMap]
-					.includes(componentProps.componentType)
+				&& [componentTypes.reactiveList, componentTypes.reactiveMap].includes(componentProps.componentType)
 			) {
 				dispatch(setValue(component, null));
 			}
-
 
 			// eslint-disable-next-line
 			let { queryObj, options } = buildQuery(
@@ -366,14 +365,15 @@ export function executeQuery(
 				queryOptions,
 			);
 
+			window.console.log(component, queryObj, queryOptions);
+
 			const validOptions = ['aggs', 'from', 'sort'];
-
-
 			// check if query or options are valid - non-empty
 			if (
 				(queryObj && !!Object.keys(queryObj).length)
 				|| (options && Object.keys(options).some(item => validOptions.includes(item)))
 			) {
+				
 				// attach a match-all-query if empty
 				if (!queryObj || (queryObj && !Object.keys(queryObj).length)) {
 					queryObj = { ...matchAllQuery };
@@ -392,13 +392,10 @@ export function executeQuery(
 				};
 
 				const oldQuery = queryLog[component];
-
-
-				if (mustExecuteMapQuery
-					|| !isEqual(currentQuery, oldQuery)
-					|| componentType === componentTypes.searchBox) {
+				window.console.log('currentQuery', currentQuery);
+				window.console.log('oldQuery', oldQuery);
+				if (mustExecuteMapQuery || !isEqual(currentQuery, oldQuery)) {
 					orderOfQueries = [...orderOfQueries, component];
-
 					// log query before adding the map query,
 					// since we don't do gatekeeping on the map query in the `queryLog`
 					dispatch(logQuery(component, queryToLog));
@@ -453,7 +450,6 @@ export function executeQuery(
 								...(metaOptions ? { from: metaOptions.from } : null),
 							}),
 						);
-
 						if (query) {
 							// Apply dependent queries
 							appbaseQuery = {
@@ -494,6 +490,7 @@ export function executeQuery(
 
 		if (isAppbaseEnabled) {
 			finalQuery = Object.keys(appbaseQuery).map(component => appbaseQuery[component]);
+			window.console.log(componentId, 'appbaseQuery', appbaseQuery);
 		}
 		if (finalQuery.length) {
 			if (isAppbaseEnabled) {
