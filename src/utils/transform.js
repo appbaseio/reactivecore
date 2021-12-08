@@ -1,5 +1,6 @@
 import XDate from 'xdate';
 import { componentTypes, queryTypes } from './constants';
+import dateFormats from './dateFormats';
 import { formatDate } from './helper';
 
 export const componentToTypeMap = {
@@ -119,6 +120,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			distinctField: props.distinctField,
 			distinctFieldConfig: props.distinctFieldConfig,
 			index: props.index,
+			calendarInterval: props.calendarInterval,
 		};
 	}
 	return null;
@@ -202,10 +204,51 @@ export const extractPropsFromState = (store, component, customOptions) => {
 				interval = getValidInterval(interval, value);
 			}
 		}
+
 		if (isDRSRangeComponent(component)) {
 			aggregations = ['min', 'max'];
 		} else if (componentProps.showHistogram) {
 			aggregations = ['histogram'];
+		}
+
+		// handle number box, number box query changes based on the `queryFormat` value
+		if (
+			componentProps.componentType === componentTypes.dynamicRangeSlider
+			|| componentProps.componentType === componentTypes.rangeSlider
+		) {
+			// Remove query format
+			queryFormat = 'or';
+			// Set value
+			if (value) {
+				if (typeof value === 'string') {
+					value = {
+						start: formatDate(new XDate(value).addHours(-24), componentProps),
+						end: formatDate(new XDate(value), componentProps),
+					};
+				} else if (Array.isArray(value)) {
+					value = value.map(val => ({
+						start: formatDate(new XDate(val), componentProps),
+						end: formatDate(new XDate(val), componentProps),
+					}));
+				} else if (typeof value === 'object') {
+					/* eslint-disable */
+					value = {
+						start: componentProps.queryFormat
+							? (new XDate(value.start).valid() &&
+							  componentProps.queryFormat !== dateFormats.epoch_second
+								? formatDate(new XDate(value.start), componentProps)
+								: value.start)
+							: parseFloat(value.start),
+						end: componentProps.queryFormat
+							? (new XDate(value.end).valid() &&
+							  componentProps.queryFormat !== dateFormats.epoch_second
+								? formatDate(new XDate(value.end), componentProps)
+								: value.end)
+							: parseFloat(value.end),
+					};
+					/* eslint-enable */
+				}
+			}
 		}
 
 		// handle date components
