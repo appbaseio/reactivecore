@@ -95,8 +95,8 @@ const types = {
 	options: oneOfType([arrayOf(object), object]),
 	paginationAt: oneOf(['top', 'bottom', 'both']),
 	range: shape({
-		start: number.isRequired,
-		end: number.isRequired,
+		start: oneOfType([number, object]).isRequired,
+		end: oneOfType([number, object]).isRequired,
 	}),
 	rangeLabels: shape({
 		start: string.isRequired,
@@ -185,6 +185,7 @@ const types = {
 		db: string,
 		collection: string,
 	}),
+	calendarInterval: oneOf(['month', 'day', 'year', 'week', 'quarter', 'hour', 'minute']),
 };
 
 export default types;
