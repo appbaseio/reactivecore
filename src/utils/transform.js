@@ -145,6 +145,8 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	const calcValues = store.selectedValues[component] || store.internalValues[component];
 	let value = calcValues !== undefined && calcValues !== null ? calcValues.value : undefined;
 	let queryFormat = componentProps.queryFormat;
+	// calendarInterval only supported when using date types
+	let calendarInterval;
 	let { interval } = componentProps;
 	let type = componentToTypeMap[componentProps.componentType];
 	let dataField = componentProps.dataField;
@@ -216,38 +218,33 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			componentProps.componentType === componentTypes.dynamicRangeSlider
 			|| componentProps.componentType === componentTypes.rangeSlider
 		) {
-			// Remove query format
+			calendarInterval = Object.keys(dateFormats).includes(queryFormat)
+				? componentProps.calendarInterval || 'month'
+				: undefined;
+			// Remove
 			queryFormat = 'or';
 			// Set value
 			if (value) {
-				if (typeof value === 'string') {
-					value = {
-						start: formatDate(new XDate(value).addHours(-24), componentProps),
-						end: formatDate(new XDate(value), componentProps),
-					};
-				} else if (Array.isArray(value)) {
-					value = value.map(val => ({
-						start: formatDate(new XDate(val), componentProps),
-						end: formatDate(new XDate(val), componentProps),
-					}));
-				} else if (typeof value === 'object') {
-					/* eslint-disable */
-					value = {
-						start: componentProps.queryFormat
-							? (new XDate(value.start).valid() &&
-							  componentProps.queryFormat !== dateFormats.epoch_second
-								? formatDate(new XDate(value.start), componentProps)
-								: value.start)
-							: parseFloat(value.start),
-						end: componentProps.queryFormat
-							? (new XDate(value.end).valid() &&
-							  componentProps.queryFormat !== dateFormats.epoch_second
-								? formatDate(new XDate(value.end), componentProps)
-								: value.end)
-							: parseFloat(value.end),
-					};
-					/* eslint-enable */
-				}
+				/* eslint-disable */
+				value = {
+					start: componentProps.queryFormat
+						? new XDate(value.start).valid() &&
+						  componentProps.queryFormat !== dateFormats.epoch_second
+							? componentProps.showHistogram
+								? new XDate(value.start).getTime()
+								: formatDate(new XDate(value.start), componentProps)
+							: value.start
+						: parseFloat(value.start),
+					end: componentProps.queryFormat
+						? new XDate(value.end).valid() &&
+						  componentProps.queryFormat !== dateFormats.epoch_second
+							? componentProps.showHistogram
+								? new XDate(value.end).getTime()
+								: formatDate(new XDate(value.end), componentProps)
+							: value.end
+						: parseFloat(value.end),
+				};
+				/* eslint-enable */
 			}
 		}
 
@@ -375,6 +372,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	}
 	return {
 		...componentProps,
+		calendarInterval,
 		dataField,
 		queryFormat,
 		type,
