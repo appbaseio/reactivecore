@@ -221,8 +221,6 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			calendarInterval = Object.keys(dateFormats).includes(queryFormat)
 				? componentProps.calendarInterval || 'month'
 				: undefined;
-			// Remove
-			queryFormat = 'or';
 			// Set value
 			if (value) {
 				/* eslint-disable */
