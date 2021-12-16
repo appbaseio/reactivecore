@@ -362,7 +362,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		categoryValue: store.internalValues[component]
 			? store.internalValues[component].category
 			: undefined,
-		value,
+		value: value || undefined,
 		pagination,
 		from,
 		...customOptions,
