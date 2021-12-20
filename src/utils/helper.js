@@ -701,11 +701,16 @@ export const getTopSuggestions = (querySuggestions, currentValue = '', showDisti
 	return withClickIds(finalSuggestions);
 };
 
+/* isValidDateRangeQueryFormat() checks if the queryFormat is one of the dateFormats
+	accepted by the elasticsearch or not. */
 export function isValidDateRangeQueryFormat(queryFormat) {
 	return Object.keys(dateFormats).includes(queryFormat);
 }
 
 // converts a date type, if used, to a comparable numeric format
+/* getNumericRangeValue() function is used to retrieve a numeric value that can be compared
+ using comparison operators, when dealing with dates it is highly probable that we
+ would be getting date objects and sometimes date-strings that can't be compared directly */
 export function getNumericRangeValue(value, props, avoidEpochSecondDivision = false) {
 	// eslint-disable-next-line
 	if (
@@ -722,9 +727,9 @@ export function getNumericRangeValue(value, props, avoidEpochSecondDivision = fa
 	return parseFloat(value);
 }
 
-// converts a value type to a representational string format
-// based on the queryFormat if passed
-// else returns as is.
+/* getRangeValueString() returns a string from a date-(object, string, numeric) in
+	the queryFormat passed by the user. All for representational purpose, this value is the one
+	getting stored in reduc to be used by the selectedFilters, query-generation, urlparams, etc. */
 export function getRangeValueString(value, props) {
 	if (typeof value !== 'string') {
 		switch (props.queryFormat) {
@@ -751,8 +756,16 @@ export function getRangeValueString(value, props) {
 	return value;
 }
 
-// converts a string to a standard format which can be
-// parsed by the XDate constructor
+/* formatDateStringToStandard() returns a date-string that is acceptable by the XDate().
+	For Xdate() to prase date-strings, Date-strings must either be in ISO8601 format
+	or IETF format (like "Mon Sep 05 2011 12:30:00 GMT-0700 (PDT)")
+	Ref: https://arshaw.com/xdate/#Parsing
+
+	We need it when we are getting value from the Redux store, since we are storing values in
+	redux store that get used by the SelectedFilters and URLParams also,
+	these values are in the format passed by the user through queryFormat prop,
+	for example, a date string would be stored as HHmmss.fffzzz
+	when queryFormat === 'basic_time' but this can't be parsed by the Xdate constructor. */
 export function formatDateStringToStandard(value, props) {
 	const queryFormat = dateFormats[props.queryFormat];
 	let formattedValue = value;
@@ -821,3 +834,4 @@ export function formatDateStringToStandard(value, props) {
 	}
 	return formattedValue;
 }
+
