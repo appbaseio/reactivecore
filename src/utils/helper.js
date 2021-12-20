@@ -1,4 +1,5 @@
 // when we want to perform deep equality check, especially in objects
+import XDate from 'xdate';
 import dateFormats from './dateFormats';
 import getSuggestions from './suggestions';
 
@@ -610,10 +611,12 @@ export function extractFieldsFromSource(esSource) {
 // { "field": x, "weight": y }
 export function normalizeDataField(dataField, fieldWeights = []) {
 	if (typeof dataField === 'string') {
-		return [{
-			field: dataField,
-			weight: fieldWeights.length ? fieldWeights[0] : undefined,
-		}];
+		return [
+			{
+				field: dataField,
+				weight: fieldWeights.length ? fieldWeights[0] : undefined,
+			},
+		];
 	}
 	if (Array.isArray(dataField)) {
 		return dataField.map((field, index) => {
@@ -631,10 +634,12 @@ export function normalizeDataField(dataField, fieldWeights = []) {
 		});
 	}
 	if (typeof dataField === 'object' && dataField) {
-		return [{
-			field: dataField.field,
-			weight: dataField.weight,
-		}];
+		return [
+			{
+				field: dataField.field,
+				weight: dataField.weight,
+			},
+		];
 	}
 	return [];
 }
@@ -695,3 +700,124 @@ export const getTopSuggestions = (querySuggestions, currentValue = '', showDisti
 	});
 	return withClickIds(finalSuggestions);
 };
+
+export function isValidDateRangeQueryFormat(queryFormat) {
+	return Object.keys(dateFormats).includes(queryFormat);
+}
+
+// converts a date type, if used, to a comparable numeric format
+export function getNumericRangeValue(value, props, avoidEpochSecondDivision = false) {
+	// eslint-disable-next-line
+	if (
+		typeof value !== 'number'
+		&& isValidDateRangeQueryFormat(props.queryFormat)
+		&& new XDate(value, true).valid()
+	) {
+		if (props.queryFormat === 'epoch_second' && avoidEpochSecondDivision === false) {
+			// epoch_second format requires a division by 1000 to convert millisecs to secs
+			return Math.floor(new XDate(value, true).getTime() / 1000);
+		}
+		return new XDate(value, true).getTime();
+	}
+	return parseFloat(value);
+}
+
+// converts a value type to a representational string format
+// based on the queryFormat if passed
+// else returns as is.
+export function getRangeValueString(value, props) {
+	if (typeof value !== 'string') {
+		switch (props.queryFormat) {
+			case 'epoch_millis':
+				return new XDate(value, true).getTime();
+			case 'epoch_second':
+				return Math.floor(new XDate(value, true).getTime() / 1000);
+			// we fallback to `date` format since, only-time is lossy for converting back to date object
+			// we would need to convert back from rangestring to date object for feeding to rangeslider
+			// post numeric conversion of date object
+			case 'basic_time_no_millis':
+				return new XDate(value, true).toString(dateFormats.date);
+			case 'basic_time':
+				return new XDate(value, true).toString(dateFormats.date);
+			default: {
+				if (dateFormats[props.queryFormat]) {
+					return new XDate(value, true).toString(dateFormats[props.queryFormat]);
+				}
+				return value.toString();
+			}
+		}
+	}
+
+	return value;
+}
+
+// converts a string to a standard format which can be
+// parsed by the XDate constructor
+export function formatDateStringToStandard(value, props) {
+	const queryFormat = dateFormats[props.queryFormat];
+	let formattedValue = value;
+	let offSetSign = '';
+	if (typeof formattedValue === 'string') {
+		// eslint-disable-next-line
+		offSetSign = // eslint-disable-next-line
+			formattedValue.indexOf('+') != -1
+				? '+'
+				: formattedValue.indexOf('-') !== -1
+					? '-'
+					: null;
+
+		const offsetComponent = offSetSign ? offSetSign + formattedValue.split(offSetSign)[1] : '';
+		switch (queryFormat) {
+			case dateFormats.date:
+				return formattedValue;
+			case dateFormats.basic_date:
+				formattedValue = [
+					formattedValue.slice(0, 4),
+					'-',
+					formattedValue.slice(4, 6),
+					'-',
+					formattedValue.slice(6),
+				].join('');
+
+				return formattedValue;
+			case dateFormats.basic_date_time || dateFormats.basic_date_time_no_millis:
+				formattedValue = [
+					formattedValue.slice(0, 4),
+					'-',
+					formattedValue.slice(4, 6),
+					'-',
+					formattedValue.slice(6, 8),
+					'T',
+					formattedValue.slice(9, 11),
+					':',
+					formattedValue.slice(11, 13),
+					':',
+					formattedValue.slice(13, 15),
+					offsetComponent,
+				].join('');
+				return formattedValue;
+			case dateFormats.date_time_no_millis:
+				formattedValue = [
+					formattedValue.slice(0, 10),
+					'T',
+					formattedValue.slice(11, 13),
+					':',
+					formattedValue.slice(14, 16),
+					':',
+					formattedValue.slice(17, 19),
+					offsetComponent,
+				].join('');
+				return formattedValue;
+			case dateFormats.epoch_millis:
+				return formattedValue;
+			case dateFormats.epoch_second:
+				return formattedValue * 1000;
+			default:
+				return formattedValue;
+		}
+	}
+	if (props.queryFormat === 'epoch_second') {
+		return value * 1000;
+	}
+	return formattedValue;
+}
