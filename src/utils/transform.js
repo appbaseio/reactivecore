@@ -153,7 +153,6 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	let aggregations;
 	let pagination; // pagination for `term` type of queries
 	let from = componentProps.from; // offset for RL
-
 	// For term queries i.e list component `dataField` will be treated as aggregationField
 	if (queryType === queryTypes.term) {
 		// Only apply pagination prop for the components which supports it otherwise it can break the UI
@@ -213,6 +212,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			aggregations = ['histogram'];
 		}
 
+
 		// handle number box, number box query changes based on the `queryFormat` value
 		if (
 			componentProps.componentType === componentTypes.dynamicRangeSlider
@@ -221,6 +221,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			calendarInterval = Object.keys(dateFormats).includes(queryFormat)
 				? componentProps.calendarInterval || 'month'
 				: undefined;
+
 			// Set value
 			if (value) {
 				/* eslint-disable */
@@ -228,17 +229,13 @@ export const extractPropsFromState = (store, component, customOptions) => {
 					start: componentProps.queryFormat
 						? new XDate(value.start).valid() &&
 						  componentProps.queryFormat !== dateFormats.epoch_second
-							? componentProps.showHistogram
-								? new XDate(value.start).getTime()
-								: formatDate(new XDate(value.start), componentProps)
+							? formatDate(new XDate(value.start), componentProps)
 							: value.start
 						: parseFloat(value.start),
 					end: componentProps.queryFormat
 						? new XDate(value.end).valid() &&
 						  componentProps.queryFormat !== dateFormats.epoch_second
-							? componentProps.showHistogram
-								? new XDate(value.end).getTime()
-								: formatDate(new XDate(value.end), componentProps)
+							? formatDate(new XDate(value.end), componentProps)
 							: value.end
 						: parseFloat(value.end),
 				};
