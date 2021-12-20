@@ -212,7 +212,6 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			aggregations = ['histogram'];
 		}
 
-
 		// handle number box, number box query changes based on the `queryFormat` value
 		if (
 			componentProps.componentType === componentTypes.dynamicRangeSlider
@@ -224,22 +223,27 @@ export const extractPropsFromState = (store, component, customOptions) => {
 
 			// Set value
 			if (value) {
-				/* eslint-disable */
-				value = {
-					start: componentProps.queryFormat
-						? new XDate(value.start).valid() &&
-						  componentProps.queryFormat !== dateFormats.epoch_second
-							? formatDate(new XDate(value.start), componentProps)
-							: value.start
-						: parseFloat(value.start),
-					end: componentProps.queryFormat
-						? new XDate(value.end).valid() &&
-						  componentProps.queryFormat !== dateFormats.epoch_second
-							? formatDate(new XDate(value.end), componentProps)
-							: value.end
-						: parseFloat(value.end),
-				};
-				/* eslint-enable */
+				if (componentProps.queryFormat) { // check if date types are dealt with
+					value = {
+						start:
+							// formatDate should be passed with a XDate parsable value
+							new XDate(value.start).valid()
+							// avoid passing value for epoch_second to avoid re division of value by 1000
+							&& componentProps.queryFormat !== dateFormats.epoch_second
+								? formatDate(new XDate(value.start), componentProps)
+								: value.start, // no formatting required
+						end:
+							new XDate(value.end).valid()
+							&& componentProps.queryFormat !== dateFormats.epoch_second
+								? formatDate(new XDate(value.end), componentProps)
+								: value.end,
+					};
+				} else {
+					value = {
+						start: parseFloat(value.start),
+						end: parseFloat(value.end),
+					};
+				}
 			}
 		}
 
