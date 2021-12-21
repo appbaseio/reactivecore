@@ -1,5 +1,4 @@
 // when we want to perform deep equality check, especially in objects
-import XDate from 'xdate';
 import dateFormats from './dateFormats';
 import getSuggestions from './suggestions';
 
@@ -312,7 +311,7 @@ export function formatDate(date, props) {
 	switch (props.queryFormat) {
 		case 'epoch_millis':
 			return date.getTime();
-		case 'epoch_seconds':
+		case 'epoch_second':
 			return Math.floor(date.getTime() / 1000);
 		default: {
 			if (dateFormats[props.queryFormat]) {
@@ -706,132 +705,3 @@ export const getTopSuggestions = (querySuggestions, currentValue = '', showDisti
 export function isValidDateRangeQueryFormat(queryFormat) {
 	return Object.keys(dateFormats).includes(queryFormat);
 }
-
-// converts a date type, if used, to a comparable numeric format
-/* getNumericRangeValue() function is used to retrieve a numeric value that can be compared
- using comparison operators, when dealing with dates it is highly probable that we
- would be getting date objects and sometimes date-strings that can't be compared directly */
-export function getNumericRangeValue(value, props, avoidEpochSecondDivision = false) {
-	// eslint-disable-next-line
-	if (
-		typeof value !== 'number'
-		&& isValidDateRangeQueryFormat(props.queryFormat)
-		&& new XDate(value, true).valid()
-	) {
-		if (props.queryFormat === 'epoch_second' && avoidEpochSecondDivision === false) {
-			// epoch_second format requires a division by 1000 to convert millisecs to secs
-			return Math.floor(new XDate(value, true).getTime() / 1000);
-		}
-		return new XDate(value, true).getTime();
-	}
-	return parseFloat(value);
-}
-
-/* getRangeValueString() returns a string from a date-(object, string, numeric) in
-	the queryFormat passed by the user. All for representational purpose, this value is the one
-	getting stored in reduc to be used by the selectedFilters, query-generation, urlparams, etc. */
-export function getRangeValueString(value, props) {
-	if (typeof value !== 'string') {
-		switch (props.queryFormat) {
-			case 'epoch_millis':
-				return new XDate(value, true).getTime();
-			case 'epoch_second':
-				return Math.floor(new XDate(value, true).getTime() / 1000);
-			// we fallback to `date` format since, only-time is lossy for converting back to date object
-			// we would need to convert back from rangestring to date object for feeding to rangeslider
-			// post numeric conversion of date object
-			case 'basic_time_no_millis':
-				return new XDate(value, true).toString(dateFormats.date);
-			case 'basic_time':
-				return new XDate(value, true).toString(dateFormats.date);
-			default: {
-				if (dateFormats[props.queryFormat]) {
-					return new XDate(value, true).toString(dateFormats[props.queryFormat]);
-				}
-				return value.toString();
-			}
-		}
-	}
-
-	return value;
-}
-
-/* formatDateStringToStandard() returns a date-string that is acceptable by the XDate().
-	For Xdate() to prase date-strings, Date-strings must either be in ISO8601 format
-	or IETF format (like "Mon Sep 05 2011 12:30:00 GMT-0700 (PDT)")
-	Ref: https://arshaw.com/xdate/#Parsing
-
-	We need it when we are getting value from the Redux store, since we are storing values in
-	redux store that get used by the SelectedFilters and URLParams also,
-	these values are in the format passed by the user through queryFormat prop,
-	for example, a date string would be stored as HHmmss.fffzzz
-	when queryFormat === 'basic_time' but this can't be parsed by the Xdate constructor. */
-export function formatDateStringToStandard(value, props) {
-	const queryFormat = dateFormats[props.queryFormat];
-	let formattedValue = value;
-	let offSetSign = '';
-	if (typeof formattedValue === 'string') {
-		// eslint-disable-next-line
-		offSetSign = // eslint-disable-next-line
-			formattedValue.indexOf('+') != -1
-				? '+'
-				: formattedValue.indexOf('-') !== -1
-					? '-'
-					: null;
-
-		const offsetComponent = offSetSign ? offSetSign + formattedValue.split(offSetSign)[1] : '';
-		switch (queryFormat) {
-			case dateFormats.date:
-				return formattedValue;
-			case dateFormats.basic_date:
-				formattedValue = [
-					formattedValue.slice(0, 4),
-					'-',
-					formattedValue.slice(4, 6),
-					'-',
-					formattedValue.slice(6),
-				].join('');
-
-				return formattedValue;
-			case dateFormats.basic_date_time || dateFormats.basic_date_time_no_millis:
-				formattedValue = [
-					formattedValue.slice(0, 4),
-					'-',
-					formattedValue.slice(4, 6),
-					'-',
-					formattedValue.slice(6, 8),
-					'T',
-					formattedValue.slice(9, 11),
-					':',
-					formattedValue.slice(11, 13),
-					':',
-					formattedValue.slice(13, 15),
-					offsetComponent,
-				].join('');
-				return formattedValue;
-			case dateFormats.date_time_no_millis:
-				formattedValue = [
-					formattedValue.slice(0, 10),
-					'T',
-					formattedValue.slice(11, 13),
-					':',
-					formattedValue.slice(14, 16),
-					':',
-					formattedValue.slice(17, 19),
-					offsetComponent,
-				].join('');
-				return formattedValue;
-			case dateFormats.epoch_millis:
-				return formattedValue;
-			case dateFormats.epoch_second:
-				return formattedValue * 1000;
-			default:
-				return formattedValue;
-		}
-	}
-	if (props.queryFormat === 'epoch_second') {
-		return value * 1000;
-	}
-	return formattedValue;
-}
-

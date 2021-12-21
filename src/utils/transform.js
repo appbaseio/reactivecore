@@ -1,7 +1,7 @@
 import XDate from 'xdate';
 import { componentTypes, queryTypes } from './constants';
 import dateFormats from './dateFormats';
-import { formatDate } from './helper';
+import { formatDate, isValidDateRangeQueryFormat } from './helper';
 
 export const componentToTypeMap = {
 	// search components
@@ -223,20 +223,11 @@ export const extractPropsFromState = (store, component, customOptions) => {
 
 			// Set value
 			if (value) {
-				if (componentProps.queryFormat) { // check if date types are dealt with
+				if (isValidDateRangeQueryFormat(componentProps.queryFormat)) {
+					// check if date types are dealt with
 					value = {
-						start:
-							// formatDate should be passed with a XDate parsable value
-							new XDate(value.start).valid()
-							// avoid passing value for epoch_second to avoid re division of value by 1000
-							&& componentProps.queryFormat !== dateFormats.epoch_second
-								? formatDate(new XDate(value.start), componentProps)
-								: value.start, // no formatting required
-						end:
-							new XDate(value.end).valid()
-							&& componentProps.queryFormat !== dateFormats.epoch_second
-								? formatDate(new XDate(value.end), componentProps)
-								: value.end,
+						start: formatDate(new XDate(value.start), componentProps),
+						end: formatDate(new XDate(value.end), componentProps),
 					};
 				} else {
 					value = {
