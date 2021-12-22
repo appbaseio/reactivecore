@@ -311,7 +311,7 @@ export function formatDate(date, props) {
 	switch (props.queryFormat) {
 		case 'epoch_millis':
 			return date.getTime();
-		case 'epoch_seconds':
+		case 'epoch_second':
 			return Math.floor(date.getTime() / 1000);
 		default: {
 			if (dateFormats[props.queryFormat]) {
@@ -610,10 +610,12 @@ export function extractFieldsFromSource(esSource) {
 // { "field": x, "weight": y }
 export function normalizeDataField(dataField, fieldWeights = []) {
 	if (typeof dataField === 'string') {
-		return [{
-			field: dataField,
-			weight: fieldWeights.length ? fieldWeights[0] : undefined,
-		}];
+		return [
+			{
+				field: dataField,
+				weight: fieldWeights.length ? fieldWeights[0] : undefined,
+			},
+		];
 	}
 	if (Array.isArray(dataField)) {
 		return dataField.map((field, index) => {
@@ -631,10 +633,12 @@ export function normalizeDataField(dataField, fieldWeights = []) {
 		});
 	}
 	if (typeof dataField === 'object' && dataField) {
-		return [{
-			field: dataField.field,
-			weight: dataField.weight,
-		}];
+		return [
+			{
+				field: dataField.field,
+				weight: dataField.weight,
+			},
+		];
 	}
 	return [];
 }
@@ -695,3 +699,9 @@ export const getTopSuggestions = (querySuggestions, currentValue = '', showDisti
 	});
 	return withClickIds(finalSuggestions);
 };
+
+/* isValidDateRangeQueryFormat() checks if the queryFormat is one of the dateFormats
+	accepted by the elasticsearch or not. */
+export function isValidDateRangeQueryFormat(queryFormat) {
+	return Object.keys(dateFormats).includes(queryFormat);
+}
