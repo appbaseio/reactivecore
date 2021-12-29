@@ -1,5 +1,6 @@
 import { UPDATE_HITS, UPDATE_AGGS, UPDATE_COMPOSITE_AGGS } from '../constants';
 import { SET_QUERY_TO_HITS } from '../../lib/constants';
+import { componentToTypeMap } from '../utils/transform';
 
 export function updateAggs(component, aggregations, append = false) {
 	return {
@@ -37,5 +38,19 @@ export function saveQueryToHits(component, query) {
 		type: SET_QUERY_TO_HITS,
 		component,
 		query,
+	};
+}
+
+export function mockDataForTesting(component, data) {
+	return (dispatch, getState) => {
+		const { props } = getState();
+		const componentProps = props[component];
+		if (componentToTypeMap[componentProps.componentType] === 'term') {
+			// set aggs
+			dispatch(updateAggs(component, data));
+		} else {
+			// set hits
+			dispatch(updateHits(component, data));
+		}
 	};
 }
