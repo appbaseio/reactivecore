@@ -112,7 +112,6 @@ export const validProps = [
 	'enablePredictiveSuggestions',
 	'applyStopwords',
 	'customStopwords',
-	'onData',
 ];
 
 export const CLEAR_ALL = {
