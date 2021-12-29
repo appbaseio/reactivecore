@@ -1,6 +1,7 @@
 import XDate from 'xdate';
 import { componentTypes, queryTypes } from './constants';
-import { formatDate } from './helper';
+import dateFormats from './dateFormats';
+import { formatDate, isValidDateRangeQueryFormat } from './helper';
 
 export const componentToTypeMap = {
 	// search components
@@ -135,6 +136,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 					enablePredictiveSuggestions: props.enablePredictiveSuggestions,
 				}
 				: {}),
+			calendarInterval: props.calendarInterval,
 		};
 	}
 	return null;
@@ -159,13 +161,14 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	const calcValues = store.selectedValues[component] || store.internalValues[component];
 	let value = calcValues !== undefined && calcValues !== null ? calcValues.value : undefined;
 	let queryFormat = componentProps.queryFormat;
+	// calendarInterval only supported when using date types
+	let calendarInterval;
 	let { interval } = componentProps;
 	let type = componentToTypeMap[componentProps.componentType];
 	let dataField = componentProps.dataField;
 	let aggregations;
 	let pagination; // pagination for `term` type of queries
 	let from = componentProps.from; // offset for RL
-
 	// For term queries i.e list component `dataField` will be treated as aggregationField
 	if (queryType === queryTypes.term) {
 		// Only apply pagination prop for the components which supports it otherwise it can break the UI
@@ -218,10 +221,37 @@ export const extractPropsFromState = (store, component, customOptions) => {
 				interval = getValidInterval(interval, value);
 			}
 		}
+
 		if (isDRSRangeComponent(component)) {
 			aggregations = ['min', 'max'];
 		} else if (componentProps.showHistogram) {
 			aggregations = ['histogram'];
+		}
+
+		// handle number box, number box query changes based on the `queryFormat` value
+		if (
+			componentProps.componentType === componentTypes.dynamicRangeSlider
+			|| componentProps.componentType === componentTypes.rangeSlider
+		) {
+			calendarInterval = Object.keys(dateFormats).includes(queryFormat)
+				? componentProps.calendarInterval || 'month'
+				: undefined;
+
+			// Set value
+			if (value) {
+				if (isValidDateRangeQueryFormat(componentProps.queryFormat)) {
+					// check if date types are dealt with
+					value = {
+						start: formatDate(new XDate(value.start), componentProps),
+						end: formatDate(new XDate(value.end), componentProps),
+					};
+				} else {
+					value = {
+						start: parseFloat(value.start),
+						end: parseFloat(value.end),
+					};
+				}
+			}
 		}
 
 		// handle date components
@@ -348,6 +378,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	}
 	return {
 		...componentProps,
+		calendarInterval,
 		dataField,
 		queryFormat,
 		type,

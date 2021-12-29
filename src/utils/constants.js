@@ -102,6 +102,7 @@ export const validProps = [
 	'range',
 	'showSlider',
 	'parseDate',
+	'calendarInterval',
 	// Map components
 	'unit',
 	// Specific to searchBox

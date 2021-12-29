@@ -22,7 +22,7 @@ const extractSuggestion = (val) => {
 	}
 };
 
-function replaceDiacritics(s) {
+export function replaceDiacritics(s) {
 	let str = s ? String(s) : '';
 
 	for (let i = 0; i < str.length; i++) {
