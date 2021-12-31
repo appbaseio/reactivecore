@@ -18,7 +18,7 @@ export default function compositeAggsReducer(state = {}, action) {
 			}
 			return {
 				_doc_count: doc_count,
-				_key: key[fieldName],
+				_key: typeof key === 'string' ? key : key[fieldName],
 				top_hits: hitsData,
 				...flatData,
 				..._source,

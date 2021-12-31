@@ -343,9 +343,7 @@ export function executeQuery(
 			const watchList = watchMan[componentId] || [];
 			componentList = [...componentList, ...watchList];
 		}
-
 		const matchAllQuery = { match_all: {} };
-
 		componentList.forEach((component) => {
 			// Clear pagination state for result components
 			// Only clear when value is not set by URL params
@@ -392,10 +390,8 @@ export function executeQuery(
 				};
 
 				const oldQuery = queryLog[component];
-
 				if (mustExecuteMapQuery || !isEqual(currentQuery, oldQuery)) {
 					orderOfQueries = [...orderOfQueries, component];
-
 					// log query before adding the map query,
 					// since we don't do gatekeeping on the map query in the `queryLog`
 					dispatch(logQuery(component, queryToLog));
@@ -450,7 +446,6 @@ export function executeQuery(
 								...(metaOptions ? { from: metaOptions.from } : null),
 							}),
 						);
-
 						if (query) {
 							// Apply dependent queries
 							appbaseQuery = {
@@ -616,6 +611,7 @@ export function updateQuery(
 	execute = true,
 ) {
 	return (dispatch) => {
+		// eslint-disable-next-line
 		let queryToDispatch = query;
 		if (query && query.query) {
 			queryToDispatch = query.query;

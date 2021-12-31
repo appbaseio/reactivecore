@@ -3,6 +3,7 @@ export const componentTypes = {
 	// search components
 	dataSearch: 'DATASEARCH',
 	categorySearch: 'CATEGORYSEARCH',
+	searchBox: 'SUGGESTION',
 	// list components
 	singleList: 'SINGLELIST',
 	multiList: 'MULTILIST',
@@ -37,6 +38,7 @@ export const queryTypes = {
 	term: 'term',
 	range: 'range',
 	geo: 'geo',
+	suggestion: 'suggestion',
 };
 export const validProps = [
 	// common
@@ -103,6 +105,14 @@ export const validProps = [
 	'calendarInterval',
 	// Map components
 	'unit',
+	// Specific to searchBox
+	'enablePopularSuggestions',
+	'popularSuggestionsConfig',
+	'enableRecentSuggestions',
+	'recentSuggestionsConfig',
+	'enablePredictiveSuggestions',
+	'applyStopwords',
+	'customStopwords',
 ];
 
 export const CLEAR_ALL = {

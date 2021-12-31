@@ -8,6 +8,7 @@ export const componentToTypeMap = {
 	[componentTypes.reactiveList]: queryTypes.search,
 	[componentTypes.dataSearch]: queryTypes.search,
 	[componentTypes.categorySearch]: queryTypes.search,
+	[componentTypes.searchBox]: queryTypes.suggestion,
 	// term components
 	[componentTypes.singleList]: queryTypes.term,
 	[componentTypes.multiList]: queryTypes.term,
@@ -40,7 +41,11 @@ export const componentToTypeMap = {
 
 const multiRangeComponents = [componentTypes.multiRange, componentTypes.multiDropdownRange];
 const dateRangeComponents = [componentTypes.dateRange, componentTypes.datePicker];
-const searchComponents = [componentTypes.categorySearch, componentTypes.dataSearch];
+const searchComponents = [
+	componentTypes.categorySearch,
+	componentTypes.dataSearch,
+	componentTypes.searchBox,
+];
 const listComponentsWithPagination = [
 	componentTypes.singleList,
 	componentTypes.multiList,
@@ -120,6 +125,17 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			distinctField: props.distinctField,
 			distinctFieldConfig: props.distinctFieldConfig,
 			index: props.index,
+			...(queryType === queryTypes.suggestion
+				? {
+					enablePopularSuggestions: props.enablePopularSuggestions,
+					enableRecentSuggestions: props.enableRecentSuggestions,
+					popularSuggestionsConfig: props.popularSuggestionsConfig,
+					recentSuggestionsConfig: props.recentSuggestionsConfig,
+					applyStopwords: props.applyStopwords,
+					customStopwords: props.customStopwords,
+					enablePredictiveSuggestions: props.enablePredictiveSuggestions,
+				}
+				: {}),
 			calendarInterval: props.calendarInterval,
 		};
 	}
@@ -377,7 +393,8 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		categoryValue: store.internalValues[component]
 			? store.internalValues[component].category
 			: undefined,
-		value,
+		value:
+			componentProps.componentType === componentTypes.searchBox ? value || undefined : value,
 		pagination,
 		from,
 		...customOptions,
@@ -410,7 +427,8 @@ export function flatReactProp(reactProp, componentID) {
 export const getDependentQueries = (store, componentID, orderOfQueries = []) => {
 	const finalQuery = {};
 	const react = flatReactProp(store.dependencyTree[componentID], componentID);
-	react.forEach((component) => {
+	react.forEach((componentObject) => {
+		const component = componentObject;
 		const customQuery = store.customQueries[component];
 		if (!isInternalComponent(component)) {
 			const calcValues = store.selectedValues[component] || store.internalValues[component];
@@ -423,7 +441,16 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 				// build query
 				const dependentQuery = getRSQuery(
 					component,
-					extractPropsFromState(store, component),
+					extractPropsFromState(store, component, {
+						...(store.props[component].componentType === componentTypes.searchBox
+							? {
+								...(execute === false ? { type: queryTypes.search } : {}),
+								...(calcValues.category
+									? { categoryValue: calcValues.category }
+									: {}),
+							}
+							: {}),
+					}),
 					execute,
 				);
 				if (dependentQuery) {
