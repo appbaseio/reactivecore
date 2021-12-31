@@ -95,8 +95,8 @@ const types = {
 	options: oneOfType([arrayOf(object), object]),
 	paginationAt: oneOf(['top', 'bottom', 'both']),
 	range: shape({
-		start: oneOfType([number, object]).isRequired,
-		end: oneOfType([number, object]).isRequired,
+		start: oneOfType([number, string, object]).isRequired,
+		end: oneOfType([number, string, object]).isRequired,
 	}),
 	rangeLabels: shape({
 		start: string.isRequired,
