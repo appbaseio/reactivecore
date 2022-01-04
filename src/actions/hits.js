@@ -48,7 +48,7 @@ export function mockDataForTesting(component, data) {
 		}
 		if (data.hasOwnProperty('hits')) {
 			// set hits
-			dispatch(updateHits(component, data.hits));
+			dispatch(updateHits(component, data));
 		}
 	};
 }
