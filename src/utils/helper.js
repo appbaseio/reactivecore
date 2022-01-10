@@ -705,3 +705,10 @@ export const getTopSuggestions = (querySuggestions, currentValue = '', showDisti
 export function isValidDateRangeQueryFormat(queryFormat) {
 	return Object.keys(dateFormats).includes(queryFormat);
 }
+
+export const suggestionTypes = {
+	Popular: 'popular',
+	Index: 'index',
+	Recent: 'recent',
+	Promoted: 'promoted',
+};
