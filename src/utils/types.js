@@ -59,6 +59,8 @@ const types = {
 		enableQueryRules: bool,
 		enableSearchRelevancy: bool,
 		recordAnalytics: bool,
+		emptyQuery: bool,
+		suggestionAnalytics: bool,
 		userId: string,
 		useCache: bool,
 		customEvents: object, // eslint-disable-line
