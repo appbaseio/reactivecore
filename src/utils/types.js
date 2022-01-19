@@ -50,7 +50,6 @@ const dataFieldValidator = (props, propName, componentName) => {
 const types = {
 	any,
 	analyticsConfig: shape({
-		searchStateHeader: bool,
 		emptyQuery: bool,
 		suggestionAnalytics: bool,
 		userId: string,
@@ -58,11 +57,12 @@ const types = {
 	}),
 	appbaseConfig: shape({
 		enableQueryRules: bool,
+		enableSearchRelevancy: bool,
 		recordAnalytics: bool,
-		searchStateHeader: bool,
 		emptyQuery: bool,
 		suggestionAnalytics: bool,
 		userId: string,
+		useCache: bool,
 		customEvents: object, // eslint-disable-line
 		enableTelemetry: bool,
 	}),

@@ -18,7 +18,7 @@ import {
 	setPopularSuggestions,
 	setDefaultPopularSuggestions,
 } from './misc';
-import { buildQuery, isEqual, getSearchState } from '../utils/helper';
+import { buildQuery, isEqual } from '../utils/helper';
 import getFilterString, { parseCustomEvents } from '../utils/analytics';
 import { updateMapData } from './maps';
 import fetchGraphQL from '../utils/graphQL';
@@ -144,12 +144,6 @@ function msearch(
 							'X-Search-Filters': filterString,
 						},
 					);
-				}
-			}
-			if (config.analyticsConfig.searchStateHeader) {
-				const searchState = getSearchState(getState(), true);
-				if (searchState && Object.keys(searchState).length) {
-					searchHeaders['X-Search-State'] = JSON.stringify(searchState);
 				}
 			}
 

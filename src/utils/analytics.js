@@ -105,7 +105,6 @@ function parseCustomEvents(customEvents) {
 
 // defaultAnalytics Config
 export const defaultAnalyticsConfig = {
-	searchStateHeader: false,
 	emptyQuery: true,
 	suggestionAnalytics: true,
 	userId: null,
