@@ -234,7 +234,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			|| componentProps.componentType === componentTypes.rangeSlider
 		) {
 			calendarInterval = Object.keys(dateFormats).includes(queryFormat)
-				? componentProps.calendarInterval || 'month'
+				? componentProps.calendarInterval
 				: undefined;
 
 			// Set value
