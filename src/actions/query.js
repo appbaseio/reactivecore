@@ -346,8 +346,10 @@ export function executeQuery(
 				selectedValues[componentId]
 				&& selectedValues[componentId].reference !== 'URL'
 				&& componentProps
-				&& [componentTypes.reactiveList, componentTypes.reactiveMap]
-					.includes(componentProps.componentType)
+				&& [
+					componentTypes.reactiveList,
+					componentTypes.reactiveMap,
+				].includes(componentProps.componentType)
 			) {
 				dispatch(setValue(component, null));
 			}
@@ -427,6 +429,7 @@ export function executeQuery(
 						const mainComponentProps = props[componentId];
 						if (
 							isInternalComponent
+							&& mainComponentProps
 							&& isSearchComponent(mainComponentProps.componentType)
 						) {
 							value
@@ -466,8 +469,10 @@ export function executeQuery(
 							}
 						}
 					} else {
-						const preference = config && config.analyticsConfig && config.analyticsConfig.userId
-							? `${config.analyticsConfig.userId}_${component}` : component;
+						const preference
+							= config && config.analyticsConfig && config.analyticsConfig.userId
+								? `${config.analyticsConfig.userId}_${component}`
+								: component;
 						finalQuery = [
 							...finalQuery,
 							{
@@ -716,10 +721,10 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 				appendToAggs,
 			}));
 		} else {
-			const preference = store.config
-				&& store.config.analyticsConfig
-				&& store.config.analyticsConfig.userId
-				? `${store.config.analyticsConfig.userId}_${component}` : component;
+			const preference
+				= store.config && store.config.analyticsConfig && store.config.analyticsConfig.userId
+					? `${store.config.analyticsConfig.userId}_${component}`
+					: component;
 			const finalQuery = [
 				{
 					preference,

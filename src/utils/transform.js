@@ -438,11 +438,13 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 				if (Array.isArray(orderOfQueries) && orderOfQueries.includes(component)) {
 					execute = true;
 				}
+				const componentProps = store.props[component];
 				// build query
 				const dependentQuery = getRSQuery(
 					component,
 					extractPropsFromState(store, component, {
-						...(store.props[component].componentType === componentTypes.searchBox
+						...(componentProps
+						&& componentProps.componentType === componentTypes.searchBox
 							? {
 								...(execute === false ? { type: queryTypes.search } : {}),
 								...(calcValues.category
