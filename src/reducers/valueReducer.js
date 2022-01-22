@@ -30,8 +30,19 @@ export default function valueReducer(state = {}, action) {
 					...action.payload,
 				},
 			};
-		case CLEAR_VALUES:
+		case CLEAR_VALUES: {
+			if (action.resetValues) {
+				const nextState = {};
+				Object.keys(action.resetValues).forEach((componentId) => {
+					nextState[componentId] = {
+						...state[componentId],
+						value: action.resetValues[componentId],
+					};
+				});
+				return nextState;
+			}
 			return {};
+		}
 		case REMOVE_COMPONENT: {
 			const { [action.component]: del, ...obj } = state;
 			return obj;

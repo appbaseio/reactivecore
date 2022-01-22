@@ -4,14 +4,13 @@
 		"es6": true,
 		"node": true
 	},
-	"plugins": [
-		"jest"
-	],
+	"plugins": ["jest"],
 	"extends": ["airbnb", "plugin:jest/recommended"],
 	"parser": "babel-eslint",
 	"rules": {
 		"indent": [2, "tab", { "SwitchCase": 1, "VariableDeclarator": 1 }],
 		"no-tabs": 0,
+		"no-mixed-spaces-and-tabs": 0, // disable rule
 		"no-underscore-dangle": 0,
 		"operator-linebreak": ["error", "before"],
 		"prefer-destructuring": 0,

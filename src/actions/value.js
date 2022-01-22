@@ -19,9 +19,7 @@ export function setValue(
 	meta,
 ) {
 	return (dispatch, getState) => {
-		const {
-			urlValues,
-		} = getState();
+		const { urlValues } = getState();
 		// set the value reference
 		let reference;
 		if (isEqual(urlValues[component], value)) {
@@ -70,7 +68,7 @@ export function resetValuesToDefault() {
 						? [
 							componentProps[component].defaultValue.start,
 							componentProps[component].defaultValue.end,
-						]
+						  ]
 						: null;
 			} else if (
 				[
@@ -134,8 +132,9 @@ export function patchValue(component, payload) {
 		payload,
 	};
 }
-export function clearValues() {
+export function clearValues(resetValues = {}) {
 	return {
 		type: CLEAR_VALUES,
+		resetValues,
 	};
 }
