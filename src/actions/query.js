@@ -88,6 +88,16 @@ export function loadPopularSuggestions(componentId) {
 	};
 }
 
+const handleTransformRequest = (transformRequest, res) => {
+	if (transformRequest && typeof transformRequest === 'function') {
+		const transformRequestPromise = transformRequest(res);
+		return transformRequestPromise instanceof Promise
+			? transformRequestPromise
+			: Promise.resolve(transformRequestPromise);
+	}
+	return Promise.resolve(res);
+};
+
 function msearch(
 	query,
 	orderOfQueries,
@@ -164,19 +174,40 @@ function msearch(
 		});
 
 		if (config.graphQLUrl) {
-			fetchGraphQL(config.graphQLUrl, config.url, config.credentials, config.app, query)
-				.then((res) => {
-					handleResponseMSearch(
-						{
-							res,
-							isSuggestionsQuery,
-							orderOfQueries,
-							appendToHits,
-							appendToAggs,
-						},
-						getState,
-						dispatch,
-					);
+			const requestOptions = {
+				graphQLUrl: config.graphQLUrl,
+				url: config.url,
+				credentials: config.credentials,
+				app: config.app,
+				query,
+				headers,
+			};
+			handleTransformRequest(appbaseRef.transformRequest, requestOptions)
+				.then((modifiedRequest) => {
+					fetchGraphQL(modifiedRequest)
+						.then((res) => {
+							handleResponseMSearch(
+								{
+									res,
+									isSuggestionsQuery,
+									orderOfQueries,
+									appendToHits,
+									appendToAggs,
+								},
+								getState,
+								dispatch,
+							);
+						})
+						.catch((err) => {
+							handleError(
+								{
+									orderOfQueries,
+									error: err,
+								},
+								getState,
+								dispatch,
+							);
+						});
 				})
 				.catch((err) => {
 					handleError(
@@ -346,10 +377,8 @@ export function executeQuery(
 				selectedValues[componentId]
 				&& selectedValues[componentId].reference !== 'URL'
 				&& componentProps
-				&& [
-					componentTypes.reactiveList,
-					componentTypes.reactiveMap,
-				].includes(componentProps.componentType)
+				// eslint-disable-next-line max-len
+				&& [componentTypes.reactiveList, componentTypes.reactiveMap].includes(componentProps.componentType)
 			) {
 				dispatch(setValue(component, null));
 			}

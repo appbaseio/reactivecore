@@ -1,12 +1,15 @@
 import fetch from 'cross-fetch';
 
-const fetchGraphQL = (graphQLUrl, url, credentials, app, query) => {
+const fetchGraphQL = (requestOptions) => {
+	const {
+		graphQLUrl, url, credentials, app, query, headers,
+	} = requestOptions;
 	const fetchUrl = credentials ? url.replace('//', `//${credentials}@`) : url;
 	return fetch(graphQLUrl, {
 		method: 'POST',
 		body: `
 			query{
-				elastic50(host: "${fetchUrl}"){
+				elastic77(host: "${fetchUrl}"){
 					msearch(
 						index: "${app}"
 						body: ${JSON.stringify(query.map(item => JSON.stringify(item)))}
@@ -15,11 +18,12 @@ const fetchGraphQL = (graphQLUrl, url, credentials, app, query) => {
 			}
 		`,
 		headers: {
+			...headers,
 			'Content-Type': 'application/graphql',
 		},
 	})
 		.then(res => res.json())
-		.then(jsonRes => jsonRes.data.elastic50.msearch)
+		.then(jsonRes => jsonRes.data.elastic77.msearch)
 		.catch((error) => {
 			console.error(error);
 		});
