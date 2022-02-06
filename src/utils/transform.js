@@ -134,7 +134,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 					applyStopwords: props.applyStopwords,
 					customStopwords: props.customStopwords,
 					enablePredictiveSuggestions: props.enablePredictiveSuggestions,
-				}
+				  }
 				: {}),
 			calendarInterval: props.calendarInterval,
 		};
@@ -371,6 +371,14 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	if (componentProps.componentType === componentTypes.reactiveList) {
 		// We set selected page as the value in the redux store for RL.
 		// It's complex to change this logic in the component so changed it here.
+		if (value instanceof Object) {
+			// since sortOption property is added regarding issue #261
+			// we now support object structure in redux for reactivelist url params
+			if (value.page > 0) {
+				value = value.page;
+			}
+		}
+
 		if (value > 0) {
 			from = (value - 1) * (componentProps.size || 10);
 		}
@@ -450,7 +458,7 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 								...(calcValues.category
 									? { categoryValue: calcValues.category }
 									: {}),
-							}
+							  }
 							: {}),
 					}),
 					execute,
