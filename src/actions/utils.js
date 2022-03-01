@@ -100,8 +100,6 @@ export const handleResponse = (
 									_position: promoted.position,
 								}));
 								dispatch(setPromotedResults(parsedPromotedResults, component));
-							} else {
-								dispatch(setPromotedResults([], component));
 							}
 							// set raw response in rawData
 							dispatch(setRawData(component, response));
@@ -196,8 +194,6 @@ export const handleResponseMSearch = (
 						const promotedResults = response.promoted || res.promoted;
 						if (promotedResults) {
 							dispatch(setPromotedResults(promotedResults, component));
-						} else {
-							dispatch(setPromotedResults([], component));
 						}
 						if (response.hits) {
 							dispatch(setTimestamp(component, res._timestamp));
