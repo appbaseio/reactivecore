@@ -334,6 +334,37 @@ export const getOptionsFromQuery = (customQuery = {}) => {
 	return null;
 };
 
+/**
+ * To extract query options from custom query
+ * @param {Object} customQuery
+ */
+export const getOptionsForCustomQuery = (customQuery = {}) => {
+	if (customQuery) {
+		const {
+			query, id, params, ...rest
+		} = customQuery;
+		return Object.keys(rest).length ? rest : null;
+	}
+	return null;
+};
+
+// Returns the query key from custom query
+// It handles the stored queries for Appbase which can have `id` at top-level
+export const extractQueryFromCustomQuery = (customQuery) => {
+	if (customQuery) {
+		// handle stored queries
+		if (customQuery.id) {
+			return {
+				id: customQuery.id,
+				params: customQuery.params,
+			};
+		}
+		// else returns the query key
+		return customQuery.query;
+	}
+	return null;
+};
+
 function computeResultStats(hits, searchState, promotedResults) {
 	Object.keys(hits).forEach((componentId) => {
 		const { hidden, total, time } = hits[componentId] || {};
@@ -541,7 +572,7 @@ export const getCompositeAggsQuery = ({
 							top_hits: { size: 1 },
 						},
 					},
-				}
+				  }
 				: {}),
 		},
 	};
