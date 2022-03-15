@@ -36,6 +36,15 @@ export function isEqual(x, y) {
 }
 /* eslint-enable */
 
+export function compareQueries(x, y) {
+	try {
+		// de-reference objects then compare
+		return isEqual(JSON.parse(JSON.stringify(x)), JSON.parse(JSON.stringify(y)));
+	} catch (e) {
+		return false;
+	}
+}
+
 export function debounce(callback, wait, context = this) {
 	let timeout = null;
 	let callbackArgs = null;
@@ -109,25 +118,27 @@ function getQuery(react, queryList) {
 						// in this case, we have { <conjunction>: <> } objects inside the array
 						return getQuery(comp, queryList);
 					} else if (comp in queryList) {
-						return queryList[comp];
+						if (queryList[comp] && Object.keys(queryList[comp]).length) {
+							return queryList[comp];
+						}
 					}
 					return null;
 				})
 				.filter(item => !!item);
 
 			const boolQuery = createBoolQuery(operation, queryArr);
-			if (boolQuery) {
+			if (boolQuery && Object.keys(boolQuery).length) {
 				query = [...query, boolQuery];
 			}
 		} else if (typeof react[conjunction] === 'string') {
 			const operation = getOperation(conjunction);
 			const boolQuery = createBoolQuery(operation, queryList[react[conjunction]]);
-			if (boolQuery) {
+			if (boolQuery && Object.keys(boolQuery).length) {
 				query = [...query, boolQuery];
 			}
 		} else if (typeof react[conjunction] === 'object' && react[conjunction] !== null) {
 			const boolQuery = getQuery(react[conjunction], queryList);
-			if (boolQuery) {
+			if (boolQuery && Object.keys(boolQuery).length) {
 				query = [...query, boolQuery];
 			}
 		}

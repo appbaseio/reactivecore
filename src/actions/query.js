@@ -18,7 +18,7 @@ import {
 	setPopularSuggestions,
 	setDefaultPopularSuggestions,
 } from './misc';
-import { buildQuery, isEqual } from '../utils/helper';
+import { buildQuery, compareQueries } from '../utils/helper';
 import getFilterString, { parseCustomEvents } from '../utils/analytics';
 import { updateMapData } from './maps';
 import fetchGraphQL from '../utils/graphQL';
@@ -415,7 +415,7 @@ export function executeQuery(
 				};
 
 				const oldQuery = queryLog[component];
-				if (mustExecuteMapQuery || !isEqual(currentQuery, oldQuery)) {
+				if (mustExecuteMapQuery || !compareQueries(currentQuery, oldQuery, false)) {
 					orderOfQueries = [...orderOfQueries, component];
 					// log query before adding the map query,
 					// since we don't do gatekeeping on the map query in the `queryLog`
@@ -441,7 +441,7 @@ export function executeQuery(
 						// skip the query execution if the combined query [component + map Query]
 						// matches the logged combined query
 						const { combinedLog } = getState();
-						if (isEqual(combinedLog[component], currentQuery)) return;
+						if (compareQueries(combinedLog[component], currentQuery)) return;
 
 						// log query after adding the map query,
 						// to separately support gatekeeping for combined map queries
@@ -712,7 +712,7 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 		};
 
 		// query gatekeeping
-		if (isEqual(queryLog[component], currentQuery)) return;
+		if (compareQueries(queryLog[component], currentQuery)) return;
 
 		dispatch(logQuery(component, currentQuery));
 
