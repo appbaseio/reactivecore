@@ -250,7 +250,7 @@ export function getAggsOrder(sortBy) {
 		};
 	}
 	return {
-		_term: sortBy,
+		_key: sortBy,
 	};
 }
 
