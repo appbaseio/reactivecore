@@ -31,17 +31,24 @@ export default function valueReducer(state = {}, action) {
 				},
 			};
 		case CLEAR_VALUES: {
+			const nextState = {};
 			if (action.resetValues) {
-				const nextState = {};
 				Object.keys(action.resetValues).forEach((componentId) => {
 					nextState[componentId] = {
 						...state[componentId],
 						value: action.resetValues[componentId],
 					};
 				});
-				return nextState;
 			}
-			return {};
+			// clearAllBlacklistComponents has more priority over reset values
+			if (Array.isArray(action.clearAllBlacklistComponents)) {
+				Object.keys(state).forEach((componentId) => {
+					if (action.clearAllBlacklistComponents.includes(componentId)) {
+						nextState[componentId] = state[componentId];
+					}
+				});
+			}
+			return nextState;
 		}
 		case REMOVE_COMPONENT: {
 			const { [action.component]: del, ...obj } = state;

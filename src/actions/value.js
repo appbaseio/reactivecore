@@ -40,7 +40,7 @@ export function setValue(
 	};
 }
 
-export function resetValuesToDefault() {
+export function resetValuesToDefault(clearAllBlacklistComponents) {
 	return (dispatch, getState) => {
 		const { selectedValues, props: componentProps } = getState();
 		let defaultValues = {
@@ -50,59 +50,65 @@ export function resetValuesToDefault() {
 		let valueToSet;
 		Object.keys(selectedValues).forEach((component) => {
 			if (
-				!componentProps[component]
-				|| !componentProps[component].componentType
-				|| !componentProps[component].defaultValue
+				!(
+					Array.isArray(clearAllBlacklistComponents)
+					&& clearAllBlacklistComponents.includes(component)
+				)
 			) {
-				valueToSet = null;
-			} else if (
-				[
-					componentTypes.rangeSlider,
-					componentTypes.rangeInput,
-					componentTypes.ratingsFilter,
-					componentTypes.dateRange,
-				].includes(componentProps[component].componentType)
-			) {
-				valueToSet
-					= typeof componentProps[component].defaultValue === 'object'
-						? [
-							componentProps[component].defaultValue.start,
-							componentProps[component].defaultValue.end,
-						  ]
-						: null;
-			} else if (
-				[
-					componentTypes.multiDropdownList,
-					componentTypes.multiDataList,
-					componentTypes.multiList,
-					componentTypes.singleDataList,
-					componentTypes.singleDropdownList,
-					componentTypes.singleList,
-					componentTypes.tagCloud,
-					componentTypes.toggleButton,
-					componentTypes.multiDropdownRange,
-					componentTypes.multiRange,
-					componentTypes.singleDropdownRange,
-					componentTypes.singleRange,
-					componentTypes.dataSearch,
-					componentTypes.datePicker,
-				].includes(componentProps[component].componentType)
-			) {
-				valueToSet = componentProps[component].defaultValue;
-			} else if (
-				[componentTypes.categorySearch].includes(componentProps[component].componentType)
-			) {
-				valueToSet = componentProps[component].defaultValue
-					? componentProps[component].defaultValue.term
-					: '';
+				if (
+					!componentProps[component]
+					|| !componentProps[component].componentType
+					|| !componentProps[component].defaultValue
+				) {
+					valueToSet = null;
+				} else if (
+					[
+						componentTypes.rangeSlider,
+						componentTypes.rangeInput,
+						componentTypes.ratingsFilter,
+						componentTypes.dateRange,
+					].includes(componentProps[component].componentType)
+				) {
+					valueToSet
+						= typeof componentProps[component].defaultValue === 'object'
+							? [
+								componentProps[component].defaultValue.start,
+								componentProps[component].defaultValue.end,
+							  ]
+							: null;
+				} else if (
+					[
+						componentTypes.multiDropdownList,
+						componentTypes.multiDataList,
+						componentTypes.multiList,
+						componentTypes.singleDataList,
+						componentTypes.singleDropdownList,
+						componentTypes.singleList,
+						componentTypes.tagCloud,
+						componentTypes.toggleButton,
+						componentTypes.multiDropdownRange,
+						componentTypes.multiRange,
+						componentTypes.singleDropdownRange,
+						componentTypes.singleRange,
+						componentTypes.dataSearch,
+						componentTypes.datePicker,
+					].includes(componentProps[component].componentType)
+				) {
+					valueToSet = componentProps[component].defaultValue;
+				} else if (
+					[componentTypes.categorySearch].includes(componentProps[component].componentType)
+				) {
+					valueToSet = componentProps[component].defaultValue
+						? componentProps[component].defaultValue.term
+						: '';
+				}
+				if (!isEqual(selectedValues[component].value, valueToSet)) {
+					defaultValues = {
+						...defaultValues,
+						[component]: { ...selectedValues[component], value: valueToSet },
+					};
+				}
 			}
-			if (!isEqual(selectedValues[component].value, valueToSet)) {
-				defaultValues = {
-					...defaultValues,
-					[component]: { ...selectedValues[component], value: valueToSet },
-				};
-			}
-			return true;
 		});
 		dispatch({
 			type: RESET_TO_DEFAULT,
@@ -132,9 +138,10 @@ export function patchValue(component, payload) {
 		payload,
 	};
 }
-export function clearValues(resetValues = {}) {
+export function clearValues(resetValues = {}, clearAllBlacklistComponents = []) {
 	return {
 		type: CLEAR_VALUES,
 		resetValues,
+		clearAllBlacklistComponents,
 	};
 }
