@@ -33,6 +33,7 @@ import querySuggestionsReducer from './querySuggestionsReducer';
 import defaultPopularSuggestionsReducer from './defaultPopularSuggestions';
 import queryToHitsReducer from './queryToHitsReducer';
 import recentSearchesReducer from './recentSearches';
+import googleMapScriptReducer from './googleMapScriptReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -69,4 +70,5 @@ export default combineReducers({
 	queryToHits: queryToHitsReducer, // holds the query value for last fetched `hits`
 	recentSearches: recentSearchesReducer,
 	urlValues: (state = {}) => state,
+	googleMapScriptStatus: googleMapScriptReducer,
 });

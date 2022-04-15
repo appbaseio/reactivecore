@@ -19,6 +19,9 @@ import {
 	SET_POPULAR_SUGGESTIONS,
 	SET_RAW_DATA,
 	SET_DEFAULT_POPULAR_SUGGESTIONS,
+	SET_GOOGLE_MAP_SCRIPT_LOADING,
+	SET_GOOGLE_MAP_SCRIPT_LOADED,
+	SET_GOOGLE_MAP_SCRIPT_ERROR,
 } from '../constants';
 
 export function setRawData(component, response) {
@@ -179,4 +182,14 @@ export function setQueryListener(component, onQueryChange, onError) {
 		onQueryChange,
 		onError,
 	};
+}
+
+export function setGoogleMapScriptLoading(bool) {
+	return { type: SET_GOOGLE_MAP_SCRIPT_LOADING, loading: bool };
+}
+export function setGoogleMapScriptLoaded(bool) {
+	return { type: SET_GOOGLE_MAP_SCRIPT_LOADED, loaded: bool };
+}
+export function setGoogleMapScriptError(error) {
+	return { type: SET_GOOGLE_MAP_SCRIPT_ERROR, error };
 }
