@@ -115,6 +115,8 @@ export const validProps = [
 	'enablePredictiveSuggestions',
 	'applyStopwords',
 	'customStopwords',
+	'enableIndexSuggestions',
+	'enableFeaturedSuggestions',
 ];
 
 export const CLEAR_ALL = {
