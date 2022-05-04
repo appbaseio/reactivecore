@@ -136,6 +136,8 @@ export const getRSQuery = (componentId, props, execute = true) => {
 					enablePredictiveSuggestions: props.enablePredictiveSuggestions,
 					featuredSuggestionsConfig: props.featuredSuggestionsConfig,
 					indexSuggestionsConfig: props.indexSuggestionsConfig,
+					enableFeaturedSuggestions: props.enableFeaturedSuggestions,
+					enableIndexSuggestions: props.enableIndexSuggestions,
 				  }
 				: {}),
 			calendarInterval: props.calendarInterval,
