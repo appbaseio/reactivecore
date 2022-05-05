@@ -756,6 +756,11 @@ export const suggestionTypes = {
 	Featured: 'featured',
 };
 
+export const featuredSuggestionsActionTypes = {
+	NAVIGATE: 'navigate',
+	FUNCTION: 'function',
+};
+
 // this map helps to get the interval divider
 // for histogram, since the calendarinterval prop leaves
 export const queryFormatMillisecondsMap = {
