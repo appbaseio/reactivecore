@@ -753,6 +753,7 @@ export const suggestionTypes = {
 	Index: 'index',
 	Recent: 'recent',
 	Promoted: 'promoted',
+	Featured: 'featured',
 };
 
 // this map helps to get the interval divider
