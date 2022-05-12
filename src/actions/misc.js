@@ -23,6 +23,7 @@ import {
 	SET_GOOGLE_MAP_SCRIPT_LOADED,
 	SET_GOOGLE_MAP_SCRIPT_ERROR,
 } from '../constants';
+import { updateAggs, updateCompositeAggs, updateHits } from './hits';
 
 export function setRawData(component, response) {
 	return {
@@ -192,4 +193,17 @@ export function setGoogleMapScriptLoaded(bool) {
 }
 export function setGoogleMapScriptError(error) {
 	return { type: SET_GOOGLE_MAP_SCRIPT_ERROR, error };
+}
+
+export function resetStoreForComponent(componentId) {
+	return (dispatch) => {
+		dispatch(setRawData(componentId, null));
+		dispatch(setCustomData(null, componentId));
+		dispatch(setPromotedResults([], componentId));
+		dispatch(setPopularSuggestions([], componentId));
+		dispatch(setDefaultPopularSuggestions([], componentId));
+		dispatch(updateAggs(componentId, null));
+		dispatch(updateCompositeAggs(componentId, {}));
+		dispatch(updateHits(componentId, { hits: [], total: 0 }, 0));
+	};
 }
