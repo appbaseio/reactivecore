@@ -354,7 +354,6 @@ export function executeQuery(
 			queryOptions,
 			queryListener,
 			props,
-			selectedValues,
 			internalValues,
 		} = getState();
 		const lockTime = config.initialQueriesSyncTime;
@@ -370,19 +369,6 @@ export function executeQuery(
 		}
 		const matchAllQuery = { match_all: {} };
 		componentList.forEach((component) => {
-			// Clear pagination state for result components
-			// Only clear when value is not set by URL params
-			const componentProps = props[component];
-			if (
-				selectedValues[componentId]
-				&& selectedValues[componentId].reference !== 'URL'
-				&& componentProps
-				// eslint-disable-next-line max-len
-				&& [componentTypes.reactiveList, componentTypes.reactiveMap].includes(componentProps.componentType)
-			) {
-				dispatch(setValue(component, null));
-			}
-
 			// eslint-disable-next-line
 			let { queryObj, options } = buildQuery(
 				component,

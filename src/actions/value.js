@@ -17,13 +17,50 @@ export function setValue(
 	componentType,
 	category,
 	meta,
+	updateSource, // valid values => 'URL'
 ) {
 	return (dispatch, getState) => {
-		const { urlValues } = getState();
+		const {
+			urlValues, selectedValues, watchMan, props,
+		} = getState();
 		// set the value reference
-		let reference;
+		let reference = updateSource;
 		if (isEqual(urlValues[component], value)) {
 			reference = 'URL';
+		}
+		// Clear pagination state for result components
+		// Only clear when value is not set by URL params
+		const componentsToReset = {};
+		const isResultComponent = [
+			componentTypes.reactiveList,
+			componentTypes.reactiveMap,
+		].includes(props[component].componentType);
+		const previousValue = selectedValues[component] && selectedValues[component].value;
+		if (!isEqual(previousValue, value) && props[component] && !isResultComponent) {
+			let componentList = [component];
+			const watchList = watchMan[component] || [];
+			componentList = [...componentList, ...watchList];
+			componentList.forEach((comp) => {
+				// Clear pagination state for result components
+				// Only clear when value is not set by URL params
+				const componentProps = props[comp];
+				if (
+					reference !== 'URL'
+					&& componentProps
+					// eslint-disable-next-line max-len
+					&& [componentTypes.reactiveList, componentTypes.reactiveMap].includes(componentProps.componentType)
+				) {
+					if (selectedValues[comp] !== null) {
+						componentsToReset[comp] = null;
+					}
+				}
+			});
+		}
+		if (isResultComponent) {
+			// reject default page requests
+			if (value < 2 && (!previousValue || previousValue < 2)) {
+				return;
+			}
 		}
 		dispatch({
 			type: SET_VALUE,
@@ -36,6 +73,7 @@ export function setValue(
 			componentType,
 			category,
 			meta,
+			componentsToReset,
 		});
 	};
 }
@@ -105,7 +143,10 @@ export function resetValuesToDefault(clearAllBlacklistComponents) {
 				if (!isEqual(selectedValues[component].value, valueToSet)) {
 					defaultValues = {
 						...defaultValues,
-						[component]: { ...selectedValues[component], value: valueToSet },
+						[component]: {
+							...selectedValues[component],
+							value: valueToSet,
+						},
 					};
 				}
 			}

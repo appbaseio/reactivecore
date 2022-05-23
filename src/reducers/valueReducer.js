@@ -8,9 +8,17 @@ import {
 
 export default function valueReducer(state = {}, action) {
 	switch (action.type) {
-		case SET_VALUE:
+		case SET_VALUE: {
+			const newState = {};
+			Object.keys(action.componentsToReset).forEach((id) => {
+				newState[id] = {
+					...state[id],
+					value: action.componentsToReset[id],
+				};
+			});
 			return {
 				...state,
+				...newState,
 				[action.component]: {
 					value: action.value,
 					label: action.label || action.component,
@@ -22,6 +30,8 @@ export default function valueReducer(state = {}, action) {
 					reference: action.reference,
 				},
 			};
+		}
+
 		case PATCH_VALUE:
 			return {
 				...state,
