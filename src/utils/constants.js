@@ -107,12 +107,16 @@ export const validProps = [
 	'unit',
 	// Specific to searchBox
 	'enablePopularSuggestions',
-	'popularSuggestionsConfig',
 	'enableRecentSuggestions',
+	'popularSuggestionsConfig',
 	'recentSuggestionsConfig',
+	'indexSuggestionsConfig',
+	'featuredSuggestionsConfig',
 	'enablePredictiveSuggestions',
 	'applyStopwords',
 	'customStopwords',
+	'enableIndexSuggestions',
+	'enableFeaturedSuggestions',
 ];
 
 export const CLEAR_ALL = {

@@ -753,6 +753,12 @@ export const suggestionTypes = {
 	Index: 'index',
 	Recent: 'recent',
 	Promoted: 'promoted',
+	Featured: 'featured',
+};
+
+export const featuredSuggestionsActionTypes = {
+	NAVIGATE: 'navigate',
+	FUNCTION: 'function',
 };
 
 // this map helps to get the interval divider

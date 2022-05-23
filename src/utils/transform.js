@@ -134,7 +134,11 @@ export const getRSQuery = (componentId, props, execute = true) => {
 					applyStopwords: props.applyStopwords,
 					customStopwords: props.customStopwords,
 					enablePredictiveSuggestions: props.enablePredictiveSuggestions,
-				}
+					featuredSuggestionsConfig: props.featuredSuggestionsConfig,
+					indexSuggestionsConfig: props.indexSuggestionsConfig,
+					enableFeaturedSuggestions: props.enableFeaturedSuggestions,
+					enableIndexSuggestions: props.enableIndexSuggestions,
+				  }
 				: {}),
 			calendarInterval: props.calendarInterval,
 		};
@@ -450,7 +454,7 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 								...(calcValues.category
 									? { categoryValue: calcValues.category }
 									: {}),
-							}
+							  }
 							: {}),
 					}),
 					execute,
