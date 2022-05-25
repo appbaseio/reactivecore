@@ -34,7 +34,7 @@ export function setValue(
 		const isResultComponent = [
 			componentTypes.reactiveList,
 			componentTypes.reactiveMap,
-		].includes(props[component].componentType);
+		].includes(props[component] && props[component].componentType);
 		const previousValue = selectedValues[component] && selectedValues[component].value;
 		if (!isEqual(previousValue, value) && props[component] && !isResultComponent) {
 			let componentList = [component];
