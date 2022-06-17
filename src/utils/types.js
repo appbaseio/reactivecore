@@ -186,6 +186,7 @@ const types = {
 		collection: string,
 	}),
 	calendarInterval: oneOf(['month', 'day', 'year', 'week', 'quarter', 'hour', 'minute']),
+	preferences: object,
 };
 
 export default types;
