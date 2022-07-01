@@ -623,7 +623,7 @@ export function getResultStats(props) {
 		...(size > 0 ? { numberOfPages: Math.ceil(total / size) } : null),
 		time: time || 0,
 		hidden,
-		promoted: promotedResults && promotedResults.length,
+		promoted: promotedResults ? promotedResults.length : 0,
 	};
 }
 
