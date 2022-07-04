@@ -3,7 +3,7 @@ export const componentTypes = {
 	// search components
 	dataSearch: 'DATASEARCH',
 	categorySearch: 'CATEGORYSEARCH',
-	searchBox: 'SUGGESTION',
+	searchBox: 'SEARCHBOX',
 	// list components
 	singleList: 'SINGLELIST',
 	multiList: 'MULTILIST',
