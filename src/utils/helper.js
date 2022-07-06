@@ -868,3 +868,31 @@ export const saveDataAsFile = (
 	link.dispatchEvent(evt);
 	link.remove();
 };
+
+/**
+ * A function to convert multilevel object to single level object
+ * and use key value pairs as Column and row pairs using recursion
+ */
+export const flatten = (data) => {
+	const result = {};
+
+	function recurse(cur, prop = '') {
+		if (Object(cur) !== cur) {
+			result[prop] = cur;
+		} else if (Array.isArray(cur)) {
+			result[prop] = JSON.stringify(cur);
+		} else {
+			let isEmpty = true;
+			Object.keys(cur).forEach((p) => {
+				isEmpty = false;
+				recurse(cur[p], prop ? `${prop}.${p}` : p);
+			});
+			if (isEmpty && prop) {
+				result[prop] = {};
+			}
+		}
+	}
+
+	recurse(data);
+	return result;
+};
