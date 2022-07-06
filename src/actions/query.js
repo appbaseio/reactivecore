@@ -750,3 +750,42 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 		}
 	};
 }
+
+export function loadDataToExport(componentId, deepPaginationCursor = '', totalResults, data = []) {
+	return (dispatch, getState) => {
+		const { appbaseRef } = getState();
+		const query = [
+			{
+				id: componentId,
+				type: 'search',
+				deepPaginationConfig: {
+					cursor: deepPaginationCursor,
+				},
+				deepPagination: true,
+				size: 1000,
+				sortField: '_id',
+				sortBy: 'asc',
+			},
+		];
+
+		if (totalResults && Array.isArray(data) && totalResults <= data.length) {
+			return data;
+		}
+
+		return appbaseRef
+			.reactiveSearchv3(query)
+			.then((res) => {
+				const newDataChunk = res[componentId].hits.hits;
+
+				return dispatch(loadDataToExport(
+					componentId,
+					newDataChunk[newDataChunk.length - 1]._id,
+					res[componentId].hits.total.value,
+					[...data, ...newDataChunk],
+				));
+			})
+			.catch((err) => {
+				console.error('Error fetching data to export! ', err);
+			});
+	};
+}

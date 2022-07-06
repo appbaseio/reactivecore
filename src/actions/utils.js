@@ -44,7 +44,8 @@ export const handleError = (
 	}
 
 	orderOfQueries.forEach((component) => {
-		if (isComponentActive(getState, component)) { // Only update state for active components
+		if (isComponentActive(getState, component)) {
+			// Only update state for active components
 			if (queryListener[component] && queryListener[component].onError) {
 				queryListener[component].onError(error);
 			}
@@ -168,7 +169,8 @@ export const handleResponseMSearch = (
 	// handle promoted results
 	orderOfQueries.forEach((component, index) => {
 		// If response is stale then don't process response
-		if (isComponentActive(getState, component)) { // Only update state for active components
+		if (isComponentActive(getState, component)) {
+			// Only update state for active components
 			const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
 			if (searchId) {
 				if (isSuggestionsQuery) {
