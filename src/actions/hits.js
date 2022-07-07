@@ -1,5 +1,6 @@
 import { UPDATE_HITS, UPDATE_AGGS, UPDATE_COMPOSITE_AGGS } from '../constants';
 import { SET_QUERY_TO_HITS } from '../../lib/constants';
+import { setError } from './misc';
 
 export function updateAggs(component, aggregations, append = false) {
 	return {
@@ -42,6 +43,9 @@ export function saveQueryToHits(component, query) {
 
 export function mockDataForTesting(component, data) {
 	return (dispatch) => {
+		if (data.error) {
+			dispatch(setError(component, data.error));
+		}
 		if (data.hasOwnProperty('aggregations')) {
 			// set aggs
 			dispatch(updateAggs(component, data.aggregations));
