@@ -43,7 +43,7 @@ export function saveQueryToHits(component, query) {
 
 export function mockDataForTesting(component, data) {
 	return (dispatch) => {
-		if (data.error) {
+		if (data.hasOwnProperty('error')) {
 			dispatch(setError(component, data.error));
 		}
 		if (data.hasOwnProperty('aggregations')) {
