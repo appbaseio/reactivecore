@@ -128,3 +128,9 @@ export const CLEAR_ALL = {
 	ALWAYS: 'always',
 	DEFAULT: 'default',
 };
+
+// search components modes
+export const SEARCH_COMPONENTS_MODES = {
+	SELECT: 'select',
+	TAG: 'tag',
+};
