@@ -1,4 +1,5 @@
 // when we want to perform deep equality check, especially in objects
+import { searchComponentTypes } from './constants';
 import dateFormats from './dateFormats';
 import getSuggestions from './suggestions';
 
@@ -843,3 +844,5 @@ export const hasCustomRenderer = (props = {}) => {
 	const { render, children } = props;
 	return isFunction(children) || isFunction(render);
 };
+
+export const isSearchComponent = componentType => searchComponentTypes.includes(componentType);

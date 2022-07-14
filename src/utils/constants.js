@@ -134,3 +134,9 @@ export const SEARCH_COMPONENTS_MODES = {
 	SELECT: 'select',
 	TAG: 'tag',
 };
+
+export const searchComponentTypes = [
+	componentTypes.dataSearch,
+	componentTypes.searchBox,
+	componentTypes.categorySearch,
+];
