@@ -8,6 +8,7 @@ export const componentTypes = {
 	singleList: 'SINGLELIST',
 	multiList: 'MULTILIST',
 	singleDataList: 'SINGLEDATALIST',
+	tabDataList: 'TABDATALIST',
 	singleDropdownList: 'SINGLEDROPDOWNLIST',
 	multiDataList: 'MULTIDATALIST',
 	multiDropdownList: 'MULTIDROPDOWNLIST',
