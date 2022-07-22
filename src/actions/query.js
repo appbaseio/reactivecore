@@ -753,20 +753,42 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 
 export function loadDataToExport(componentId, deepPaginationCursor = '', totalResults, data = []) {
 	return (dispatch, getState) => {
-		const { appbaseRef } = getState();
-		const query = [
-			{
-				id: componentId,
-				type: 'search',
-				deepPaginationConfig: {
-					cursor: deepPaginationCursor,
-				},
-				deepPagination: true,
-				size: 1000,
-				sortField: '_id',
-				sortBy: 'asc',
+		const { appbaseRef, dependencyTree } = getState();
+
+		const componentList = [];
+		Object.keys(dependencyTree[componentId]).forEach((key) => {
+			if (Array.isArray(dependencyTree[componentId][key])) {
+				dependencyTree[componentId][key].forEach((item) => {
+					if (!item.includes('__internal')) {
+						componentList.push(item);
+					}
+				});
+			} else if (!dependencyTree[componentId][key].includes('__internal')) {
+				componentList.push(dependencyTree[componentId][key]);
+			}
+		});
+		const query = [];
+		componentList.forEach((component) => {
+			// build query
+			query.push({
+				...getRSQuery(component, extractPropsFromState(getState(), component)),
+				execute: false,
+			});
+		});
+
+		query.push({
+			id: componentId,
+			type: 'search',
+			deepPaginationConfig: {
+				cursor: deepPaginationCursor,
 			},
-		];
+			deepPagination: true,
+			size: totalResults < 1000 ? totalResults : 1000,
+			sortField: '_id',
+			sortBy: 'asc',
+			react: dependencyTree[componentId],
+			execute: true,
+		});
 
 		if (totalResults && Array.isArray(data) && totalResults <= data.length) {
 			return data;
