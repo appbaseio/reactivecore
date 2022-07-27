@@ -3,11 +3,12 @@ export const componentTypes = {
 	// search components
 	dataSearch: 'DATASEARCH',
 	categorySearch: 'CATEGORYSEARCH',
-	searchBox: 'SUGGESTION',
+	searchBox: 'SEARCHBOX',
 	// list components
 	singleList: 'SINGLELIST',
 	multiList: 'MULTILIST',
 	singleDataList: 'SINGLEDATALIST',
+	tabDataList: 'TABDATALIST',
 	singleDropdownList: 'SINGLEDROPDOWNLIST',
 	multiDataList: 'MULTIDATALIST',
 	multiDropdownList: 'MULTIDROPDOWNLIST',
@@ -31,6 +32,8 @@ export const componentTypes = {
 	geoDistanceDropdown: 'GEO_DISTANCE_DROPDOWN',
 	geoDistanceSlider: 'GEO_DISTANCE_SLIDER',
 	reactiveMap: 'REACTIVE_MAP',
+	// chart components
+	reactiveChart: 'REACTIVE_CHART',
 };
 
 export const queryTypes = {
@@ -42,12 +45,14 @@ export const queryTypes = {
 };
 export const validProps = [
 	// common
+	'type',
 	'componentType',
 	'aggregationField',
 	'aggregationSize',
 	'distinctField',
 	'distinctFieldConfig',
 	'index',
+	'aggregations',
 	// Specific to ReactiveList
 	'dataField',
 	'includeFields',
