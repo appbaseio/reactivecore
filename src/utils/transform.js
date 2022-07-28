@@ -18,6 +18,7 @@ export const componentToTypeMap = {
 	[componentTypes.multiDropdownList]: queryTypes.term,
 	[componentTypes.tagCloud]: queryTypes.term,
 	[componentTypes.toggleButton]: queryTypes.term,
+	[componentTypes.reactiveChart]: queryTypes.term,
 	// basic components
 	[componentTypes.numberBox]: queryTypes.term,
 
@@ -161,16 +162,19 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	if (!componentProps) {
 		return null;
 	}
-	const queryType = componentToTypeMap[componentProps.componentType];
+	const queryType = componentProps.type
+		? componentProps.type
+		: componentToTypeMap[componentProps.componentType];
+
 	const calcValues = store.selectedValues[component] || store.internalValues[component];
 	let value = calcValues !== undefined && calcValues !== null ? calcValues.value : undefined;
 	let queryFormat = componentProps.queryFormat;
 	// calendarInterval only supported when using date types
 	let calendarInterval;
 	let { interval } = componentProps;
-	let type = componentToTypeMap[componentProps.componentType];
+	let type = queryType;
 	let dataField = componentProps.dataField;
-	let aggregations;
+	let aggregations = componentProps.aggregations;
 	let pagination; // pagination for `term` type of queries
 	let from = componentProps.from; // offset for RL
 	// For term queries i.e list component `dataField` will be treated as aggregationField

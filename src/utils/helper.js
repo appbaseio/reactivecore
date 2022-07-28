@@ -191,7 +191,6 @@ function getExternalQueryOptions(react, options, component) {
 export function buildQuery(component, dependencyTree, queryList, queryOptions) {
 	let queryObj = null;
 	let options = null;
-
 	if (component in dependencyTree) {
 		queryObj = getQuery(dependencyTree[component], queryList);
 		options = getExternalQueryOptions(dependencyTree[component], queryOptions, component);
@@ -466,7 +465,7 @@ export const updateInternalQuery = (
 ) => {
 	const { defaultQuery } = props;
 	let defaultQueryOptions;
-	let query;
+	let query = defaultQueryToExecute;
 	if (defaultQuery) {
 		const queryTobeSet = defaultQuery(value, props);
 		({ query } = queryTobeSet || {});
@@ -474,16 +473,21 @@ export const updateInternalQuery = (
 		// Update calculated default query in store
 		updateDefaultQuery(componentId, props, value);
 	}
-	props.setQueryOptions(componentId, {
-		...defaultQueryOptions,
-		...(queryOptions || defaultQueryToExecute),
-	});
 	if (query) {
+		props.setQueryOptions(componentId, {
+			...defaultQueryOptions,
+			...(queryOptions || defaultQueryToExecute),
+		});
 		props.updateQuery({
 			componentId,
 			query,
 			value,
 			...queryParams,
+		});
+	} else {
+		props.setQueryOptions(componentId, {
+			...defaultQueryOptions,
+			...(queryOptions || defaultQueryToExecute),
 		});
 	}
 };
@@ -619,7 +623,7 @@ export function getResultStats(props) {
 		...(size > 0 ? { numberOfPages: Math.ceil(total / size) } : null),
 		time: time || 0,
 		hidden,
-		promoted: promotedResults && promotedResults.length,
+		promoted: promotedResults ? promotedResults.length : 0,
 	};
 }
 

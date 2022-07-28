@@ -623,6 +623,7 @@ export function updateQuery(
 		meta = {}, // to store any meta value which gets update on value changes
 	},
 	execute = true,
+	shouldSetInternalValue = true,
 ) {
 	return (dispatch) => {
 		// eslint-disable-next-line
@@ -642,23 +643,25 @@ export function updateQuery(
 				category,
 				meta,
 			));
-			if (componentType === componentTypes.dynamicRangeSlider) {
-				// Dynamic Range Slider has a dependency on histogram which uses different ID
-				dispatch(setInternalValue(
-					getHistogramComponentID(componentId),
-					value,
-					componentType,
-					category,
-					meta,
-				));
-			} else {
-				dispatch(setInternalValue(
-					`${componentId}__internal`,
-					value,
-					componentType,
-					category,
-					meta,
-				));
+			if (shouldSetInternalValue) {
+				if (componentType === componentTypes.dynamicRangeSlider) {
+					// Dynamic Range Slider has a dependency on histogram which uses different ID
+					dispatch(setInternalValue(
+						getHistogramComponentID(componentId),
+						value,
+						componentType,
+						category,
+						meta,
+					));
+				} else {
+					dispatch(setInternalValue(
+						`${componentId}__internal`,
+						value,
+						componentType,
+						category,
+						meta,
+					));
+				}
 			}
 		} else {
 			dispatch(setInternalValue(componentId, value, componentType, category, meta));
