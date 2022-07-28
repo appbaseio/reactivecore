@@ -384,6 +384,12 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		}
 		value = undefined;
 	}
+	let queryValue = value || undefined;
+	if (componentProps.componentType === componentTypes.searchBox) {
+		if (Array.isArray(queryValue)) {
+			queryValue = undefined;
+		}
+	}
 	return {
 		...componentProps,
 		calendarInterval,
@@ -401,8 +407,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		categoryValue: store.internalValues[component]
 			? store.internalValues[component].category
 			: undefined,
-		value:
-			componentProps.componentType === componentTypes.searchBox ? value || undefined : value,
+		value: queryValue,
 		pagination,
 		from,
 		...customOptions,
@@ -458,6 +463,7 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 								...(calcValues.category
 									? { categoryValue: calcValues.category }
 									: {}),
+								...(calcValues.value ? { value: calcValues.value } : {}),
 							  }
 							: {}),
 					}),
