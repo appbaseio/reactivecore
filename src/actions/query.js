@@ -780,6 +780,7 @@ export function loadDataToExport(componentId, deepPaginationCursor = '', totalRe
 		});
 
 		query.push({
+			...getRSQuery(componentId, extractPropsFromState(getState(), componentId)),
 			id: componentId,
 			type: 'search',
 			deepPaginationConfig: {
