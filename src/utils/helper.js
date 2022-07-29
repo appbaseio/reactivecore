@@ -844,3 +844,39 @@ export const hasCustomRenderer = (props = {}) => {
 	const { render, children } = props;
 	return isFunction(children) || isFunction(render);
 };
+
+/**
+ * Recursively look for a path in a nested object
+ */
+export const recLookup = (obj, path) => {
+	try {
+		const parts = path.split('.');
+		if (parts.length === 1) {
+			return obj[parts[0]];
+		}
+		return recLookup(obj[parts[0]], parts.slice(1).join('.'));
+	} catch (e) {
+		return false;
+	}
+};
+
+/**
+ * Dynamically sets a deeply nested value in an object.
+ * has been modified to comply with TreeList component implementation
+ * https://stackoverflow.com/a/49754647/10822996
+ */
+export function setDeep(obj, path, value, setrecursively = false) {
+	path.reduce((acc, currentItem, level) => {
+		if (setrecursively && typeof acc[currentItem] !== 'object') {
+			acc[currentItem] = {};
+			return acc[currentItem];
+		}
+
+		if (level === path.length - 1) {
+			acc[currentItem] = value;
+			return value;
+		}
+
+		return typeof acc[currentItem] === 'object' ? acc[currentItem] : {};
+	}, obj);
+}
