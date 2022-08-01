@@ -114,8 +114,11 @@ export const handleResponse = (
 							if (response.hits) {
 								dispatch(setTimestamp(component, res._timestamp));
 								// store last used query for REACTIVE_LIST only
+
 								if (
-									props[component].componentType === componentTypes.reactiveList
+									props[component].componentType
+										=== componentTypes.reactiveList
+									&& query.find(queryItem => queryItem.id === component).execute
 								) {
 									dispatch(setLastUsedAppbaseQuery({ [component]: query }));
 								}
