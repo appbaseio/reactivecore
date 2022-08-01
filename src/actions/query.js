@@ -756,41 +756,44 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 export function loadDataToExport(componentId, deepPaginationCursor = '', totalResults, data = []) {
 	return (dispatch, getState) => {
 		const { appbaseRef, lastUsedAppbaseQuery } = getState();
-
-		const query = lastUsedAppbaseQuery.map((queryItem) => {
-			if (queryItem.id === componentId) {
-				return {
-					...queryItem,
-					deepPaginationConfig: {
-						cursor: deepPaginationCursor,
-					},
-					deepPagination: true,
-					size: totalResults < 1000 ? totalResults : 1000,
-					sortField: '_id',
-					sortBy: 'asc',
-				};
-			}
-			return queryItem;
-		});
-
-		if (totalResults && Array.isArray(data) && totalResults <= data.length) {
-			return data;
-		}
-
-		return appbaseRef
-			.reactiveSearchv3(query)
-			.then((res) => {
-				const newDataChunk = res[componentId].hits.hits;
-
-				return dispatch(loadDataToExport(
-					componentId,
-					newDataChunk[newDataChunk.length - 1]._id,
-					res[componentId].hits.total.value,
-					[...data, ...newDataChunk],
-				));
-			})
-			.catch((err) => {
-				console.error('Error fetching data to export! ', err);
+		const queryFromStore = lastUsedAppbaseQuery[componentId];
+		if (queryFromStore) {
+			const query = queryFromStore.map((queryItem) => {
+				if (queryItem.id === componentId) {
+					return {
+						...queryItem,
+						deepPaginationConfig: {
+							cursor: deepPaginationCursor,
+						},
+						deepPagination: true,
+						size: totalResults < 1000 ? totalResults : 1000,
+						sortField: '_id',
+						sortBy: 'asc',
+					};
+				}
+				return queryItem;
 			});
+
+			if (totalResults && Array.isArray(data) && totalResults <= data.length) {
+				return data;
+			}
+
+			return appbaseRef
+				.reactiveSearchv3(query)
+				.then((res) => {
+					const newDataChunk = res[componentId].hits.hits;
+
+					return dispatch(loadDataToExport(
+						componentId,
+						newDataChunk[newDataChunk.length - 1]._id,
+						res[componentId].hits.total.value,
+						[...data, ...newDataChunk],
+					));
+				})
+				.catch((err) => {
+					console.error('Error fetching data to export! ', err);
+				});
+		}
+		return console.error('Error fetching data to export!');
 	};
 }
