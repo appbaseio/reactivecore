@@ -8,10 +8,12 @@ import {
 	setRawData,
 	setCustomData,
 	setTimestamp,
+	setLastUsedAppbaseQuery,
 } from './misc';
 
 import { updateHits, updateAggs, updateCompositeAggs, saveQueryToHits } from './hits';
 import { getInternalComponentID } from '../../lib/utils/transform';
+import { componentTypes } from '../../lib/utils/constants';
 
 export const handleTransformResponse = (res = null, config = {}, component = '') => {
 	if (config.transformResponse && typeof config.transformResponse === 'function') {
@@ -62,6 +64,7 @@ export const handleResponse = (
 		appendToHits = false,
 		appendToAggs = false,
 		isSuggestionsQuery = false,
+		query,
 	} = {},
 	getState = () => {},
 	dispatch,
@@ -89,7 +92,7 @@ export const handleResponse = (
 			handleTransformResponse(res[component], config, component)
 				.then((response) => {
 					if (response) {
-						const { timestamp } = getState();
+						const { timestamp, props } = getState();
 						if (
 							timestamp[component] === undefined
 							|| timestamp[component] < res._timestamp
@@ -110,6 +113,13 @@ export const handleResponse = (
 							dispatch(setCustomData(response.customData, component));
 							if (response.hits) {
 								dispatch(setTimestamp(component, res._timestamp));
+								// store last used query for REACTIVE_LIST only
+								if (
+									props[component].componentType === componentTypes.reactiveList
+								) {
+									dispatch(setLastUsedAppbaseQuery({ [component]: query }));
+								}
+
 								dispatch(updateHits(
 									component,
 									response.hits,

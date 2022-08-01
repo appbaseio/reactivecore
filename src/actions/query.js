@@ -17,7 +17,6 @@ import {
 	updateQueryOptions,
 	setPopularSuggestions,
 	setDefaultPopularSuggestions,
-	setLastUsedAppbaseQuery,
 } from './misc';
 import { buildQuery, compareQueries } from '../utils/helper';
 import getFilterString, { parseCustomEvents } from '../utils/analytics';
@@ -265,7 +264,6 @@ function appbaseSearch({
 	return (dispatch, getState) => {
 		const { appbaseRef, config, headers } = getState();
 		let isAnalyticsEnabled = false;
-		dispatch(setLastUsedAppbaseQuery(query));
 		if (config) {
 			if (isPropertyDefined(config.analytics)) {
 				isAnalyticsEnabled = config.analytics;
@@ -314,6 +312,7 @@ function appbaseSearch({
 						orderOfQueries,
 						appendToHits,
 						appendToAggs,
+						query,
 					},
 					getState,
 					dispatch,
