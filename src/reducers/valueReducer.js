@@ -45,7 +45,6 @@ export default function valueReducer(state = {}, action) {
 						value: action.componentsValues[component],
 					};
 				});
-				console.log('newState', newState);
 				return { ...state, ...newState };
 			}
 			return state;
