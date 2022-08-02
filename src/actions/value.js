@@ -6,6 +6,7 @@ import {
 	PATCH_VALUE,
 	SET_INTERNAL_VALUE,
 	RESET_TO_DEFAULT,
+	SET_VALUES,
 } from '../constants';
 
 export function setValue(
@@ -184,5 +185,14 @@ export function clearValues(resetValues = {}, clearAllBlacklistComponents = []) 
 		type: CLEAR_VALUES,
 		resetValues,
 		clearAllBlacklistComponents,
+	};
+}
+
+export function setValues(componentsValues) {
+	return (dispatch) => {
+		dispatch({
+			type: SET_VALUES,
+			componentsValues,
+		});
 	};
 }

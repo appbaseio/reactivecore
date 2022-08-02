@@ -417,9 +417,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 				...(key ? { [key]: obj[componentId] } : obj[componentId]),
 			};
 		});
-
 	populateState(props);
-
 	Object.keys(selectedValues).forEach((componentId) => {
 		const componentState = searchState[componentId];
 		const selectedValue = selectedValues[componentId];
