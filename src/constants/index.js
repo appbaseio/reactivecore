@@ -9,6 +9,7 @@ export const UPDATE_HITS = 'UPDATE_HITS';
 export const UPDATE_AGGS = 'UPDATE_AGGS';
 export const UPDATE_COMPOSITE_AGGS = 'UPDATE_COMPOSITE_AGGS';
 export const ADD_CONFIG = 'ADD_CONFIG';
+export const UPDATE_CONFIG = 'UPDATE_CONFIG';
 export const ADD_APPBASE_REF = 'ADD_APPBASE_REF';
 export const LOG_QUERY = 'LOG_QUERY';
 export const LOG_COMBINED_QUERY = 'LOG_COMBINED_QUERY';

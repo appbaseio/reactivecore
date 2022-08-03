@@ -8,6 +8,7 @@ import {
 	RESET_TO_DEFAULT,
 	SET_VALUES,
 } from '../constants';
+import { updateStoreConfig } from './utils';
 
 export function setValue(
 	component,
@@ -190,6 +191,9 @@ export function clearValues(resetValues = {}, clearAllBlacklistComponents = []) 
 
 export function setValues(componentsValues) {
 	return (dispatch) => {
+		dispatch(updateStoreConfig({
+			queryLockConfig: { initialTimestamp: new Date().getTime(), lockTime: 100 },
+		}));
 		dispatch({
 			type: SET_VALUES,
 			componentsValues,

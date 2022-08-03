@@ -7,6 +7,7 @@ import {
 	executeQueryListener,
 	handleResponseMSearch,
 	getQuerySuggestionsId,
+	updateStoreConfig,
 } from './utils';
 import {
 	logQuery,
@@ -355,8 +356,15 @@ export function executeQuery(
 			props,
 			internalValues,
 		} = getState();
-		const lockTime = config.initialQueriesSyncTime;
-		const initialTimestamp = config.initialTimestamp;
+		let lockTime = config.initialQueriesSyncTime;
+		let initialTimestamp = window.dummyTime;
+
+		// override logic for locking queries for a period of time
+		if (config.queryLockConfig instanceof Object) {
+			lockTime = config.queryLockConfig.lockTime;
+			initialTimestamp = config.queryLockConfig.initialTimestamp;
+		}
+
 		let componentList = [componentId];
 		let finalQuery = [];
 		let appbaseQuery = {}; // Use object to prevent duplicate query added by react prop
@@ -398,8 +406,8 @@ export function executeQuery(
 					...options,
 					...queryOptions[component],
 				};
-
 				const oldQuery = queryLog[component];
+
 				if (mustExecuteMapQuery || !compareQueries(currentQuery, oldQuery, false)) {
 					orderOfQueries = [...orderOfQueries, component];
 					// log query before adding the map query,
@@ -512,9 +520,10 @@ export function executeQuery(
 				const isSuggestionsQuery
 					= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
 				const currentTime = new Date().getTime();
+
 				if (currentTime - initialTimestamp < lockTime) {
 					// set timeout if lock is not false
-					if (!lock) {
+					if (!lock || config.queryLockConfig) {
 						setTimeout(() => {
 							let finalOrderOfQueries = [];
 							let finalIsSuggestionsQuery = false;
@@ -567,6 +576,9 @@ export function executeQuery(
 							}
 							// empty the request stack
 							requestStack = [];
+							dispatch(updateStoreConfig({
+								queryLockConfig: undefined,
+							}));
 						}, lockTime);
 					}
 					lock = true;
