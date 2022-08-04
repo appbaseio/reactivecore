@@ -19,6 +19,7 @@ export const componentToTypeMap = {
 	[componentTypes.tagCloud]: queryTypes.term,
 	[componentTypes.toggleButton]: queryTypes.term,
 	[componentTypes.reactiveChart]: queryTypes.term,
+	[componentTypes.treeList]: queryTypes.term,
 	// basic components
 	[componentTypes.numberBox]: queryTypes.term,
 
