@@ -14,6 +14,7 @@ import {
 import { updateHits, updateAggs, updateCompositeAggs, saveQueryToHits } from './hits';
 import { getInternalComponentID } from '../../lib/utils/transform';
 import { componentTypes } from '../../lib/utils/constants';
+import { UPDATE_CONFIG } from '../constants';
 
 export const handleTransformResponse = (res = null, config = {}, component = '') => {
 	if (config.transformResponse && typeof config.transformResponse === 'function') {
@@ -318,4 +319,13 @@ export function executeQueryListener(listener, oldQuery, newQuery) {
 	if (listener && listener.onQueryChange) {
 		listener.onQueryChange(oldQuery, newQuery);
 	}
+}
+
+export function updateStoreConfig(payload) {
+	return (dispatch) => {
+		dispatch({
+			type: UPDATE_CONFIG,
+			config: payload,
+		});
+	};
 }

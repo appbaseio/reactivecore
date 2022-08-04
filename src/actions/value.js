@@ -6,7 +6,9 @@ import {
 	PATCH_VALUE,
 	SET_INTERNAL_VALUE,
 	RESET_TO_DEFAULT,
+	SET_VALUES,
 } from '../constants';
+import { updateStoreConfig } from './utils';
 
 export function setValue(
 	component,
@@ -184,5 +186,17 @@ export function clearValues(resetValues = {}, clearAllBlacklistComponents = []) 
 		type: CLEAR_VALUES,
 		resetValues,
 		clearAllBlacklistComponents,
+	};
+}
+
+export function setValues(componentsValues) {
+	return (dispatch) => {
+		dispatch(updateStoreConfig({
+			queryLockConfig: { initialTimestamp: new Date().getTime(), lockTime: 300 },
+		}));
+		dispatch({
+			type: SET_VALUES,
+			componentsValues,
+		});
 	};
 }
