@@ -192,7 +192,7 @@ export function clearValues(resetValues = {}, clearAllBlacklistComponents = []) 
 export function setValues(componentsValues) {
 	return (dispatch) => {
 		dispatch(updateStoreConfig({
-			queryLockConfig: { initialTimestamp: new Date().getTime(), lockTime: 100 },
+			queryLockConfig: { initialTimestamp: new Date().getTime(), lockTime: 300 },
 		}));
 		dispatch({
 			type: SET_VALUES,
