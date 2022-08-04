@@ -357,9 +357,11 @@ export function executeQuery(
 			internalValues,
 		} = getState();
 		let lockTime = config.initialQueriesSyncTime;
-		let initialTimestamp = window.dummyTime;
+		let initialTimestamp = config.initialTimestamp;
 
 		// override logic for locking queries for a period of time
+		// The block only runs when setSearchState method of StateProvider sets the
+		// queryLockConfig property in then store
 		if (config.queryLockConfig instanceof Object) {
 			lockTime = config.queryLockConfig.lockTime;
 			initialTimestamp = config.queryLockConfig.initialTimestamp;
