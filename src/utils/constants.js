@@ -123,6 +123,7 @@ export const validProps = [
 	'customStopwords',
 	'enableIndexSuggestions',
 	'enableFeaturedSuggestions',
+	'searchboxId',
 ];
 
 export const CLEAR_ALL = {

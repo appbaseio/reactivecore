@@ -140,6 +140,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 					indexSuggestionsConfig: props.indexSuggestionsConfig,
 					enableFeaturedSuggestions: props.enableFeaturedSuggestions,
 					enableIndexSuggestions: props.enableIndexSuggestions,
+					...(props.searchboxId ? { searchboxId: props.searchboxId } : {}),
 				  }
 				: {}),
 			calendarInterval: props.calendarInterval,

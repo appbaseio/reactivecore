@@ -4,6 +4,7 @@ import {
 	CLEAR_VALUES,
 	REMOVE_COMPONENT,
 	PATCH_VALUE,
+	SET_VALUES,
 } from '../constants';
 
 export default function valueReducer(state = {}, action) {
@@ -31,7 +32,23 @@ export default function valueReducer(state = {}, action) {
 				},
 			};
 		}
+		case SET_VALUES: {
+			const componentKeys = action.componentsValues
+				? Object.keys(action.componentsValues)
+				: [];
+			if (componentKeys.length) {
+				const newState = {};
 
+				componentKeys.forEach((component) => {
+					newState[component] = {
+						...state[component],
+						value: action.componentsValues[component],
+					};
+				});
+				return { ...state, ...newState };
+			}
+			return state;
+		}
 		case PATCH_VALUE:
 			return {
 				...state,

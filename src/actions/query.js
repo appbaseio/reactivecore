@@ -7,6 +7,7 @@ import {
 	executeQueryListener,
 	handleResponseMSearch,
 	getQuerySuggestionsId,
+	updateStoreConfig,
 } from './utils';
 import {
 	logQuery,
@@ -263,9 +264,7 @@ function appbaseSearch({
 } = {}) {
 	return (dispatch, getState) => {
 		const { appbaseRef, config, headers } = getState();
-
 		let isAnalyticsEnabled = false;
-
 		if (config) {
 			if (isPropertyDefined(config.analytics)) {
 				isAnalyticsEnabled = config.analytics;
@@ -314,6 +313,7 @@ function appbaseSearch({
 						orderOfQueries,
 						appendToHits,
 						appendToAggs,
+						query,
 					},
 					getState,
 					dispatch,
@@ -356,8 +356,17 @@ export function executeQuery(
 			props,
 			internalValues,
 		} = getState();
-		const lockTime = config.initialQueriesSyncTime;
-		const initialTimestamp = config.initialTimestamp;
+		let lockTime = config.initialQueriesSyncTime;
+		let initialTimestamp = config.initialTimestamp;
+
+		// override logic for locking queries for a period of time
+		// The block only runs when setSearchState method of StateProvider sets the
+		// queryLockConfig property in then store
+		if (config.queryLockConfig instanceof Object) {
+			lockTime = config.queryLockConfig.lockTime;
+			initialTimestamp = config.queryLockConfig.initialTimestamp;
+		}
+
 		let componentList = [componentId];
 		let finalQuery = [];
 		let appbaseQuery = {}; // Use object to prevent duplicate query added by react prop
@@ -399,8 +408,8 @@ export function executeQuery(
 					...options,
 					...queryOptions[component],
 				};
-
 				const oldQuery = queryLog[component];
+
 				if (mustExecuteMapQuery || !compareQueries(currentQuery, oldQuery, false)) {
 					orderOfQueries = [...orderOfQueries, component];
 					// log query before adding the map query,
@@ -513,9 +522,10 @@ export function executeQuery(
 				const isSuggestionsQuery
 					= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
 				const currentTime = new Date().getTime();
+
 				if (currentTime - initialTimestamp < lockTime) {
 					// set timeout if lock is not false
-					if (!lock) {
+					if (!lock || config.queryLockConfig) {
 						setTimeout(() => {
 							let finalOrderOfQueries = [];
 							let finalIsSuggestionsQuery = false;
@@ -568,6 +578,9 @@ export function executeQuery(
 							}
 							// empty the request stack
 							requestStack = [];
+							dispatch(updateStoreConfig({
+								queryLockConfig: undefined,
+							}));
 						}, lockTime);
 					}
 					lock = true;
@@ -751,5 +764,50 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 			];
 			dispatch(msearch(finalQuery, [component], appendToHits, false, appendToAggs));
 		}
+	};
+}
+
+export function loadDataToExport(componentId, deepPaginationCursor = '', totalResults, data = []) {
+	return (dispatch, getState) => {
+		const { appbaseRef, lastUsedAppbaseQuery } = getState();
+		const queryFromStore = lastUsedAppbaseQuery[componentId];
+		if (queryFromStore) {
+			const query = queryFromStore.map((queryItem) => {
+				if (queryItem.id === componentId) {
+					return {
+						...queryItem,
+						deepPaginationConfig: {
+							cursor: deepPaginationCursor,
+						},
+						deepPagination: true,
+						size: totalResults < 1000 ? totalResults : 1000,
+						sortField: '_id',
+						sortBy: 'asc',
+					};
+				}
+				return queryItem;
+			});
+
+			if (totalResults && Array.isArray(data) && totalResults <= data.length) {
+				return data;
+			}
+
+			return appbaseRef
+				.reactiveSearchv3(query)
+				.then((res) => {
+					const newDataChunk = res[componentId].hits.hits;
+
+					return dispatch(loadDataToExport(
+						componentId,
+						newDataChunk[newDataChunk.length - 1]._id,
+						res[componentId].hits.total.value,
+						[...data, ...newDataChunk],
+					));
+				})
+				.catch((err) => {
+					console.error('Error fetching data to export! ', err);
+				});
+		}
+		return console.error('Error fetching data to export!');
 	};
 }

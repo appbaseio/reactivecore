@@ -417,9 +417,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 				...(key ? { [key]: obj[componentId] } : obj[componentId]),
 			};
 		});
-
 	populateState(props);
-
 	Object.keys(selectedValues).forEach((componentId) => {
 		const componentState = searchState[componentId];
 		const selectedValue = selectedValues[componentId];
@@ -995,5 +993,63 @@ export const transformTreeListLocalStateIntoQueryComptaibleFormat = (obj, curren
 			result.push(currentPath);
 		}
 	}
+	return result;
+};
+
+// https://stackoverflow.com/a/65939108/10822996
+export const saveDataAsFile = (
+	filename = 'exportedData',
+	data,
+	format = 'csv', // csv or json
+) => {
+	let dataToWrite = data;
+	const dataType = `text/${format}`;
+
+	if (format === 'json') {
+		dataToWrite = JSON.stringify(dataToWrite, 0, 4);
+	}
+	const blob = new Blob([dataToWrite], { type: dataType });
+	const link = document.createElement('a');
+
+	link.download = `${filename}.${format}`;
+	link.href = window.URL.createObjectURL(blob);
+	link.dataset.downloadurl = [dataType, link.download, link.href].join(':');
+
+	const evt = new MouseEvent('click', {
+		view: window,
+		bubbles: true,
+		cancelable: true,
+	});
+
+	link.dispatchEvent(evt);
+	link.remove();
+};
+
+/**
+ * A function to convert multilevel object to single level object
+ * and use key value pairs as Column and row pairs using recursion
+ */
+export const flatten = (data) => {
+	const result = {};
+
+	function recurse(cur, prop = '') {
+		if (Object(cur) !== cur) {
+			result[prop] = cur;
+		} else if (Array.isArray(cur)) {
+			result[prop] = JSON.stringify(cur);
+		} else {
+			let isEmpty = true;
+			Object.keys(cur).forEach((p) => {
+				isEmpty = false;
+				recurse(cur[p], prop ? `${prop}.${p}` : p);
+			});
+			if (isEmpty && prop) {
+				result[prop] = {};
+			}
+		}
+	}
+
+	recurse(data);
+
 	return result;
 };

@@ -4,6 +4,7 @@ import componentsReducer from './componentsReducer';
 import watchManReducer from './watchManReducer';
 import dependencyTreeReducer from './dependencyTreeReducer';
 import queryReducer from './queryReducer';
+import appbaseQueryReducer from './appbaseQueryReducer';
 import queryOptionsReducer from './queryOptionsReducer';
 import configReducer from './configReducer';
 import appbaseRefReducer from './appbaseRefReducer';
@@ -71,4 +72,5 @@ export default combineReducers({
 	recentSearches: recentSearchesReducer,
 	urlValues: (state = {}) => state,
 	googleMapScriptStatus: googleMapScriptReducer,
+	lastUsedAppbaseQuery: appbaseQueryReducer,
 });

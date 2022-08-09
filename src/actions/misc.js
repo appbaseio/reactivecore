@@ -22,6 +22,7 @@ import {
 	SET_GOOGLE_MAP_SCRIPT_LOADING,
 	SET_GOOGLE_MAP_SCRIPT_LOADED,
 	SET_GOOGLE_MAP_SCRIPT_ERROR,
+	SET_APPBASE_QUERY,
 } from '../constants';
 import { updateAggs, updateCompositeAggs, updateHits } from './hits';
 
@@ -205,5 +206,12 @@ export function resetStoreForComponent(componentId) {
 		dispatch(updateAggs(componentId, null));
 		dispatch(updateCompositeAggs(componentId, {}));
 		dispatch(updateHits(componentId, { hits: [], total: 0 }, 0));
+	};
+}
+
+export function setLastUsedAppbaseQuery(query) {
+	return {
+		type: SET_APPBASE_QUERY,
+		query,
 	};
 }

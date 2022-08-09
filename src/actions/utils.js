@@ -8,10 +8,13 @@ import {
 	setRawData,
 	setCustomData,
 	setTimestamp,
+	setLastUsedAppbaseQuery,
 } from './misc';
 
 import { updateHits, updateAggs, updateCompositeAggs, saveQueryToHits } from './hits';
 import { getInternalComponentID } from '../../lib/utils/transform';
+import { componentTypes } from '../../lib/utils/constants';
+import { UPDATE_CONFIG } from '../constants';
 
 export const handleTransformResponse = (res = null, config = {}, component = '') => {
 	if (config.transformResponse && typeof config.transformResponse === 'function') {
@@ -44,7 +47,8 @@ export const handleError = (
 	}
 
 	orderOfQueries.forEach((component) => {
-		if (isComponentActive(getState, component)) { // Only update state for active components
+		if (isComponentActive(getState, component)) {
+			// Only update state for active components
 			if (queryListener[component] && queryListener[component].onError) {
 				queryListener[component].onError(error);
 			}
@@ -61,6 +65,7 @@ export const handleResponse = (
 		appendToHits = false,
 		appendToAggs = false,
 		isSuggestionsQuery = false,
+		query,
 	} = {},
 	getState = () => {},
 	dispatch,
@@ -88,7 +93,7 @@ export const handleResponse = (
 			handleTransformResponse(res[component], config, component)
 				.then((response) => {
 					if (response) {
-						const { timestamp } = getState();
+						const { timestamp, props } = getState();
 						if (
 							timestamp[component] === undefined
 							|| timestamp[component] < res._timestamp
@@ -109,6 +114,16 @@ export const handleResponse = (
 							dispatch(setCustomData(response.customData, component));
 							if (response.hits) {
 								dispatch(setTimestamp(component, res._timestamp));
+								// store last used query for REACTIVE_LIST only
+
+								if (
+									props[component].componentType
+										=== componentTypes.reactiveList
+									&& query.find(queryItem => queryItem.id === component).execute
+								) {
+									dispatch(setLastUsedAppbaseQuery({ [component]: query }));
+								}
+
 								dispatch(updateHits(
 									component,
 									response.hits,
@@ -168,7 +183,8 @@ export const handleResponseMSearch = (
 	// handle promoted results
 	orderOfQueries.forEach((component, index) => {
 		// If response is stale then don't process response
-		if (isComponentActive(getState, component)) { // Only update state for active components
+		if (isComponentActive(getState, component)) {
+			// Only update state for active components
 			const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
 			if (searchId) {
 				if (isSuggestionsQuery) {
@@ -303,4 +319,13 @@ export function executeQueryListener(listener, oldQuery, newQuery) {
 	if (listener && listener.onQueryChange) {
 		listener.onQueryChange(oldQuery, newQuery);
 	}
+}
+
+export function updateStoreConfig(payload) {
+	return (dispatch) => {
+		dispatch({
+			type: UPDATE_CONFIG,
+			config: payload,
+		});
+	};
 }

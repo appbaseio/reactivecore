@@ -1,4 +1,4 @@
-import { ADD_CONFIG, UPDATE_ANALYTICS_CONFIG } from '../constants';
+import { ADD_CONFIG, UPDATE_ANALYTICS_CONFIG, UPDATE_CONFIG } from '../constants';
 import { defaultAnalyticsConfig } from '../utils/analytics';
 
 export default function configReducer(
@@ -22,6 +22,11 @@ export default function configReducer(
 				...state.analyticsConfig,
 				...action.analyticsConfig,
 			},
+		};
+	} else if (action.type === UPDATE_CONFIG) {
+		return {
+			...state,
+			...action.config,
 		};
 	}
 	return state;
