@@ -977,19 +977,23 @@ export const transformRawTreeListData = (data, dataField, level = 0) => {
 // ]
 export const transformTreeListLocalStateIntoQueryComptaibleFormat = (obj, currentPath = '') => {
 	const result = [];
-	if (obj instanceof Object && Object.keys(obj).length) {
-		Object.keys(obj).forEach((key) => {
-			if (obj[key] instanceof Object) {
-				result.push(...transformTreeListLocalStateIntoQueryComptaibleFormat(
-					obj[key],
-					currentPath ? `${currentPath} > ${key}` : key,
-				));
-			}
+	if (obj instanceof Object) {
+		if (Object.keys(obj).length) {
+			Object.keys(obj).forEach((key) => {
+				if (obj[key] instanceof Object) {
+					result.push(...transformTreeListLocalStateIntoQueryComptaibleFormat(
+						obj[key],
+						currentPath ? `${currentPath} > ${key}` : key,
+					));
+				}
 
-			if (obj[key] === true) {
-				result.push(currentPath ? `${currentPath} > ${key}` : key);
-			}
-		});
+				if (obj[key] === true) {
+					result.push(currentPath ? `${currentPath} > ${key}` : key);
+				}
+			});
+		} else if (currentPath) {
+			result.push(currentPath);
+		}
 	}
 	return result;
 };
