@@ -13,6 +13,7 @@ export const componentTypes = {
 	multiDataList: 'MULTIDATALIST',
 	multiDropdownList: 'MULTIDROPDOWNLIST',
 	singleDropdownRange: 'SINGLEDROPDOWNRANGE',
+	treeList: 'TREELIST',
 	// basic components
 	numberBox: 'NUMBERBOX',
 	tagCloud: 'TAGCLOUD',

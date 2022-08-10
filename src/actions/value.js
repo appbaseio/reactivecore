@@ -132,6 +132,7 @@ export function resetValuesToDefault(clearAllBlacklistComponents) {
 						componentTypes.singleRange,
 						componentTypes.dataSearch,
 						componentTypes.datePicker,
+						componentTypes.treeList,
 					].includes(componentProps[component].componentType)
 				) {
 					valueToSet = componentProps[component].defaultValue;

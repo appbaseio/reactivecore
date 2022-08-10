@@ -843,6 +843,159 @@ export const hasCustomRenderer = (props = {}) => {
 	return isFunction(children) || isFunction(render);
 };
 
+/**
+ * Recursively look for a path in a nested object
+ */
+export const recLookup = (obj, path) => {
+	try {
+		const parts = path.split('.');
+		if (parts.length === 1) {
+			return obj[parts[0]];
+		}
+		return recLookup(obj[parts[0]], parts.slice(1).join('.'));
+	} catch (e) {
+		return false;
+	}
+};
+
+/**
+ * Dynamically sets a deeply nested value in an object.
+ * has been modified to comply with TreeList component implementation
+ * https://stackoverflow.com/a/49754647/10822996
+ */
+export function setDeep(obj, path, value, setrecursively = false) {
+	path.reduce((acc, currentItem, level) => {
+		if (setrecursively && typeof acc[currentItem] !== 'object' && level !== path.length - 1) {
+			acc[currentItem] = {};
+			return acc[currentItem];
+		}
+
+		if (level === path.length - 1) {
+			acc[currentItem] = value;
+			return value;
+		}
+
+		return typeof acc[currentItem] === 'object' ? acc[currentItem] : {};
+	}, obj);
+}
+
+// transforms rawData into local state
+// [
+// 	{
+// 		key: 'COMPACT DISC',
+// 		count: 70654,
+// 		level: 0,
+// 		list: [
+// 			{
+// 				key: 'VINYL',
+// 				count: 69731,
+// 				level: 1,
+// 				list: [
+// 					{
+// 						key: 'SPORTS & FITNESS',
+// 						count: 12553,
+// 						level: 2,
+// 					},
+// 				],
+// 			},
+// 		],
+// 	},
+// ];
+// ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️
+// [
+//     {
+//         "key": "COMPACT DISC",
+//         "count": 70654,
+//         "level": 0,
+//         "list": [
+//             {
+//                 "key": "VINYL",
+//                 "count": 69731,
+//                 "level": 1,
+//                 "list": [
+//                     {
+//                         "key": "SPORTS & FITNESS",
+//                         "count": 12553,
+//                         "level": 2
+//                     }
+//                 ]
+//             }
+//         ]
+//     }
+// ]
+export const transformRawTreeListData = (data, dataField, level = 0) => {
+	const newState = [];
+	if (data instanceof Object) {
+		const aggsKeys = Object.keys(data);
+		aggsKeys.forEach((key) => {
+			if (Array.isArray(data[key].buckets)) {
+				data[key].buckets.forEach((bucket) => {
+					newState.push({
+						key: bucket.key,
+						count: bucket.doc_count,
+						level,
+						...(bucket[dataField[level + 1]] instanceof Object
+							? {
+								list: transformRawTreeListData(
+									{
+										[dataField[level + 1]]: bucket[dataField[level + 1]],
+									},
+									dataField,
+									level + 1,
+								),
+							  }
+							: {}),
+					});
+				});
+			}
+		});
+	}
+
+	return newState;
+};
+
+// transforms local selected data into query compatible format
+// const object = {
+//   "COMPACT DISC": {
+//     "VINYL": {
+//       "DRAMA/DR": true,
+//       "MUSIC DVD": true,
+//       "CHILDRENS-FAMILY": false
+//     },
+//     "MUSIC DVD": true,
+//     "ROCK-ELECTRONIC": true
+//   }
+// };
+// ⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️⬇️
+// [
+//     "COMPACT DISC > VINYL > DRAMA/DR",
+//     "COMPACT DISC > VINYL > MUSIC DVD",
+//     "COMPACT DISC > MUSIC DVD",
+//     "COMPACT DISC > ROCK-ELECTRONIC"
+// ]
+export const transformTreeListLocalStateIntoQueryComptaibleFormat = (obj, currentPath = '') => {
+	const result = [];
+	if (obj instanceof Object) {
+		if (Object.keys(obj).length) {
+			Object.keys(obj).forEach((key) => {
+				if (obj[key] instanceof Object) {
+					result.push(...transformTreeListLocalStateIntoQueryComptaibleFormat(
+						obj[key],
+						currentPath ? `${currentPath} > ${key}` : key,
+					));
+				}
+
+				if (obj[key] === true) {
+					result.push(currentPath ? `${currentPath} > ${key}` : key);
+				}
+			});
+		} else if (currentPath) {
+			result.push(currentPath);
+		}
+	}
+	return result;
+};
+
 // https://stackoverflow.com/a/65939108/10822996
 export const saveDataAsFile = (
 	filename = 'exportedData',
@@ -897,5 +1050,6 @@ export const flatten = (data) => {
 	}
 
 	recurse(data);
+
 	return result;
 };

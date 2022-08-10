@@ -19,6 +19,7 @@ const filterComponents = [
 	componentTypes.ratingsFilter,
 	componentTypes.singleDropdownRange,
 	componentTypes.singleRange,
+	componentTypes.treeList,
 ];
 
 // components storing range as array
