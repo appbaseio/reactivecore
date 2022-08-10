@@ -73,7 +73,8 @@ export const isSearchComponent = (componentType = '') => searchComponents.includ
 
 export const isComponentUsesLabelAsValue = (componentType = '') =>
 	componentType === componentTypes.multiDataList
-	|| componentType === componentTypes.singleDataList;
+	|| componentType === componentTypes.singleDataList
+	|| componentType === componentTypes.tabDataList;
 
 export const hasPaginationSupport = (componentType = '') =>
 	listComponentsWithPagination.includes(componentType);
