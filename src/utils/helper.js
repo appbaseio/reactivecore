@@ -477,8 +477,8 @@ export const updateInternalQuery = (
 			...defaultQueryOptions,
 			...(queryOptions || defaultQueryToExecute),
 		});
-		// Certain components like ReactiveChart sends value as an object
-		if (typeof value === 'object') {
+		// Certain components like ReactiveChart sends value as an object(array not included)
+		if (typeof value === 'object' && !Array.isArray(value)) {
 			props.updateQuery({
 				componentId,
 				query,
