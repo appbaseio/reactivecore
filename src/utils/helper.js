@@ -477,12 +477,22 @@ export const updateInternalQuery = (
 			...defaultQueryOptions,
 			...(queryOptions || defaultQueryToExecute),
 		});
-		props.updateQuery({
-			componentId,
-			query,
-			value,
-			...queryParams,
-		});
+		// Certain components like ReactiveChart sends value as an object
+		if (typeof value === 'object') {
+			props.updateQuery({
+				componentId,
+				query,
+				value: value.value,
+				...queryParams,
+			});
+		} else {
+			props.updateQuery({
+				componentId,
+				query,
+				value,
+				...queryParams,
+			});
+		}
 	} else {
 		props.setQueryOptions(componentId, {
 			...defaultQueryOptions,
