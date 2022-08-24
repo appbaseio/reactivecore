@@ -145,6 +145,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 				  }
 				: {}),
 			calendarInterval: props.calendarInterval,
+			...(props.endpoint instanceof Object ? { endpoint: props.endpoint } : {}),
 		};
 	}
 	return null;
