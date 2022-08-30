@@ -124,6 +124,7 @@ export const validProps = [
 	'enableIndexSuggestions',
 	'enableFeaturedSuggestions',
 	'searchboxId',
+	'endpoint',
 ];
 
 export const CLEAR_ALL = {

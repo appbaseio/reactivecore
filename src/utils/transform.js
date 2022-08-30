@@ -89,6 +89,10 @@ export const getRSQuery = (componentId, props, execute = true) => {
 		if (!isSearchComponent(props.componentType) && !props.dataField) {
 			return null;
 		}
+		let endpoint;
+		if (props.endpoint instanceof Object) {
+			endpoint = props.endpoint;
+		}
 		return {
 			id: componentId,
 			type: queryType,
@@ -145,6 +149,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 				  }
 				: {}),
 			calendarInterval: props.calendarInterval,
+			endpoint,
 		};
 	}
 	return null;
@@ -393,8 +398,16 @@ export const extractPropsFromState = (store, component, customOptions) => {
 			queryValue = undefined;
 		}
 	}
+	let endpoint;
+	if (store.config.endpoint instanceof Object) {
+		endpoint = store.config.endpoint;
+	}
+	if (componentProps.endpoint instanceof Object) {
+		endpoint = { ...(endpoint || {}), ...componentProps.endpoint };
+	}
 	return {
 		...componentProps,
+		endpoint,
 		calendarInterval,
 		dataField,
 		queryFormat,
