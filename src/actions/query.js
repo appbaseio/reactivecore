@@ -18,6 +18,7 @@ import {
 	updateQueryOptions,
 	setPopularSuggestions,
 	setDefaultPopularSuggestions,
+	setLastUsedAppbaseQuery,
 } from './misc';
 import { buildQuery, compareQueries } from '../utils/helper';
 import getFilterString, { parseCustomEvents } from '../utils/analytics';
@@ -255,6 +256,7 @@ function msearch(
 }
 
 function appbaseSearch({
+	queryId,
 	query,
 	orderOfQueries,
 	appendToHits = false,
@@ -314,6 +316,7 @@ function appbaseSearch({
 						appendToHits,
 						appendToAggs,
 						query,
+						queryId,
 					},
 					getState,
 					dispatch,
@@ -324,6 +327,7 @@ function appbaseSearch({
 					{
 						orderOfQueries,
 						error: err,
+						queryId,
 					},
 					getState,
 					dispatch,
@@ -342,6 +346,9 @@ export function executeQuery(
 	mustExecuteMapQuery = false,
 	componentType,
 	metaOptions,
+	// A unique identifier for map query to recognize
+	// the results for latest requests
+	requestId,
 ) {
 	return (dispatch, getState) => {
 		const {
@@ -358,7 +365,7 @@ export function executeQuery(
 		} = getState();
 		let lockTime = config.initialQueriesSyncTime;
 		let initialTimestamp = config.initialTimestamp;
-
+		const queryId = requestId || new Date().getTime();
 		// override logic for locking queries for a period of time
 		// The block only runs when setSearchState method of StateProvider sets the
 		// queryLockConfig property in then store
@@ -412,12 +419,19 @@ export function executeQuery(
 
 				if (mustExecuteMapQuery || !compareQueries(currentQuery, oldQuery, false)) {
 					orderOfQueries = [...orderOfQueries, component];
+
+					const isMapComponent = Object.keys(mapData).includes(component);
+					if (isMapComponent) {
+						dispatch(setLastUsedAppbaseQuery({
+							[component]: {
+								queryId,
+							},
+						}));
+					}
+
 					// log query before adding the map query,
 					// since we don't do gatekeeping on the map query in the `queryLog`
 					dispatch(logQuery(component, queryToLog));
-
-					// add maps query here
-					const isMapComponent = Object.keys(mapData).includes(component);
 
 					if (isMapComponent && mapData[component].query) {
 						// attach mapQuery to exisiting query via "must" type
@@ -592,6 +606,7 @@ export function executeQuery(
 					});
 				} else {
 					dispatch(appbaseSearch({
+						queryId,
 						query: finalQuery,
 						orderOfQueries,
 						isSuggestionsQuery,

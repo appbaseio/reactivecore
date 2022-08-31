@@ -21,6 +21,7 @@ export const SET_ERROR = 'SET_ERROR';
 export const SET_TIMESTAMP = 'SET_TIMESTAMP';
 export const SET_HEADERS = 'SET_HEADERS';
 export const SET_MAP_DATA = 'SET_MAP_DATA';
+export const SET_MAP_RESULTS = 'SET_MAP_RESULTS';
 export const SET_QUERY_LISTENER = 'SET_QUERY_LISTENER';
 export const STORE_KEY = '__REACTIVESEARCH__';
 export const SET_SEARCH_ID = 'SET_SEARCH_ID';

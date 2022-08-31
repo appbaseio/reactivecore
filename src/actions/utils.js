@@ -66,11 +66,12 @@ export const handleResponse = (
 		appendToAggs = false,
 		isSuggestionsQuery = false,
 		query,
+		queryId,
 	} = {},
 	getState = () => {},
 	dispatch,
 ) => {
-	const { config, internalValues } = getState();
+	const { config, internalValues, lastUsedAppbaseQuery } = getState();
 	const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
 	if (searchId) {
 		if (isSuggestionsQuery) {
@@ -86,6 +87,15 @@ export const handleResponse = (
 	orderOfQueries.forEach((component) => {
 		// Only update state for active components
 		if (isComponentActive(getState, component)) {
+			// Avoid settings stale results
+			if (
+				lastUsedAppbaseQuery[component]
+				&& lastUsedAppbaseQuery[component].queryId
+				&& queryId
+				&& lastUsedAppbaseQuery[component].queryId !== queryId
+			) {
+				return;
+			}
 			// Update applied settings
 			if (res.settings) {
 				dispatch(setAppliedSettings(res.settings, component));
