@@ -1053,3 +1053,21 @@ export const flatten = (data) => {
 
 	return result;
 };
+
+// transform request when endpoint prop is defined
+export const transformRequestUsingEndpoint = (request, endpointParam) => {
+	if (endpointParam instanceof Object) {
+		const { headers = {}, body, ...rest } = endpointParam;
+		const endpointModifiedRequest = {
+			...request,
+			...rest,
+			headers: {
+				...request.headers,
+				...headers,
+			},
+			...(body instanceof Object ? { body: JSON.stringify(body) } : {}),
+		};
+		return endpointModifiedRequest;
+	}
+	return request;
+};

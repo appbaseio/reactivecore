@@ -811,7 +811,9 @@ export function loadDataToExport(componentId, deepPaginationCursor = '', totalRe
 				.reactiveSearchv3(query)
 				.then((res) => {
 					const newDataChunk = res[componentId].hits.hits;
-
+					if (!Array.isArray(newDataChunk) || newDataChunk.length === 0) {
+						return data;
+					}
 					return dispatch(loadDataToExport(
 						componentId,
 						newDataChunk[newDataChunk.length - 1]._id,

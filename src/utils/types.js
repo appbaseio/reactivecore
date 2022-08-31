@@ -187,6 +187,14 @@ const types = {
 	}),
 	calendarInterval: oneOf(['month', 'day', 'year', 'week', 'quarter', 'hour', 'minute']),
 	preferences: object,
+	endpoint: shape({
+		url: string.isRequired,
+		method: string,
+		/* eslint-disable react/forbid-prop-types */
+		headers: object,
+		body: object,
+		/* eslint-enable react/forbid-prop-types */
+	}),
 };
 
 export default types;
