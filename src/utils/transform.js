@@ -399,7 +399,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		}
 	}
 	let endpoint;
-	if (store.config.endpoint instanceof Object) {
+	if (store.config && store.config.endpoint instanceof Object) {
 		endpoint = store.config.endpoint;
 	}
 	if (componentProps.endpoint instanceof Object) {
