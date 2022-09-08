@@ -568,6 +568,14 @@ export function executeQuery(
 										if (queryExecutionMap[query.id]) {
 											newQuery.execute = true;
 										}
+										if (
+											processedQueriesMap[query.id]
+											&& processedQueriesMap[query.id].type
+												=== queryTypes.suggestion
+											&& newQuery.type !== queryTypes.suggestion
+										) {
+											return;
+										}
 										processedQueriesMap[query.id] = newQuery;
 									});
 								}
