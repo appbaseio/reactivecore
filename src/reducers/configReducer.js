@@ -4,6 +4,7 @@ import { defaultAnalyticsConfig } from '../utils/analytics';
 export default function configReducer(
 	state = {
 		analyticsConfig: defaultAnalyticsConfig,
+		lock: false,
 	},
 	action,
 ) {

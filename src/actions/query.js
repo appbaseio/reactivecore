@@ -338,8 +338,7 @@ function appbaseSearch({
 
 // latest request would be at the end
 let requestStack = [];
-let lock = false;
-let previousInitialTimestamp;
+
 export function executeQuery(
 	componentId,
 	executeWatchList = false,
@@ -362,16 +361,10 @@ export function executeQuery(
 			queryListener,
 			props,
 			internalValues,
+			lock,
 		} = getState();
 		let lockTime = config.initialQueriesSyncTime;
 		let initialTimestamp = config.initialTimestamp;
-
-		if (previousInitialTimestamp === undefined) {
-			previousInitialTimestamp = initialTimestamp;
-		} else if (previousInitialTimestamp !== initialTimestamp && lock === true) {
-			lock = false;
-		}
-
 		const queryId = requestId || new Date().getTime();
 		// override logic for locking queries for a period of time
 		// The block only runs when setSearchState method of StateProvider sets the
@@ -546,7 +539,7 @@ export function executeQuery(
 
 				if (currentTime - initialTimestamp < lockTime) {
 					// set timeout if lock is not false
-					if (!lock || !!config.queryLockConfig) {
+					if (!lock || config.queryLockConfig) {
 						setTimeout(() => {
 							let finalOrderOfQueries = [];
 							let finalIsSuggestionsQuery = false;
@@ -604,7 +597,7 @@ export function executeQuery(
 							}));
 						}, lockTime);
 					}
-					lock = true;
+					dispatch(updateStoreConfig({ lock: true }));
 					requestStack.push({
 						query: finalQuery,
 						orderOfQueries,
