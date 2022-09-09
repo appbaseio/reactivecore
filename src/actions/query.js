@@ -789,7 +789,7 @@ export function loadDataToExport(componentId, deepPaginationCursor = '', totalRe
 		if (queryFromStore) {
 			const query = queryFromStore.map((queryItem) => {
 				if (queryItem.id === componentId) {
-					return {
+					const finalQueryItem = {
 						...queryItem,
 						deepPaginationConfig: {
 							cursor: deepPaginationCursor,
@@ -799,6 +799,9 @@ export function loadDataToExport(componentId, deepPaginationCursor = '', totalRe
 						sortField: '_id',
 						sortBy: 'asc',
 					};
+
+					delete finalQueryItem.from;
+					return finalQueryItem;
 				}
 				return queryItem;
 			});
