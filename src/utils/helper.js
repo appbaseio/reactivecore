@@ -47,6 +47,10 @@ export function compareQueries(x, y) {
 }
 
 export function debounce(callback, wait, context = this) {
+	if (!wait) {
+		return callback;
+	}
+
 	let timeout = null;
 	let callbackArgs = null;
 
