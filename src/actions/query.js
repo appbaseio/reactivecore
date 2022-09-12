@@ -574,6 +574,13 @@ export function executeQuery(
 												=== queryTypes.suggestion
 											&& newQuery.type !== queryTypes.suggestion
 										) {
+											processedQueriesMap[`${query.id}__suggestion_type`] = {
+												...processedQueriesMap[query.id],
+											};
+											processedQueriesMap[query.id] = {
+												...newQuery,
+												execute: false,
+											};
 											return;
 										}
 										processedQueriesMap[query.id] = newQuery;
