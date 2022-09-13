@@ -293,6 +293,19 @@ function appbaseSearch({
 			settings.customEvents = isPropertyDefined(config.analyticsConfig.customEvents)
 				? config.analyticsConfig.customEvents
 				: undefined;
+			settings.emptyQuery = isPropertyDefined(config.analyticsConfig.emptyQuery)
+				? config.analyticsConfig.emptyQuery
+				: undefined;
+			settings.enableSearchRelevancy
+				= isPropertyDefined(config.analyticsConfig.enableSearchRelevancy)
+					? config.analyticsConfig.enableSearchRelevancy
+					: undefined;
+			settings.suggestionAnalytics = isPropertyDefined(config.analyticsConfig.suggestionAnalytics)
+				? config.analyticsConfig.suggestionAnalytics
+				: undefined;
+			settings.useCache = isPropertyDefined(config.analyticsConfig.useCache)
+				? config.analyticsConfig.useCache
+				: undefined;
 		}
 
 		// set loading as active for the given component
