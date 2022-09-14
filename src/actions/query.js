@@ -351,7 +351,6 @@ function appbaseSearch({
 
 // latest request would be at the end
 let requestStack = [];
-let lock = false;
 
 export function executeQuery(
 	componentId,
@@ -375,6 +374,7 @@ export function executeQuery(
 			queryListener,
 			props,
 			internalValues,
+			lock,
 		} = getState();
 		let lockTime = config.initialQueriesSyncTime;
 		let initialTimestamp = config.initialTimestamp;
@@ -581,6 +581,21 @@ export function executeQuery(
 										if (queryExecutionMap[query.id]) {
 											newQuery.execute = true;
 										}
+										if (
+											processedQueriesMap[query.id]
+											&& processedQueriesMap[query.id].type
+												=== queryTypes.suggestion
+											&& newQuery.type !== queryTypes.suggestion
+										) {
+											processedQueriesMap[`${query.id}__suggestion_type`] = {
+												...processedQueriesMap[query.id],
+											};
+											processedQueriesMap[query.id] = {
+												...newQuery,
+												execute: false,
+											};
+											return;
+										}
 										processedQueriesMap[query.id] = newQuery;
 									});
 								}
@@ -610,7 +625,7 @@ export function executeQuery(
 							}));
 						}, lockTime);
 					}
-					lock = true;
+					dispatch(updateStoreConfig({ lock: true }));
 					requestStack.push({
 						query: finalQuery,
 						orderOfQueries,

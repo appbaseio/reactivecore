@@ -39,12 +39,13 @@ export default function configureStore(initialState) {
 		...initialState,
 		config: {
 			...initialState.config,
+			lock: false,
 			analyticsConfig:
 				initialState.config && initialState.config.analyticsConfig
 					? {
 						...defaultAnalyticsConfig,
 						...initialState.config.analyticsConfig,
-					}
+					  }
 					: defaultAnalyticsConfig,
 		},
 	};
