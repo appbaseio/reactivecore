@@ -380,7 +380,7 @@ export const extractQueryFromCustomQuery = (customQuery) => {
 	return null;
 };
 
-function computeResultStats(hits, searchState, promotedResults) {
+function computeResultStats(hits = {}, searchState, promotedResults) {
 	Object.keys(hits).forEach((componentId) => {
 		const { hidden, total, time } = hits[componentId] || {};
 		// eslint-disable-next-line no-param-reassign
@@ -413,7 +413,6 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 		rawData,
 	} = state;
 	const searchState = {};
-
 	const populateState = (obj = {}, key) =>
 		Object.keys(obj).forEach((componentId) => {
 			searchState[componentId] = {
@@ -422,7 +421,7 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 			};
 		});
 	populateState(props);
-	Object.keys(selectedValues).forEach((componentId) => {
+	Object.keys(selectedValues || {}).forEach((componentId) => {
 		const componentState = searchState[componentId];
 		const selectedValue = selectedValues[componentId];
 		if (selectedValue) {
