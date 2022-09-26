@@ -378,7 +378,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 				});
 			}
 		}
-		if (selectAllLabel && absValue.length && absValue[0] === selectAllLabel) {
+		if (selectAllLabel && absValue.length && absValue.includes(selectAllLabel)) {
 			normalizedValue = absValue;
 		}
 		if (normalizedValue.length) {
