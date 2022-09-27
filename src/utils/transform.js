@@ -360,14 +360,14 @@ export const extractPropsFromState = (store, component, customOptions) => {
 
 	// Handle components which uses label instead of value as the selected value
 	if (isComponentUsesLabelAsValue(componentProps.componentType)) {
-		const { data } = componentProps;
+		const { data, selectAllLabel } = componentProps;
 		let absValue = [];
 		if (value && Array.isArray(value)) {
 			absValue = value;
 		} else if (value && typeof value === 'string') {
 			absValue = [value];
 		}
-		const normalizedValue = [];
+		let normalizedValue = [];
 		if (absValue.length) {
 			if (data && Array.isArray(data)) {
 				absValue.forEach((val) => {
@@ -377,6 +377,9 @@ export const extractPropsFromState = (store, component, customOptions) => {
 					}
 				});
 			}
+		}
+		if (selectAllLabel && absValue.length && absValue.includes(selectAllLabel)) {
+			normalizedValue = absValue;
 		}
 		if (normalizedValue.length) {
 			value = normalizedValue;
