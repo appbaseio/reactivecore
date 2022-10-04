@@ -73,6 +73,7 @@ export const validProps = [
 	'filterLabel',
 	'fuzziness',
 	'highlight',
+	'highlightConfig',
 	'highlightField',
 	'nestedField',
 	'placeholder',

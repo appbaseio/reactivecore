@@ -118,7 +118,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			showMissing: props.showMissing,
 			nestedField: props.nestedField || undefined,
 			interval: props.interval,
-			customHighlight: props.customHighlight,
+			highlightConfig: props.customHighlight || props.highlightConfig,
 			customQuery: props.customQuery,
 			defaultQuery: props.defaultQuery,
 			value: props.value,
