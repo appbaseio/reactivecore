@@ -522,16 +522,34 @@ export const getAggsQuery = (value, query, props) => {
 		dataField, size, sortBy, showMissing, missingLabel,
 	} = props;
 	clonedQuery.size = 0;
-	clonedQuery.aggs = {
-		[dataField]: {
-			terms: {
-				field: dataField,
-				size,
-				order: getAggsOrder(sortBy || 'count'),
-				...(showMissing ? { missing: missingLabel } : {}),
+	if (typeof dataField === 'string') {
+		clonedQuery.aggs = {
+			[dataField]: {
+				terms: {
+					field: dataField,
+					size,
+					order: getAggsOrder(sortBy || 'count'),
+					...(showMissing ? { missing: missingLabel } : {}),
+				},
 			},
-		},
-	};
+		};
+	} else {
+		let aggs;
+		[...dataField].reverse().forEach((dataFieldItem) => {
+			aggs = {
+				[dataFieldItem]: {
+					terms: {
+						field: dataFieldItem,
+						size,
+						order: getAggsOrder(sortBy || 'count'),
+						...(showMissing ? { missing: missingLabel } : {}),
+					},
+					aggs,
+				},
+			};
+		});
+		clonedQuery.aggs = aggs;
+	}
 
 	if (props.nestedField) {
 		clonedQuery.aggs = {
