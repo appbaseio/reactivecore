@@ -2,6 +2,7 @@
 
 import dateFormats from './dateFormats';
 import getSuggestions from './suggestions';
+import { componentTypes } from './constants';
 
 export const updateCustomQuery = (componentId, props, value) => {
 	if (props.customQuery && typeof props.customQuery === 'function') {
@@ -397,6 +398,21 @@ function computeResultStats(hits = {}, searchState, promotedResults) {
 	});
 }
 
+export const componentTypeToDefaultValue = {
+	[componentTypes.singleList]: '',
+	[componentTypes.multiList]: [],
+	[componentTypes.singleDataList]: '',
+	[componentTypes.singleDropdownList]: '',
+	[componentTypes.multiDataList]: [],
+	[componentTypes.multiDropdownList]: [],
+	[componentTypes.tagCloud]: '',
+	[componentTypes.toggleButton]: '',
+	[componentTypes.singleDropdownRange]: '',
+	[componentTypes.multiDropdownRange]: [],
+	[componentTypes.singleRange]: '',
+	[componentTypes.multiRange]: [],
+};
+
 export const getSearchState = (state = {}, forHeaders = false) => {
 	const {
 		selectedValues,
@@ -424,19 +440,24 @@ export const getSearchState = (state = {}, forHeaders = false) => {
 	Object.keys(selectedValues || {}).forEach((componentId) => {
 		const componentState = searchState[componentId];
 		const selectedValue = selectedValues[componentId];
+		const componentProps = props[componentId];
+		const componentType = componentProps ? componentProps.componentType : null;
 		if (selectedValue) {
-			searchState[componentId] = {
+			const s = {
 				...componentState,
 				...{
 					title: selectedValue.label,
 					componentType: selectedValue.componentType,
-					value: selectedValue.value,
+					value: selectedValue.value || componentTypeToDefaultValue[componentType],
 					...(selectedValue.category && {
 						category: selectedValue.category,
 					}),
 					URLParams: selectedValue.URLParams,
 				},
 			};
+			if (Object.keys(s).length) {
+				searchState[componentId] = s;
+			}
 		}
 	});
 	if (!forHeaders) {
