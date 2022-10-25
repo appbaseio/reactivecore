@@ -65,6 +65,7 @@ const types = {
 		useCache: bool,
 		customEvents: object, // eslint-disable-line
 		enableTelemetry: bool,
+		queryString: object, // eslint-disable-line
 	}),
 	bool,
 	boolRequired: bool.isRequired,

@@ -296,15 +296,17 @@ function appbaseSearch({
 			settings.emptyQuery = isPropertyDefined(config.analyticsConfig.emptyQuery)
 				? config.analyticsConfig.emptyQuery
 				: undefined;
-			settings.enableSearchRelevancy
-				= isPropertyDefined(config.analyticsConfig.enableSearchRelevancy)
-					? config.analyticsConfig.enableSearchRelevancy
-					: undefined;
+			settings.enableSearchRelevancy = isPropertyDefined(config.analyticsConfig.enableSearchRelevancy)
+				? config.analyticsConfig.enableSearchRelevancy
+				: undefined;
 			settings.suggestionAnalytics = isPropertyDefined(config.analyticsConfig.suggestionAnalytics)
 				? config.analyticsConfig.suggestionAnalytics
 				: undefined;
 			settings.useCache = isPropertyDefined(config.analyticsConfig.useCache)
 				? config.analyticsConfig.useCache
+				: undefined;
+			settings.queryParams = isPropertyDefined(config.analyticsConfig.queryParams)
+				? config.analyticsConfig.queryParams
 				: undefined;
 		}
 
@@ -320,7 +322,7 @@ function appbaseSearch({
 			dispatch(loadPopularSuggestions(searchComponentID));
 		}
 		appbaseRef
-			.reactiveSearchv3(query, settings)
+			.reactiveSearch(query, settings, settings.queryParams)
 			.then((res) => {
 				handleResponse(
 					{
