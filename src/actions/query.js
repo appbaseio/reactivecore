@@ -296,7 +296,9 @@ function appbaseSearch({
 			settings.emptyQuery = isPropertyDefined(config.analyticsConfig.emptyQuery)
 				? config.analyticsConfig.emptyQuery
 				: undefined;
-			settings.enableSearchRelevancy = isPropertyDefined(config.analyticsConfig.enableSearchRelevancy)
+			settings.enableSearchRelevancy = isPropertyDefined(config
+				.analyticsConfig
+				.enableSearchRelevancy)
 				? config.analyticsConfig.enableSearchRelevancy
 				: undefined;
 			settings.suggestionAnalytics = isPropertyDefined(config.analyticsConfig.suggestionAnalytics)
