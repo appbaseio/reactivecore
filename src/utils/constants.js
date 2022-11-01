@@ -81,7 +81,6 @@ export const validProps = [
 	'searchOperators',
 	'enableSynonyms',
 	'enableQuerySuggestions',
-	'enablePopularSuggestions',
 	'queryString',
 	// Specific to Category Search
 	'categoryField',
@@ -126,6 +125,7 @@ export const validProps = [
 	'enableFeaturedSuggestions',
 	'searchboxId',
 	'endpoint',
+	'enableEndpointSuggestions',
 ];
 
 export const CLEAR_ALL = {

@@ -135,6 +135,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			...(queryType === queryTypes.suggestion
 				? {
 					enablePopularSuggestions: props.enablePopularSuggestions,
+					enableEndpointSuggestions: props.enableEndpointSuggestions,
 					enableRecentSuggestions: props.enableRecentSuggestions,
 					popularSuggestionsConfig: props.popularSuggestionsConfig,
 					recentSuggestionsConfig: props.recentSuggestionsConfig,
