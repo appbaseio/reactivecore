@@ -24,6 +24,8 @@ import {
 	SET_GOOGLE_MAP_SCRIPT_ERROR,
 	SET_APPBASE_QUERY,
 } from '../constants';
+
+import { transformValueToComponentStateFormat } from '../utils/transform';
 import { updateAggs, updateCompositeAggs, updateHits } from './hits';
 import { setValues } from './value';
 
@@ -217,23 +219,14 @@ export function setLastUsedAppbaseQuery(query) {
 	};
 }
 
-const transformValueToComponentStateFormat = (value, componentType) => {
-	const transformedValue = value;
-	// TODO: pending logic for transformation
-
-	return transformedValue;
-};
-
 export function setSearchState(componentsValueAndTypeMap = {}) {
 	return (dispatch) => {
-		const componentValues = {}; // TODO: final implementation
-		// TODO: transformation of component values is remaining
-		console.log('componentsValueAndTypeMap', componentsValueAndTypeMap);
+		const componentValues = {};
 		Object.keys(componentsValueAndTypeMap).forEach((componentId) => {
-			const { value, componentType } = componentsValueAndTypeMap[componentId];
+			const { value, componentProps } = componentsValueAndTypeMap[componentId];
 			componentValues[componentId] = transformValueToComponentStateFormat(
 				value,
-				componentType,
+				componentProps,
 			);
 		});
 
