@@ -582,6 +582,26 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 					transformedValue.push(findDataObj);
 				}
 				break;
+			case componentTypes.rangeSlider:
+			case componentTypes.ratingsFilter:
+			case componentTypes.dynamicRangeSlider:
+				transformedValue = []; // array of objects
+
+				if (Array.isArray(value)) {
+					transformedValue = [...value];
+				} else if (typeof value === 'object') {
+					transformedValue = [value.start, value.end];
+				}
+				break;
+			case componentTypes.numberBox:
+				transformedValue = [];
+
+				if (!Array.isArray(value) && typeof value === 'object') {
+					transformedValue = value.start;
+				} else if (typeof value === 'number') {
+					transformedValue = value;
+				}
+				break;
 			default:
 				break;
 		}
