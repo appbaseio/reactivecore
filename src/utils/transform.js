@@ -544,6 +544,7 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 
 				break;
 			case componentTypes.singleRange:
+			case componentTypes.singleDropdownRange:
 				transformedValue = {};
 
 				if (!Array.isArray(value) && typeof value === 'object') {
@@ -553,6 +554,33 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 					transformedValue = { ...findDataObj };
 				}
 
+				break;
+			case componentTypes.multiDropdownRange:
+			case componentTypes.multiRange:
+				transformedValue = []; // array of objects
+
+				if (Array.isArray(value)) {
+					value.forEach((valObj) => {
+						if (
+							typeof valObj === 'object'
+							&& typeof valObj.start === 'number'
+							&& typeof valObj.end === 'number'
+						) {
+							let findDataObj = { ...valObj };
+							if (!findDataObj.label) {
+								findDataObj = data.find(item =>
+									item.start === valObj.start && item.end === valObj.end);
+							}
+							transformedValue.push(findDataObj);
+						} else if (typeof valObj === 'string') {
+							const findDataObj = data.find(item => item.label.trim() === valObj.trim());
+							transformedValue.push(findDataObj);
+						}
+					});
+				} else if (typeof value === 'string') {
+					const findDataObj = data.find(item => item.label.trim() === value.trim());
+					transformedValue.push(findDataObj);
+				}
 				break;
 			default:
 				break;
