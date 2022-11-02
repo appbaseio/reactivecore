@@ -494,3 +494,69 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 	});
 	return finalQuery;
 };
+
+export const transformValueToComponentStateFormat = (value, componentProps) => {
+	const { componentType, data } = componentProps;
+	let transformedValue = value;
+	// TODO: pending logic for transformation
+	// Handle components which uses label instead of value as the selected value
+
+	if (value) {
+		switch (componentType) {
+			case componentTypes.singleDataList:
+			case componentTypes.tabDataList:
+				transformedValue = '';
+				if (Array.isArray(value) && typeof value[0] === 'string') {
+					transformedValue = value[0];
+				} else if (typeof value === 'object' && value.label) {
+					transformedValue = value.label;
+				} else {
+					transformedValue = value;
+				}
+
+				break;
+			case componentTypes.multiDataList:
+				transformedValue = [];
+				if (Array.isArray(value)) {
+					value.forEach((valObj) => {
+						if (typeof valObj === 'object' && (valObj.label || valObj.value)) {
+							transformedValue.push(valObj.label || valObj.value);
+						} else if (typeof valObj === 'string') {
+							transformedValue.push(valObj);
+						}
+					});
+				}
+
+				break;
+			case componentTypes.toggleButton:
+				transformedValue = []; // array of objects
+
+				if (Array.isArray(value)) {
+					value.forEach((valObj) => {
+						if (typeof valObj === 'object' && valObj.label && valObj.value) {
+							transformedValue.push(valObj);
+						} else if (typeof valObj === 'string') {
+							const findDataObj = data.find(item => item.label.trim() === valObj.trim());
+							transformedValue.push(findDataObj);
+						}
+					});
+				}
+
+				break;
+			case componentTypes.singleRange:
+				transformedValue = {};
+
+				if (!Array.isArray(value) && typeof value === 'object') {
+					transformedValue = { ...value };
+				} else if (typeof value === 'string') {
+					const findDataObj = data.find(item => item.label.trim() === value.trim());
+					transformedValue = { ...findDataObj };
+				}
+
+				break;
+			default:
+				break;
+		}
+	}
+	return transformedValue;
+};
