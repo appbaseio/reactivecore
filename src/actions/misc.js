@@ -25,6 +25,7 @@ import {
 	SET_APPBASE_QUERY,
 } from '../constants';
 import { updateAggs, updateCompositeAggs, updateHits } from './hits';
+import { setValues } from './value';
 
 export function setRawData(component, response) {
 	return {
@@ -213,5 +214,29 @@ export function setLastUsedAppbaseQuery(query) {
 	return {
 		type: SET_APPBASE_QUERY,
 		query,
+	};
+}
+
+const transformValueToComponentStateFormat = (value, componentType) => {
+	const transformedValue = value;
+	// TODO: pending logic for transformation
+
+	return transformedValue;
+};
+
+export function setSearchState(componentsValueAndTypeMap = {}) {
+	return (dispatch) => {
+		const componentValues = {}; // TODO: final implementation
+		// TODO: transformation of component values is remaining
+		console.log('componentsValueAndTypeMap', componentsValueAndTypeMap);
+		Object.keys(componentsValueAndTypeMap).forEach((componentId) => {
+			const { value, componentType } = componentsValueAndTypeMap[componentId];
+			componentValues[componentId] = transformValueToComponentStateFormat(
+				value,
+				componentType,
+			);
+		});
+
+		dispatch(setValues(componentValues));
 	};
 }
