@@ -586,7 +586,8 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 			case componentTypes.rangeSlider:
 			case componentTypes.ratingsFilter:
 			case componentTypes.dynamicRangeSlider:
-				transformedValue = []; // array of objects
+			case componentTypes.reactiveChart:
+				transformedValue = [];
 				if (queryFormat) {
 					if (Array.isArray(value)) {
 						transformedValue = value.map(item =>
@@ -601,6 +602,8 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 					transformedValue = [...value];
 				} else if (typeof value === 'object') {
 					transformedValue = [value.start, value.end];
+				} else {
+					transformedValue = value;
 				}
 				break;
 			case componentTypes.numberBox:
