@@ -498,6 +498,7 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 export const transformValueToComponentStateFormat = (value, componentProps) => {
 	const { componentType, data, queryFormat } = componentProps;
 	let transformedValue = value;
+	const meta = {};
 	// TODO: pending logic for transformation
 	// Handle components which uses label instead of value as the selected value
 
@@ -632,9 +633,20 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 					];
 				}
 				break;
+			case componentTypes.categorySearch:
+				transformedValue = '';
+				if (typeof value === 'object') {
+					transformedValue = value.value;
+					if (value.category !== undefined) {
+						meta.category = value.category;
+					}
+				} else if (typeof value === 'string') {
+					transformedValue = value;
+				}
+				break;
 			default:
 				break;
 		}
 	}
-	return transformedValue;
+	return { value: transformedValue, meta };
 };

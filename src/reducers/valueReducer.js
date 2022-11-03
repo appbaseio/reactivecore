@@ -40,9 +40,11 @@ export default function valueReducer(state = {}, action) {
 				const newState = {};
 
 				componentKeys.forEach((component) => {
+					const { value, ...rest } = action.componentsValues[component];
 					newState[component] = {
 						...state[component],
-						value: action.componentsValues[component],
+						value,
+						...rest,
 					};
 				});
 				return { ...state, ...newState };

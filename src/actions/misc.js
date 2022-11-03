@@ -224,10 +224,14 @@ export function setSearchState(componentsValueAndTypeMap = {}) {
 		const componentValues = {};
 		Object.keys(componentsValueAndTypeMap).forEach((componentId) => {
 			const { value, componentProps } = componentsValueAndTypeMap[componentId];
-			componentValues[componentId] = transformValueToComponentStateFormat(
+			const { value: transformedValue, meta = {} } = transformValueToComponentStateFormat(
 				value,
 				componentProps,
 			);
+			componentValues[componentId] = {
+				value: transformedValue,
+				...meta,
+			};
 		});
 
 		dispatch(setValues(componentValues));
