@@ -611,6 +611,27 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 					transformedValue = value;
 				}
 				break;
+			case componentTypes.datePicker:
+				transformedValue = '';
+				if (typeof value !== 'object') {
+					transformedValue = new XDate(value).toString('yyyy-MM-dd');
+				} else if (value.end) {
+					transformedValue = new XDate(value.end).toString('yyyy-MM-dd');
+				} else if (value.start) {
+					transformedValue = new XDate(value.start).addHours(24).toString('yyyy-MM-dd');
+				}
+				break;
+			case componentTypes.dateRange:
+				transformedValue = []; // array of strings
+				if (Array.isArray(value)) {
+					transformedValue = value.map(t => new XDate(t).toString('yyyy-MM-dd'));
+				} else if (typeof value === 'object') {
+					transformedValue = [
+						new XDate(value.start).toString('yyyy-MM-dd'),
+						new XDate(value.end).toString('yyyy-MM-dd'),
+					];
+				}
+				break;
 			default:
 				break;
 		}
