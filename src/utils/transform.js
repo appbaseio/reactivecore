@@ -496,7 +496,7 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 };
 
 export const transformValueToComponentStateFormat = (value, componentProps) => {
-	const { componentType, data } = componentProps;
+	const { componentType, data, queryFormat } = componentProps;
 	let transformedValue = value;
 	// TODO: pending logic for transformation
 	// Handle components which uses label instead of value as the selected value
@@ -586,8 +586,17 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 			case componentTypes.ratingsFilter:
 			case componentTypes.dynamicRangeSlider:
 				transformedValue = []; // array of objects
-
-				if (Array.isArray(value)) {
+				if (queryFormat) {
+					if (Array.isArray(value)) {
+						transformedValue = value.map(item =>
+							formatDate(new XDate(item), componentProps));
+					} else if (typeof value === 'object') {
+						transformedValue = [
+							formatDate(new XDate(value.start), componentProps),
+							formatDate(new XDate(value.end), componentProps),
+						];
+					}
+				} else if (Array.isArray(value)) {
 					transformedValue = [...value];
 				} else if (typeof value === 'object') {
 					transformedValue = [value.start, value.end];
