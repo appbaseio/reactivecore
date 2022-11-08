@@ -273,8 +273,6 @@ export const extractPropsFromState = (store, component, customOptions) => {
 
 		// handle date components
 		if (dateRangeComponents.includes(componentProps.componentType)) {
-			// Remove query format for `date` components
-			queryFormat = 'or';
 			// Set value
 			if (value) {
 				if (typeof value === 'string') {
