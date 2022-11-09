@@ -496,7 +496,9 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 };
 
 export const transformValueToComponentStateFormat = (value, componentProps) => {
-	const { componentType, data, queryFormat } = componentProps;
+	const {
+		componentType, data, queryFormat,
+	} = componentProps;
 	let transformedValue = value;
 	const meta = {};
 	// TODO: pending logic for transformation
@@ -537,12 +539,19 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 						if (typeof valObj === 'object' && valObj.label && valObj.value) {
 							transformedValue.push(valObj);
 						} else if (typeof valObj === 'string') {
-							const findDataObj = data.find(item => item.label.trim() === valObj.trim());
+							const findDataObj = data.find(item =>
+								(item.label.trim() === valObj.trim() || item.value.trim() === valObj.trim()));
 							transformedValue.push(findDataObj);
 						}
 					});
+				} else if (typeof value === 'object' && value.label && value.value) {
+					transformedValue = value.value;
+				} else if (typeof value === 'string') {
+					const findDataObj = data.find(item =>
+						item.label.trim() === value.trim()
+							|| item.value.trim() === value.trim());
+					transformedValue = findDataObj.value;
 				}
-
 				break;
 			case componentTypes.singleRange:
 			case componentTypes.singleDropdownRange:
