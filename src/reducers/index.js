@@ -35,6 +35,7 @@ import defaultPopularSuggestionsReducer from './defaultPopularSuggestions';
 import queryToHitsReducer from './queryToHitsReducer';
 import recentSearchesReducer from './recentSearches';
 import googleMapScriptReducer from './googleMapScriptReducer';
+import analyticsRefReducer from './analyticsRefReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -47,6 +48,7 @@ export default combineReducers({
 	queryOptions: queryOptionsReducer,
 	dependencyTree: dependencyTreeReducer,
 	appbaseRef: appbaseRefReducer,
+	analyticsRef: analyticsRefReducer,
 	config: configReducer,
 	hits: hitsReducer,
 	promotedResults: promotedResultsReducer,
