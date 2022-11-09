@@ -199,6 +199,7 @@ export function recordSuggestionClick(searchPosition, documentId) {
 				|| config.analyticsConfig.suggestionAnalytics === undefined
 				|| config.analyticsConfig.suggestionAnalytics)
 			&& searchPosition !== undefined
+			&& suggestionsSearchId
 		) {
 			const parsedHeaders = headers;
 			delete parsedHeaders['X-Search-Query'];
@@ -215,14 +216,14 @@ export function recordSuggestionClick(searchPosition, documentId) {
 						'X-Search-Suggestions-ClickPosition': searchPosition + 1,
 					},
 				});
-			} else {
-				recordClick({
-					documentId,
-					clickPosition: searchPosition,
-					analyticsInstance,
-					isSuggestionClick: true,
-				});
 			}
+		} else if (searchPosition !== undefined) {
+			recordClick({
+				documentId,
+				clickPosition: searchPosition,
+				analyticsInstance,
+				isSuggestionClick: true,
+			});
 		}
 	};
 }
@@ -231,25 +232,15 @@ export function recordSuggestionClick(searchPosition, documentId) {
 export function recordImpressions(queryId, impressions = []) {
 	return (dispatch, getState) => {
 		const {
-			config: { app },
-			headers,
-			appbaseRef: { url, protocol, credentials },
+			appbaseRef: { url, protocol },
+			analyticsRef: analyticsInstance,
 		} = getState();
 		const esURL = `${protocol}://${url}`;
 		const parsedURL = esURL.replace(/\/+$/, '');
 		if (!parsedURL.includes('scalr.api.appbase.io') && queryId && impressions.length) {
-			fetch(`${parsedURL}/${app}/_analytics/search`, {
-				method: 'PUT',
-				body: JSON.stringify({
-					query_id: queryId,
-					impressions,
-				}),
-				keepalive: true,
-				headers: {
-					...headers,
-					'Content-Type': 'application/json',
-					Authorization: `Basic ${btoa(credentials)}`,
-				},
+			analyticsInstance.search({
+				queryID: analyticsInstance.getQueryID(),
+				impressions,
 			});
 		}
 	};
