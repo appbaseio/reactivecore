@@ -473,19 +473,28 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 				const dependentQuery = getRSQuery(
 					component,
 					extractPropsFromState(store, component, {
-						...(componentProps
-						&& componentProps.componentType === componentTypes.searchBox
-							? {
-								...(execute === false ? { type: queryTypes.search } : {}),
-								...(calcValues.category
-									? { categoryValue: calcValues.category }
-									: {}),
-								...(calcValues.value ? { value: calcValues.value } : {}),
-							  }
-							: {}),
+						...(componentProps && {
+							...(componentProps.componentType === componentTypes.searchBox
+								? {
+									...(execute === false ? { type: queryTypes.search } : {}),
+									...(calcValues.category
+										? { categoryValue: calcValues.category }
+										: { categoryValue: undefined }),
+									...(calcValues.value ? { value: calcValues.value } : {}),
+								  }
+								: {}),
+							...(componentProps.componentType === componentTypes.categorySearch
+								? {
+									...(calcValues.category
+										? { categoryValue: calcValues.category }
+										: { categoryValue: undefined }),
+								  }
+								: {}),
+						}),
 					}),
 					execute,
 				);
+
 				if (dependentQuery) {
 					finalQuery[component] = dependentQuery;
 				}
