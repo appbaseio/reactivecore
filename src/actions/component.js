@@ -24,9 +24,9 @@ function updateWatchman(component, react) {
 	};
 }
 
-export function watchComponent(component, react) {
+export function watchComponent(component, react, execute = true) {
 	return (dispatch) => {
 		dispatch(updateWatchman(component, react));
-		dispatch(executeQuery(component));
+		if (execute) dispatch(executeQuery(component));
 	};
 }
