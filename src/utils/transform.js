@@ -496,9 +496,7 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 };
 
 export const transformValueToComponentStateFormat = (value, componentProps) => {
-	const {
-		componentType, data, queryFormat,
-	} = componentProps;
+	const { componentType, data, queryFormat } = componentProps;
 	let transformedValue = value;
 	const meta = {};
 	// TODO: pending logic for transformation
@@ -540,7 +538,8 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 							transformedValue.push(valObj);
 						} else if (typeof valObj === 'string') {
 							const findDataObj = data.find(item =>
-								(item.label.trim() === valObj.trim() || item.value.trim() === valObj.trim()));
+								item.label.trim() === valObj.trim()
+									|| item.value.trim() === valObj.trim());
 							transformedValue.push(findDataObj);
 						}
 					});
