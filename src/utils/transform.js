@@ -95,7 +95,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 		}
 		return {
 			id: componentId,
-			type: queryType,
+			type: queryType || queryTypes.search,
 			dataField: getNormalizedField(props.dataField),
 			execute,
 			react: props.react,
@@ -175,12 +175,12 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		? componentProps.type
 		: componentToTypeMap[componentProps.componentType];
 
-	const calcValues = store.selectedValues[component] || store.internalValues[component];
+	const calcValues = store.selectedValues[component];
 	let value = calcValues !== undefined && calcValues !== null ? calcValues.value : undefined;
 	let queryFormat = componentProps.queryFormat;
 	// calendarInterval only supported when using date types
 	let calendarInterval;
-	let { interval } = componentProps;
+	const { interval } = componentProps;
 	let type = queryType;
 	let dataField = componentProps.dataField;
 	let aggregations = componentProps.aggregations;
@@ -234,8 +234,6 @@ export const extractPropsFromState = (store, component, customOptions) => {
 					start: internalComponentValue.value[0],
 					end: internalComponentValue.value[1],
 				};
-				// Set interval
-				interval = getValidInterval(interval, value);
 			}
 		}
 
@@ -463,7 +461,7 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 		if (!isInternalComponent(component)) {
 			const calcValues = store.selectedValues[component] || store.internalValues[component];
 			// Only include queries for that component that has `customQuery` or `value` defined
-			if ((calcValues || customQuery) && !finalQuery[component]) {
+			if (((calcValues && calcValues.value) || customQuery) && !finalQuery[component]) {
 				let execute = false;
 				if (Array.isArray(orderOfQueries) && orderOfQueries.includes(component)) {
 					execute = true;
@@ -476,7 +474,6 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 						...(componentProps
 						&& componentProps.componentType === componentTypes.searchBox
 							? {
-								...(execute === false ? { type: queryTypes.search } : {}),
 								...(calcValues.category
 									? { categoryValue: calcValues.category }
 									: {}),

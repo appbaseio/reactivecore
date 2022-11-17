@@ -5,7 +5,6 @@ import {
 	getSuggestionQuery,
 	handleResponse,
 	executeQueryListener,
-	handleResponseMSearch,
 	getQuerySuggestionsId,
 	updateStoreConfig,
 } from './utils';
@@ -21,9 +20,7 @@ import {
 	setLastUsedAppbaseQuery,
 } from './misc';
 import { buildQuery, compareQueries } from '../utils/helper';
-import getFilterString, { parseCustomEvents } from '../utils/analytics';
 import { updateMapData } from './maps';
-import fetchGraphQL from '../utils/graphQL';
 import { componentTypes, queryTypes } from '../utils/constants';
 import {
 	getRSQuery,
@@ -40,15 +37,10 @@ export function loadPopularSuggestions(componentId) {
 		const {
 			config, appbaseRef, props, internalValues,
 		} = getState();
-		const isAppbaseEnabled = config && config.enableAppbase;
 		const componentProps = props[componentId] || {};
 		const internalValue = internalValues[componentId];
 		const value = (internalValue && internalValue.value) || '';
-		// TODO: Remove `enableQuerySuggestions` in v4
-		if (
-			isAppbaseEnabled
-			&& (componentProps.enablePopularSuggestions || componentProps.enableQuerySuggestions)
-		) {
+		if (componentProps.enablePopularSuggestions) {
 			if (config.mongodb) {
 				dispatch(setDefaultPopularSuggestions([], componentId.split('__internal')[0]));
 				return;
@@ -81,171 +73,6 @@ export function loadPopularSuggestions(componentId) {
 						{
 							orderOfQueries: [componentId],
 							error: e,
-						},
-						getState,
-						dispatch,
-					);
-				});
-		}
-	};
-}
-
-const handleTransformRequest = (transformRequest, res) => {
-	if (transformRequest && typeof transformRequest === 'function') {
-		const transformRequestPromise = transformRequest(res);
-		return transformRequestPromise instanceof Promise
-			? transformRequestPromise
-			: Promise.resolve(transformRequestPromise);
-	}
-	return Promise.resolve(res);
-};
-
-function msearch(
-	query,
-	orderOfQueries,
-	appendToHits = false,
-	isInternalComponent = false,
-	appendToAggs = false,
-	componentType,
-) {
-	return (dispatch, getState) => {
-		const {
-			appbaseRef, config, headers, analytics, selectedValues,
-		} = getState();
-
-		let searchHeaders = {};
-		const suggestionsComponents = [componentTypes.dataSearch, componentTypes.categorySearch];
-		const isSuggestionsQuery
-			= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
-		// send search id or term in headers
-		if (config.analytics) {
-			if (config.analyticsConfig.suggestionAnalytics && isSuggestionsQuery) {
-				const { suggestionsSearchValue } = analytics;
-				const shouldIncludeQuery = !!(
-					config.analyticsConfig.emptyQuery || suggestionsSearchValue
-				);
-				if (shouldIncludeQuery) {
-					searchHeaders = {
-						'X-Search-Query': suggestionsSearchValue || '',
-					};
-				}
-			} else {
-				const { searchValue, searchId } = analytics;
-
-				// if a filter string exists append that to the search headers
-				const filterString = getFilterString(selectedValues);
-				// if search id exists use that otherwise
-				// it implies a new query in which case I send X-Search-Query
-				if (searchId) {
-					searchHeaders = Object.assign(
-						{
-							'X-Search-Id': searchId,
-							'X-Search-Query': searchValue || '',
-						},
-						filterString && {
-							'X-Search-Filters': filterString,
-						},
-					);
-				} else {
-					const shouldIncludeQuery = !!(config.analyticsConfig.emptyQuery || searchValue);
-					searchHeaders = Object.assign(
-						shouldIncludeQuery && {
-							'X-Search-Query': searchValue || '',
-						},
-						filterString && {
-							'X-Search-Filters': filterString,
-						},
-					);
-				}
-			}
-
-			if (config.analyticsConfig.userId) {
-				searchHeaders['X-User-Id'] = config.analyticsConfig.userId;
-			}
-
-			if (config.analyticsConfig.customEvents) {
-				searchHeaders['X-Search-CustomEvent'] = parseCustomEvents(config.analyticsConfig.customEvents);
-			}
-		}
-
-		// set loading as active for the given component
-		orderOfQueries.forEach((component) => {
-			dispatch(setLoading(component, true));
-			// reset error
-			dispatch(setError(component, null));
-		});
-
-		if (config.graphQLUrl) {
-			const requestOptions = {
-				graphQLUrl: config.graphQLUrl,
-				url: config.url,
-				credentials: config.credentials,
-				app: config.app,
-				query,
-				headers,
-			};
-			handleTransformRequest(appbaseRef.transformRequest, requestOptions)
-				.then((modifiedRequest) => {
-					fetchGraphQL(modifiedRequest)
-						.then((res) => {
-							handleResponseMSearch(
-								{
-									res,
-									isSuggestionsQuery,
-									orderOfQueries,
-									appendToHits,
-									appendToAggs,
-								},
-								getState,
-								dispatch,
-							);
-						})
-						.catch((err) => {
-							handleError(
-								{
-									orderOfQueries,
-									error: err,
-								},
-								getState,
-								dispatch,
-							);
-						});
-				})
-				.catch((err) => {
-					handleError(
-						{
-							orderOfQueries,
-							error: err,
-						},
-						getState,
-						dispatch,
-					);
-				});
-		} else {
-			appbaseRef.setHeaders({ ...headers, ...searchHeaders });
-			appbaseRef
-				.msearch({
-					type: config.type === '*' ? '' : config.type,
-					body: query,
-				})
-				.then((res) => {
-					handleResponseMSearch(
-						{
-							res,
-							isSuggestionsQuery,
-							orderOfQueries,
-							appendToHits,
-							appendToAggs,
-						},
-						getState,
-						dispatch,
-					);
-				})
-				.catch((err) => {
-					handleError(
-						{
-							orderOfQueries,
-							error: err,
 						},
 						getState,
 						dispatch,
@@ -296,11 +123,10 @@ function appbaseSearch({
 			settings.emptyQuery = isPropertyDefined(config.analyticsConfig.emptyQuery)
 				? config.analyticsConfig.emptyQuery
 				: undefined;
-			settings.enableSearchRelevancy = isPropertyDefined(config
-				.analyticsConfig
-				.enableSearchRelevancy)
-				? config.analyticsConfig.enableSearchRelevancy
-				: undefined;
+			settings.enableSearchRelevancy = undefined;
+			if (isPropertyDefined(config.analyticsConfig.enableSearchRelevancy)) {
+				settings.enableSearchRelevancy = config.analyticsConfig.enableSearchRelevancy;
+			}
 			settings.suggestionAnalytics = isPropertyDefined(config.analyticsConfig.suggestionAnalytics)
 				? config.analyticsConfig.suggestionAnalytics
 				: undefined;
@@ -362,6 +188,7 @@ export function executeQuery(
 	mustExecuteMapQuery = false,
 	componentType,
 	metaOptions,
+
 	// A unique identifier for map query to recognize
 	// the results for latest requests
 	requestId,
@@ -372,13 +199,13 @@ export function executeQuery(
 			config,
 			mapData,
 			watchMan,
-			dependencyTree,
-			queryList,
-			queryOptions,
 			queryListener,
 			props,
 			internalValues,
 			lock,
+			dependencyTree,
+			queryList,
+			queryOptions,
 		} = getState();
 		let lockTime = config.initialQueriesSyncTime;
 		let initialTimestamp = config.initialTimestamp;
@@ -395,46 +222,82 @@ export function executeQuery(
 		let finalQuery = [];
 		let appbaseQuery = {}; // Use object to prevent duplicate query added by react prop
 		let orderOfQueries = [];
-		const isAppbaseEnabled = config && config.enableAppbase;
 		if (executeWatchList) {
 			const watchList = watchMan[componentId] || [];
 			componentList = [...componentList, ...watchList];
 		}
-		const matchAllQuery = { match_all: {} };
+
+		// console.log('EXECUTE QUERY FOR COMPONENT', componentId);
+
 		componentList.forEach((component) => {
-			// eslint-disable-next-line
-			let { queryObj, options } = buildQuery(
+			// Just to wait for the `react` dependencies
+			const { queryObj, options } = buildQuery(
 				component,
 				dependencyTree,
 				queryList,
 				queryOptions,
 			);
-
-			const validOptions = ['aggs', 'from', 'sort'];
-			// check if query or options are valid - non-empty
+			if (!queryObj && !options) {
+				return;
+			}
+			// use internal value for suggestions query
+			let value;
+			const isInternalComponent = componentId.endsWith('__internal');
+			const mainComponentProps = props[componentId];
 			if (
-				(queryObj && !!Object.keys(queryObj).length)
-				|| (options && Object.keys(options).some(item => validOptions.includes(item)))
+				isInternalComponent
+				&& mainComponentProps
+				&& isSearchComponent(mainComponentProps.componentType)
 			) {
-				// attach a match-all-query if empty
-				if (!queryObj || (queryObj && !Object.keys(queryObj).length)) {
-					queryObj = { ...matchAllQuery };
-				}
-
-				const currentQuery = {
-					query: { ...queryObj },
-					...options,
-					...queryOptions[component],
-				};
-
-				const queryToLog = {
-					query: { ...queryObj },
-					...options,
-					...queryOptions[component],
-				};
+				value = internalValues[componentId] && internalValues[componentId].value;
+			}
+			// build query
+			const query = getRSQuery(
+				component,
+				extractPropsFromState(getState(), component, {
+					...(value ? { value } : null),
+					...(metaOptions ? { from: metaOptions.from } : null),
+				}),
+			);
+			// check if query or options are valid - non-empty
+			if (query && !!Object.keys(query).length) {
+				const currentQuery = query;
 				const oldQuery = queryLog[component];
+				const componentProps = props[component];
+				const dependentQueries = getDependentQueries(getState(), component, orderOfQueries);
 
-				if (mustExecuteMapQuery || !compareQueries(currentQuery, oldQuery, false)) {
+				let queryToLog = {
+					...{ [component]: currentQuery },
+					...Object.keys(dependentQueries).reduce(
+						(acc, q) => ({
+							...acc,
+							[q]: { ...dependentQueries[q], execute: false },
+						}),
+						{},
+					),
+				};
+				const queryType
+					= componentToTypeMap[componentProps && componentProps.componentType];
+				if ([queryTypes.range, queryTypes.term].includes(queryType)) {
+					// Avoid logging `value` for term type of components
+					// eslint-disable-next-line
+					const { value, ...rest } = currentQuery;
+
+					queryToLog = {
+						...{ [component]: rest },
+						...Object.keys(dependentQueries).reduce(
+							(acc, q) => ({
+								...acc,
+								[q]: [...dependentQueries[q], ...{ execute: false }],
+							}),
+							{},
+						),
+					};
+				}
+				// console.log('COMPONENT: New Query', component, JSON.stringify(queryToLog));
+				// console.log('COMPONENT: Old Query', component, JSON.stringify(oldQuery));
+
+				if (mustExecuteMapQuery || !compareQueries(queryToLog, oldQuery, false)) {
 					orderOfQueries = [...orderOfQueries, component];
 
 					const isMapComponent = Object.keys(mapData).includes(component);
@@ -453,6 +316,7 @@ export function executeQuery(
 					if (isMapComponent && mapData[component].query) {
 						// attach mapQuery to exisiting query via "must" type
 						const existingQuery = currentQuery.query;
+						// TODO: Check
 						currentQuery.query = {
 							bool: {
 								must: [existingQuery, mapData[component].query],
@@ -476,185 +340,136 @@ export function executeQuery(
 
 					executeQueryListener(queryListener[component], oldQuery, currentQuery);
 
-					// push to combined query for msearch
-					if (isAppbaseEnabled) {
-						// use internal value for suggestions query
-						let value;
-						const isInternalComponent = componentId.endsWith('__internal');
-						const mainComponentProps = props[componentId];
-						if (
-							isInternalComponent
-							&& mainComponentProps
-							&& isSearchComponent(mainComponentProps.componentType)
-						) {
-							value
-								= internalValues[componentId] && internalValues[componentId].value;
-						}
-						// build query
-						const query = getRSQuery(
-							component,
-							extractPropsFromState(getState(), component, {
-								...(value ? { value } : null),
-								...(metaOptions ? { from: metaOptions.from } : null),
-							}),
+					if (query) {
+						// Apply dependent queries
+						appbaseQuery = {
+							...appbaseQuery,
+							...{ [component]: query },
+							...getDependentQueries(getState(), component, orderOfQueries),
+						};
+					}
+					if (isMapComponent) {
+						const internalComponent = getInternalComponentID(component);
+						const internalQuery = getRSQuery(
+							internalComponent,
+							extractPropsFromState(
+								getState(),
+								internalComponent,
+								metaOptions ? { from: metaOptions.from } : null,
+							),
 						);
-						if (query) {
-							// Apply dependent queries
-							appbaseQuery = {
-								...appbaseQuery,
-								...{ [component]: query },
-								...getDependentQueries(getState(), component, orderOfQueries),
+						if (internalQuery) {
+							appbaseQuery[internalComponent] = {
+								...internalQuery,
+								execute: false,
 							};
 						}
-						if (isMapComponent) {
-							const internalComponent = getInternalComponentID(component);
-							const internalQuery = getRSQuery(
-								internalComponent,
-								extractPropsFromState(
-									getState(),
-									internalComponent,
-									metaOptions ? { from: metaOptions.from } : null,
-								),
-							);
-							if (internalQuery) {
-								appbaseQuery[internalComponent] = {
-									...internalQuery,
-									execute: false,
-								};
-							}
-						}
-					} else {
-						const preference
-							= config && config.analyticsConfig && config.analyticsConfig.userId
-								? `${config.analyticsConfig.userId}_${component}`
-								: component;
-						finalQuery = [
-							...finalQuery,
-							{
-								preference,
-							},
-							currentQuery,
-						];
 					}
 				}
 			}
 		});
 
-		if (isAppbaseEnabled) {
-			finalQuery = Object.keys(appbaseQuery).map(component => appbaseQuery[component]);
-		}
+		finalQuery = Object.keys(appbaseQuery).map(component => appbaseQuery[component]);
 		if (finalQuery.length) {
-			if (isAppbaseEnabled) {
-				const suggestionsComponents = [
-					componentTypes.dataSearch,
-					componentTypes.categorySearch,
-				];
-				const isInternalComponent = componentId.endsWith('__internal');
-				const isSuggestionsQuery
-					= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
-				const currentTime = new Date().getTime();
+			const suggestionsComponents = [
+				componentTypes.dataSearch,
+				componentTypes.categorySearch,
+			];
+			const isInternalComponent = componentId.endsWith('__internal');
+			const isSuggestionsQuery
+				= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
+			const currentTime = new Date().getTime();
 
-				if (currentTime - initialTimestamp < lockTime) {
-					// set timeout if lock is not false
-					if (!lock || config.queryLockConfig) {
-						setTimeout(() => {
-							let finalOrderOfQueries = [];
-							let finalIsSuggestionsQuery = false;
-							let finalSearchComponentID = '';
-							const orderOfQueriesMap = {};
-							const processedQueriesMap = {};
-							const queryExecutionMap = {};
+			if (currentTime - initialTimestamp < lockTime) {
+				// set timeout if lock is not false
+				if (!lock || config.queryLockConfig) {
+					setTimeout(() => {
+						let finalOrderOfQueries = [];
+						let finalIsSuggestionsQuery = false;
+						let finalSearchComponentID = '';
+						const orderOfQueriesMap = {};
+						const processedQueriesMap = {};
+						const queryExecutionMap = {};
 
-							// construct the request body with latest requests
-							// dispatch the `appbaseSearch` action with a single request
-							requestStack.forEach((request) => {
-								if (!finalIsSuggestionsQuery) {
-									finalIsSuggestionsQuery = request.isSuggestionsQuery;
-								}
-								if (!finalSearchComponentID) {
-									finalSearchComponentID = request.searchComponentID;
-								}
-								if (Array.isArray(request.query)) {
-									request.query.forEach((query) => {
-										if (query.execute) {
-											queryExecutionMap[query.id] = query.execute;
-										}
-										const newQuery = query;
-										// override by the latest query
-										// set the query execution to true if map has value
-										if (queryExecutionMap[query.id]) {
-											newQuery.execute = true;
-										}
-										if (
-											processedQueriesMap[query.id]
-											&& processedQueriesMap[query.id].type
-												=== queryTypes.suggestion
-											&& newQuery.type !== queryTypes.suggestion
-										) {
-											processedQueriesMap[`${query.id}__suggestion_type`] = {
-												...processedQueriesMap[query.id],
-											};
-											processedQueriesMap[query.id] = {
-												...newQuery,
-												execute: false,
-											};
-											return;
-										}
-										processedQueriesMap[query.id] = newQuery;
-									});
-								}
-								if (Array.isArray(request.orderOfQueries)) {
-									request.orderOfQueries.forEach((query) => {
-										if (!orderOfQueriesMap[query.id]) {
-											finalOrderOfQueries = [query, ...finalOrderOfQueries];
-										} else {
-											orderOfQueriesMap[query.id] = true;
-										}
-									});
-								}
-							});
-							const finalCombinedQuery = Object.values(processedQueriesMap);
-							if (finalCombinedQuery.length) {
-								dispatch(appbaseSearch({
-									query: finalCombinedQuery,
-									orderOfQueries: finalOrderOfQueries,
-									isSuggestionsQuery: finalIsSuggestionsQuery,
-									searchComponentID: finalSearchComponentID,
-								}));
+						// construct the request body with latest requests
+						// dispatch the `appbaseSearch` action with a single request
+						requestStack.forEach((request) => {
+							if (!finalIsSuggestionsQuery) {
+								finalIsSuggestionsQuery = request.isSuggestionsQuery;
 							}
-							// empty the request stack
-							requestStack = [];
-							dispatch(updateStoreConfig({
-								queryLockConfig: undefined,
+							if (!finalSearchComponentID) {
+								finalSearchComponentID = request.searchComponentID;
+							}
+							if (Array.isArray(request.query)) {
+								request.query.forEach((query) => {
+									if (query.execute) {
+										queryExecutionMap[query.id] = query.execute;
+									}
+									const newQuery = query;
+									// override by the latest query
+									// set the query execution to true if map has value
+									if (queryExecutionMap[query.id]) {
+										newQuery.execute = true;
+									}
+									if (
+										processedQueriesMap[query.id]
+										&& processedQueriesMap[query.id].type
+											=== queryTypes.suggestion
+										&& newQuery.type !== queryTypes.suggestion
+									) {
+										processedQueriesMap[`${query.id}__suggestion_type`] = {
+											...processedQueriesMap[query.id],
+										};
+										processedQueriesMap[query.id] = {
+											...newQuery,
+											execute: false,
+										};
+										return;
+									}
+									processedQueriesMap[query.id] = newQuery;
+								});
+							}
+							if (Array.isArray(request.orderOfQueries)) {
+								request.orderOfQueries.forEach((query) => {
+									if (!orderOfQueriesMap[query.id]) {
+										finalOrderOfQueries = [query, ...finalOrderOfQueries];
+									} else {
+										orderOfQueriesMap[query.id] = true;
+									}
+								});
+							}
+						});
+						const finalCombinedQuery = Object.values(processedQueriesMap);
+						if (finalCombinedQuery.length) {
+							dispatch(appbaseSearch({
+								query: finalCombinedQuery,
+								orderOfQueries: finalOrderOfQueries,
+								isSuggestionsQuery: finalIsSuggestionsQuery,
+								searchComponentID: finalSearchComponentID,
 							}));
-						}, lockTime);
-					}
-					dispatch(updateStoreConfig({ lock: true }));
-					requestStack.push({
-						query: finalQuery,
-						orderOfQueries,
-						isSuggestionsQuery,
-						searchComponentID: componentId,
-					});
-				} else {
-					dispatch(appbaseSearch({
-						queryId,
-						query: finalQuery,
-						orderOfQueries,
-						isSuggestionsQuery,
-						searchComponentID: componentId,
-					}));
+						}
+						// empty the request stack
+						requestStack = [];
+						dispatch(updateStoreConfig({
+							queryLockConfig: undefined,
+						}));
+					}, lockTime);
 				}
-			} else {
-				// in case of an internal component the analytics headers should not be included
-				dispatch(msearch(
-					finalQuery,
+				dispatch(updateStoreConfig({ lock: true }));
+				requestStack.push({
+					query: finalQuery,
 					orderOfQueries,
-					false,
-					componentId.endsWith('__internal'),
-					undefined,
-					componentType,
-				));
+					isSuggestionsQuery,
+					searchComponentID: componentId,
+				});
+			} else {
+				dispatch(appbaseSearch({
+					queryId,
+					query: finalQuery,
+					orderOfQueries,
+					isSuggestionsQuery,
+					searchComponentID: componentId,
+				}));
 			}
 		}
 	};
@@ -755,62 +570,44 @@ export function loadMore(component, newOptions, appendToHits = true, appendToAgg
 			queryObj = { match_all: {} };
 		}
 
-		const currentQuery = {
-			query: { ...queryObj },
-			...options,
+		let appbaseQuery = {};
+		const componentProps = store.props[component] || {};
+		let compositeAggregationField = componentProps.aggregationField;
+		const queryType = componentToTypeMap[componentProps.componentType];
+		// For term queries i.e list component `dataField` will be treated as aggregationField
+		if (queryType === queryTypes.term) {
+			compositeAggregationField = componentProps.dataField;
+		}
+		// build query
+		const query = getRSQuery(
+			component,
+			extractPropsFromState(store, component, {
+				from: options.from,
+				after:
+					(store.aggregations[component]
+						&& store.aggregations[component][compositeAggregationField]
+						&& store.aggregations[component][compositeAggregationField].after_key)
+					|| undefined,
+			}),
+		);
+		// Apply dependent queries
+		appbaseQuery = {
+			...{ [component]: query },
+			...getDependentQueries(getState(), component, []),
 		};
 
 		// query gatekeeping
-		if (compareQueries(queryLog[component], currentQuery)) return;
+		if (compareQueries(queryLog[component], appbaseQuery)) return;
 
-		dispatch(logQuery(component, currentQuery));
+		dispatch(logQuery(component, appbaseQuery));
 
-		if (store.config && store.config.enableAppbase) {
-			let appbaseQuery = {};
-			const componentProps = store.props[component] || {};
-			let compositeAggregationField = componentProps.aggregationField;
-			const queryType = componentToTypeMap[componentProps.componentType];
-			// For term queries i.e list component `dataField` will be treated as aggregationField
-			if (queryType === queryTypes.term) {
-				compositeAggregationField = componentProps.dataField;
-			}
-			// build query
-			const query = getRSQuery(
-				component,
-				extractPropsFromState(store, component, {
-					from: options.from,
-					after:
-						(store.aggregations[component]
-							&& store.aggregations[component][compositeAggregationField]
-							&& store.aggregations[component][compositeAggregationField].after_key)
-						|| undefined,
-				}),
-			);
-			// Apply dependent queries
-			appbaseQuery = {
-				...{ [component]: query },
-				...getDependentQueries(getState(), component, []),
-			};
-			const finalQuery = Object.keys(appbaseQuery).map(c => appbaseQuery[c]);
-			dispatch(appbaseSearch({
-				query: finalQuery,
-				orderOfQueries: [component],
-				appendToHits,
-				appendToAggs,
-			}));
-		} else {
-			const preference
-				= store.config && store.config.analyticsConfig && store.config.analyticsConfig.userId
-					? `${store.config.analyticsConfig.userId}_${component}`
-					: component;
-			const finalQuery = [
-				{
-					preference,
-				},
-				currentQuery,
-			];
-			dispatch(msearch(finalQuery, [component], appendToHits, false, appendToAggs));
-		}
+		const finalQuery = Object.keys(appbaseQuery).map(c => appbaseQuery[c]);
+		dispatch(appbaseSearch({
+			query: finalQuery,
+			orderOfQueries: [component],
+			appendToHits,
+			appendToAggs,
+		}));
 	};
 }
 

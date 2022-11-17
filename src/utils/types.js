@@ -34,17 +34,15 @@ function validateLocation(props, propName) {
 const dataFieldValidator = (props, propName, componentName) => {
 	const requiredError = new Error(`${propName} supplied to ${componentName} is required. Validation failed.`);
 	const propValue = props[propName];
-	if ((props.config && !props.config.enableAppbase) || !props.enableAppbase) {
-		if (!propValue) return requiredError;
-		if (
-			typeof propValue !== 'string'
-			&& typeof propValue !== 'object'
-			&& !Array.isArray(propValue)
-		) {
-			return new Error(`Invalid ${propName} supplied to ${componentName}. Validation failed.`);
-		}
-		if (Array.isArray(propValue) && propValue.length === 0) return requiredError;
+	if (!propValue) return requiredError;
+	if (
+		typeof propValue !== 'string'
+		&& typeof propValue !== 'object'
+		&& !Array.isArray(propValue)
+	) {
+		return new Error(`Invalid ${propName} supplied to ${componentName}. Validation failed.`);
 	}
+	if (Array.isArray(propValue) && propValue.length === 0) return requiredError;
 };
 
 const types = {
