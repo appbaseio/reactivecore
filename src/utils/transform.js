@@ -273,20 +273,25 @@ export const extractPropsFromState = (store, component, customOptions) => {
 
 		// handle date components
 		if (dateRangeComponents.includes(componentProps.componentType)) {
-			// Remove query format for `date` components
-			queryFormat = 'or';
 			// Set value
 			if (value) {
-				if (typeof value === 'string') {
-					value = {
-						start: formatDate(new XDate(value).addHours(-24), componentProps),
-						end: formatDate(new XDate(value), componentProps),
-					};
-				} else if (Array.isArray(value)) {
-					value = value.map(val => ({
-						start: formatDate(new XDate(val).addHours(-24), componentProps),
-						end: formatDate(new XDate(val), componentProps),
-					}));
+				if (isValidDateRangeQueryFormat(componentProps.queryFormat)) {
+					if (typeof value === 'string') {
+						value = {
+							start: formatDate(new XDate(value).addHours(-24), componentProps),
+							end: formatDate(new XDate(value), componentProps),
+						};
+					} else if (Array.isArray(value)) {
+						value = value.map(val => ({
+							start: formatDate(new XDate(val).addHours(-24), componentProps),
+							end: formatDate(new XDate(val), componentProps),
+						}));
+					} else {
+						value = {
+							start: formatDate(new XDate(value.start).addHours(-24), componentProps),
+							end: formatDate(new XDate(value.end), componentProps),
+						};
+					}
 				}
 			}
 		}
