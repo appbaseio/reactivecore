@@ -24,7 +24,10 @@ import {
 	SET_GOOGLE_MAP_SCRIPT_ERROR,
 	SET_APPBASE_QUERY,
 } from '../constants';
+
+import { transformValueToComponentStateFormat } from '../utils/transform';
 import { updateAggs, updateCompositeAggs, updateHits } from './hits';
+import { setValues } from './value';
 
 export function setRawData(component, response) {
 	return {
@@ -213,5 +216,24 @@ export function setLastUsedAppbaseQuery(query) {
 	return {
 		type: SET_APPBASE_QUERY,
 		query,
+	};
+}
+
+export function setSearchState(componentsValueAndTypeMap = {}) {
+	return (dispatch) => {
+		const componentValues = {};
+		Object.keys(componentsValueAndTypeMap).forEach((componentId) => {
+			const { value, componentProps } = componentsValueAndTypeMap[componentId];
+			const { value: transformedValue, meta = {} } = transformValueToComponentStateFormat(
+				value,
+				componentProps,
+			);
+			componentValues[componentId] = {
+				value: transformedValue,
+				...meta,
+			};
+		});
+
+		dispatch(setValues(componentValues));
 	};
 }

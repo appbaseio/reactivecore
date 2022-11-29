@@ -508,3 +508,168 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 	});
 	return finalQuery;
 };
+
+export const transformValueToComponentStateFormat = (value, componentProps) => {
+	const { componentType, data, queryFormat } = componentProps;
+	let transformedValue = value;
+	const meta = {};
+
+	if (value) {
+		switch (componentType) {
+			case componentTypes.singleDataList:
+			case componentTypes.tabDataList:
+				transformedValue = '';
+				if (Array.isArray(value) && typeof value[0] === 'string') {
+					transformedValue = value[0];
+				} else if (typeof value === 'object' && value.label) {
+					transformedValue = value.label;
+				} else {
+					transformedValue = value;
+				}
+
+				break;
+			case componentTypes.multiDataList:
+				transformedValue = [];
+				if (Array.isArray(value)) {
+					value.forEach((valObj) => {
+						if (typeof valObj === 'object' && (valObj.label || valObj.value)) {
+							transformedValue.push(valObj.label || valObj.value);
+						} else if (typeof valObj === 'string') {
+							transformedValue.push(valObj);
+						}
+					});
+				}
+
+				break;
+			case componentTypes.toggleButton:
+				transformedValue = []; // array of objects
+
+				if (Array.isArray(value)) {
+					value.forEach((valObj) => {
+						if (typeof valObj === 'object' && valObj.label && valObj.value) {
+							transformedValue.push(valObj);
+						} else if (typeof valObj === 'string') {
+							const findDataObj = data.find(item =>
+								item.label.trim() === valObj.trim()
+									|| item.value.trim() === valObj.trim());
+							transformedValue.push(findDataObj);
+						}
+					});
+				} else if (typeof value === 'object' && value.label && value.value) {
+					transformedValue = value.value;
+				} else if (typeof value === 'string') {
+					const findDataObj = data.find(item =>
+						item.label.trim() === value.trim()
+							|| item.value.trim() === value.trim());
+					transformedValue = findDataObj.value;
+				}
+				break;
+			case componentTypes.singleRange:
+			case componentTypes.singleDropdownRange:
+				transformedValue = {};
+
+				if (!Array.isArray(value) && typeof value === 'object') {
+					transformedValue = { ...value };
+				} else if (typeof value === 'string') {
+					const findDataObj = data.find(item => item.label.trim() === value.trim());
+					transformedValue = { ...findDataObj };
+				}
+
+				break;
+			case componentTypes.multiDropdownRange:
+			case componentTypes.multiRange:
+				transformedValue = []; // array of objects
+
+				if (Array.isArray(value)) {
+					value.forEach((valObj) => {
+						if (
+							typeof valObj === 'object'
+							&& typeof valObj.start === 'number'
+							&& typeof valObj.end === 'number'
+						) {
+							let findDataObj = { ...valObj };
+							if (!findDataObj.label) {
+								findDataObj = data.find(item =>
+									item.start === valObj.start && item.end === valObj.end);
+							}
+							transformedValue.push(findDataObj);
+						} else if (typeof valObj === 'string') {
+							const findDataObj = data.find(item => item.label.trim() === valObj.trim());
+							transformedValue.push(findDataObj);
+						}
+					});
+				} else if (typeof value === 'string') {
+					const findDataObj = data.find(item => item.label.trim() === value.trim());
+					transformedValue.push(findDataObj);
+				}
+				break;
+			case componentTypes.rangeSlider:
+			case componentTypes.ratingsFilter:
+			case componentTypes.dynamicRangeSlider:
+			case componentTypes.reactiveChart:
+				transformedValue = [];
+				if (queryFormat) {
+					if (Array.isArray(value)) {
+						transformedValue = value.map(item =>
+							formatDate(new XDate(item), componentProps));
+					} else if (typeof value === 'object') {
+						transformedValue = [
+							formatDate(new XDate(value.start), componentProps),
+							formatDate(new XDate(value.end), componentProps),
+						];
+					}
+				} else if (Array.isArray(value)) {
+					transformedValue = [...value];
+				} else if (typeof value === 'object') {
+					transformedValue = [value.start, value.end];
+				} else {
+					transformedValue = value;
+				}
+				break;
+			case componentTypes.numberBox:
+				transformedValue = [];
+
+				if (!Array.isArray(value) && typeof value === 'object') {
+					transformedValue = value.start;
+				} else if (typeof value === 'number') {
+					transformedValue = value;
+				}
+				break;
+			case componentTypes.datePicker:
+				transformedValue = '';
+				if (typeof value !== 'object') {
+					transformedValue = new XDate(value).toString('yyyy-MM-dd');
+				} else if (value.end) {
+					transformedValue = new XDate(value.end).toString('yyyy-MM-dd');
+				} else if (value.start) {
+					transformedValue = new XDate(value.start).addHours(24).toString('yyyy-MM-dd');
+				}
+				break;
+			case componentTypes.dateRange:
+				transformedValue = []; // array of strings
+				if (Array.isArray(value)) {
+					transformedValue = value.map(t => new XDate(t).toString('yyyy-MM-dd'));
+				} else if (typeof value === 'object') {
+					transformedValue = [
+						new XDate(value.start).toString('yyyy-MM-dd'),
+						new XDate(value.end).toString('yyyy-MM-dd'),
+					];
+				}
+				break;
+			case componentTypes.categorySearch:
+				transformedValue = '';
+				if (typeof value === 'object') {
+					transformedValue = value.value;
+					if (value.category !== undefined) {
+						meta.category = value.category;
+					}
+				} else if (typeof value === 'string') {
+					transformedValue = value;
+				}
+				break;
+			default:
+				break;
+		}
+	}
+	return { value: transformedValue, meta };
+};
