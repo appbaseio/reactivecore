@@ -499,8 +499,6 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 	const { componentType, data, queryFormat } = componentProps;
 	let transformedValue = value;
 	const meta = {};
-	// TODO: pending logic for transformation
-	// Handle components which uses label instead of value as the selected value
 
 	if (value) {
 		switch (componentType) {
