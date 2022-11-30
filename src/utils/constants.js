@@ -139,3 +139,5 @@ export const SEARCH_COMPONENTS_MODES = {
 	SELECT: 'select',
 	TAG: 'tag',
 };
+
+export const TREELIST_VALUES_PATH_SEPARATOR = '◐◑◒◓';
