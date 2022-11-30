@@ -126,33 +126,20 @@ export function getRecentSearches(queryOptions = {
 }
 
 function recordClick({
-	url,
-	app,
-	credentials,
-	headers,
 	documentId,
 	clickPosition,
-	queryId,
-	clickType,
+	analyticsInstance,
+	isSuggestionClick,
 }) {
 	if (!documentId) {
 		console.warn('ReactiveSearch: document id is required to record the click analytics');
 	} else {
-		// Use record click API for clusters
-		fetch(`${url}/${app}/_analytics/click`, {
-			method: 'PUT',
-			body: JSON.stringify({
-				query_id: queryId,
-				click_type: clickType || 'result',
-				click_on: {
-					[documentId]: clickPosition + 1,
-				},
-			}),
-			headers: {
-				...headers,
-				'Content-Type': 'application/json',
-				Authorization: `Basic ${btoa(credentials)}`,
+		analyticsInstance.click({
+			queryID: analyticsInstance.getQueryID(),
+			objects: {
+				[documentId]: clickPosition + 1,
 			},
+			isSuggestionClick,
 		});
 	}
 }
@@ -164,6 +151,7 @@ export function recordResultClick(searchPosition, documentId) {
 			analytics: { searchId },
 			headers,
 			appbaseRef: { url, protocol, credentials },
+			analyticsRef: analyticsInstance,
 		} = getState();
 		const { app } = config;
 		const esURL = `${protocol}://${url}`;
@@ -185,13 +173,9 @@ export function recordResultClick(searchPosition, documentId) {
 				});
 			} else {
 				recordClick({
-					url: parsedURL,
-					app,
-					credentials,
-					parsedHeaders,
 					documentId,
 					clickPosition: searchPosition,
-					queryId: searchId,
+					analyticsInstance,
 				});
 			}
 		}
@@ -205,6 +189,7 @@ export function recordSuggestionClick(searchPosition, documentId) {
 			analytics: { suggestionsSearchId },
 			headers,
 			appbaseRef: { url, protocol, credentials },
+			analyticsRef: analyticsInstance,
 		} = getState();
 		const { app } = config;
 		const esURL = `${protocol}://${url}`;
@@ -213,8 +198,8 @@ export function recordSuggestionClick(searchPosition, documentId) {
 			&& (config.analyticsConfig === undefined
 				|| config.analyticsConfig.suggestionAnalytics === undefined
 				|| config.analyticsConfig.suggestionAnalytics)
-			&& suggestionsSearchId
 			&& searchPosition !== undefined
+			&& suggestionsSearchId
 		) {
 			const parsedHeaders = headers;
 			delete parsedHeaders['X-Search-Query'];
@@ -231,18 +216,14 @@ export function recordSuggestionClick(searchPosition, documentId) {
 						'X-Search-Suggestions-ClickPosition': searchPosition + 1,
 					},
 				});
-			} else {
-				recordClick({
-					url: parsedURL,
-					app,
-					credentials,
-					parsedHeaders,
-					documentId,
-					clickPosition: searchPosition,
-					clickType: 'suggestion',
-					queryId: suggestionsSearchId,
-				});
 			}
+		} else if (searchPosition !== undefined) {
+			recordClick({
+				documentId,
+				clickPosition: searchPosition,
+				analyticsInstance,
+				isSuggestionClick: true,
+			});
 		}
 	};
 }
@@ -251,25 +232,15 @@ export function recordSuggestionClick(searchPosition, documentId) {
 export function recordImpressions(queryId, impressions = []) {
 	return (dispatch, getState) => {
 		const {
-			config: { app },
-			headers,
-			appbaseRef: { url, protocol, credentials },
+			appbaseRef: { url, protocol },
+			analyticsRef: analyticsInstance,
 		} = getState();
 		const esURL = `${protocol}://${url}`;
 		const parsedURL = esURL.replace(/\/+$/, '');
 		if (!parsedURL.includes('scalr.api.appbase.io') && queryId && impressions.length) {
-			fetch(`${parsedURL}/${app}/_analytics/search`, {
-				method: 'PUT',
-				body: JSON.stringify({
-					query_id: queryId,
-					impressions,
-				}),
-				keepalive: true,
-				headers: {
-					...headers,
-					'Content-Type': 'application/json',
-					Authorization: `Basic ${btoa(credentials)}`,
-				},
+			analyticsInstance.search({
+				queryID: analyticsInstance.getQueryID(),
+				impressions,
 			});
 		}
 	};

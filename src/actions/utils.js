@@ -71,7 +71,9 @@ export const handleResponse = (
 	getState = () => {},
 	dispatch,
 ) => {
-	const { config, internalValues, lastUsedAppbaseQuery } = getState();
+	const {
+		config, internalValues, lastUsedAppbaseQuery, analyticsRef,
+	} = getState();
 	const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
 	if (searchId) {
 		if (isSuggestionsQuery) {
@@ -80,6 +82,7 @@ export const handleResponse = (
 		} else {
 			// if search id was updated set it in store
 			dispatch(setSearchId(searchId));
+			analyticsRef.queryID = searchId;
 		}
 	}
 
@@ -190,6 +193,7 @@ export const handleResponseMSearch = (
 	getState = () => {},
 	dispatch,
 ) => {
+	const { analyticsRef } = getState();
 	// handle promoted results
 	orderOfQueries.forEach((component, index) => {
 		// If response is stale then don't process response
@@ -203,6 +207,7 @@ export const handleResponseMSearch = (
 				} else {
 					// if search id was updated set it in store
 					dispatch(setSearchId(searchId));
+					analyticsRef.queryID = searchId;
 				}
 			}
 			let transformResponse = res;
