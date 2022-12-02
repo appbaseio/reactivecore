@@ -82,7 +82,9 @@ export const handleResponse = (
 		} else {
 			// if search id was updated set it in store
 			dispatch(setSearchId(searchId));
-			analyticsRef.queryID = searchId;
+			if (analyticsRef) {
+				analyticsRef.queryID = searchId;
+			}
 		}
 	}
 
@@ -207,7 +209,9 @@ export const handleResponseMSearch = (
 				} else {
 					// if search id was updated set it in store
 					dispatch(setSearchId(searchId));
-					analyticsRef.queryID = searchId;
+					if (analyticsRef) {
+						analyticsRef.queryID = searchId;
+					}
 				}
 			}
 			let transformResponse = res;
