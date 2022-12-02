@@ -236,10 +236,11 @@ export function recordImpressions(queryId, impressions = []) {
 		const {
 			appbaseRef: { url, protocol },
 			analyticsRef: analyticsInstance,
+			config,
 		} = getState();
 		const esURL = `${protocol}://${url}`;
 		const parsedURL = esURL.replace(/\/+$/, '');
-		if (!parsedURL.includes('scalr.api.appbase.io') && queryId && impressions.length) {
+		if (config.analytics && !parsedURL.includes('scalr.api.appbase.io') && queryId && impressions.length) {
 			analyticsInstance.search({
 				queryID: analyticsInstance.getQueryID(),
 				impressions,
