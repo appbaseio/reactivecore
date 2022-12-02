@@ -198,13 +198,15 @@ export function recordSuggestionClick(searchPosition, documentId) {
 			&& (config.analyticsConfig === undefined
 				|| config.analyticsConfig.suggestionAnalytics === undefined
 				|| config.analyticsConfig.suggestionAnalytics)
-			&& searchPosition !== undefined
-			&& suggestionsSearchId
 		) {
 			const parsedHeaders = headers;
 			delete parsedHeaders['X-Search-Query'];
 			const parsedURL = (esURL || '').replace(/\/+$/, '');
-			if (parsedURL.includes('scalr.api.appbase.io')) {
+			if (
+				parsedURL.includes('scalr.api.appbase.io')
+				&& searchPosition !== undefined
+				&& suggestionsSearchId
+			) {
 				fetch(`${parsedURL}/${app}/_analytics`, {
 					method: 'POST',
 					headers: {
@@ -216,14 +218,14 @@ export function recordSuggestionClick(searchPosition, documentId) {
 						'X-Search-Suggestions-ClickPosition': searchPosition + 1,
 					},
 				});
+			} else if (searchPosition !== undefined) {
+				recordClick({
+					documentId,
+					clickPosition: searchPosition,
+					analyticsInstance,
+					isSuggestionClick: true,
+				});
 			}
-		} else if (searchPosition !== undefined) {
-			recordClick({
-				documentId,
-				clickPosition: searchPosition,
-				analyticsInstance,
-				isSuggestionClick: true,
-			});
 		}
 	};
 }
@@ -234,10 +236,11 @@ export function recordImpressions(queryId, impressions = []) {
 		const {
 			appbaseRef: { url, protocol },
 			analyticsRef: analyticsInstance,
+			config,
 		} = getState();
 		const esURL = `${protocol}://${url}`;
 		const parsedURL = esURL.replace(/\/+$/, '');
-		if (!parsedURL.includes('scalr.api.appbase.io') && queryId && impressions.length) {
+		if (config.analytics && !parsedURL.includes('scalr.api.appbase.io') && queryId && impressions.length) {
 			analyticsInstance.search({
 				queryID: analyticsInstance.getQueryID(),
 				impressions,
