@@ -322,18 +322,19 @@ export const parseHits = (hits, showHighlighted = true) => {
 
 export function formatDate(date, props) {
 	if (props.parseDate) {
+		// We would be passing an instance of dayjs instead of xdate below. Users need to know.
 		return props.parseDate(date, props);
 	}
 	switch (props.queryFormat) {
 		case 'epoch_millis':
-			return date.getTime();
+			return date.valueOf();
 		case 'epoch_second':
-			return Math.floor(date.getTime() / 1000);
+			return Math.floor(date.valueOf() / 1000);
 		default: {
 			if (dateFormats[props.queryFormat]) {
-				return date.toString(dateFormats[props.queryFormat]);
+				return date.format(dateFormats[props.queryFormat]);
 			}
-			return date.getTime();
+			return date.valueOf();
 		}
 	}
 }
