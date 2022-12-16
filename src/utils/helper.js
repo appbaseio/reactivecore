@@ -339,6 +339,14 @@ export function formatDate(date, props) {
 	}
 }
 
+// Below is to convert dayjs date instance to native JS Date
+export function unwrapToNativeDate(wrappedDateInstance) {
+	if (wrappedDateInstance) {
+		return new Date(wrappedDateInstance.valueOf());
+	}
+	return wrappedDateInstance;
+}
+
 /**
  * To extract query options from custom or default query
  * @param {Object} customQuery
