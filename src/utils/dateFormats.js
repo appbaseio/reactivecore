@@ -1,11 +1,11 @@
 const dateFormats = {
-	date: 'yyyy-MM-dd',
-	basic_date: 'yyyyMMdd',
-	basic_date_time: "yyyyMMdd'T'HHmmss.fffzzz",
-	basic_date_time_no_millis: "yyyyMMdd'T'HHmmsszzz",
-	date_time_no_millis: "yyyy-MM-dd'T'HH:mm:sszzz",
-	basic_time: 'HHmmss.fffzzz',
-	basic_time_no_millis: 'HHmmsszzz',
+	date: 'YYYY-MM-DD',
+	basic_date: 'YYYYMMDD',
+	basic_date_time: 'YYYYMMDD[T]HHmmss.SSSZ',
+	basic_date_time_no_millis: 'YYYYMMDD[T]HHmmssZ',
+	date_time_no_millis: 'YYYY-MM-DD[T]HH:mm:ssZ',
+	basic_time: 'HHmmss.SSSZ',
+	basic_time_no_millis: 'HHmmssZ',
 	epoch_millis: 'epoch_millis',
 	epoch_second: 'epoch_second',
 };
