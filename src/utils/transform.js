@@ -278,8 +278,9 @@ export const extractPropsFromState = (store, component, customOptions) => {
 				if (isValidDateRangeQueryFormat(componentProps.queryFormat)) {
 					if (typeof value === 'string') {
 						value = {
-							start: formatDate(dayjs(new Date((value))).subtract(24, 'hour'), componentProps),
-							end: formatDate(dayjs(new Date((value))), componentProps),
+							// value would be an ISO Date string
+							start: formatDate(dayjs(value).subtract(24, 'hour'), componentProps),
+							end: formatDate(dayjs(value), componentProps),
 						};
 					} else if (Array.isArray(value)) {
 						value = value.map(val => ({
