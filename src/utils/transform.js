@@ -284,13 +284,23 @@ export const extractPropsFromState = (store, component, customOptions) => {
 						};
 					} else if (Array.isArray(value)) {
 						value = value.map(val => ({
-							start: formatDate(dayjs(new Date((val))).subtract(24, 'hour'), componentProps),
-							end: formatDate(dayjs(new Date((val))), componentProps),
+							// value would be one of ISO Date string, number, native date
+							start: formatDate(
+								dayjs(val).subtract(
+									24,
+									'hour',
+								),
+								componentProps,
+							),
+							end: formatDate(
+								dayjs(val),
+								componentProps,
+							),
 						}));
 					} else {
 						value = {
-							start: formatDate(dayjs(new Date((value.start))).subtract(24, 'hour'), componentProps),
-							end: formatDate(dayjs(new Date((value.end))), componentProps),
+							start: formatDate(dayjs(value.start).subtract(24, 'hour'), componentProps),
+							end: formatDate(dayjs(value.end), componentProps),
 						};
 					}
 				}
@@ -612,11 +622,11 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 				if (queryFormat) {
 					if (Array.isArray(value)) {
 						transformedValue = value.map(item =>
-							formatDate(dayjs(new Date(item)), componentProps));
+							formatDate(dayjs(item), componentProps));
 					} else if (typeof value === 'object') {
 						transformedValue = [
-							formatDate(dayjs(new Date(value.start)), componentProps),
-							formatDate(dayjs(new Date(value.end)), componentProps),
+							formatDate(dayjs(value.start), componentProps),
+							formatDate(dayjs(value.end), componentProps),
 						];
 					}
 				} else if (Array.isArray(value)) {
@@ -639,21 +649,21 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 			case componentTypes.datePicker:
 				transformedValue = '';
 				if (typeof value !== 'object') {
-					transformedValue = dayjs(new Date(value)).format('YYYY-MM-DD');
+					transformedValue = dayjs(value).format('YYYY-MM-DD');
 				} else if (value.end) {
-					transformedValue = dayjs(new Date(value.end)).format('YYYY-MM-DD');
+					transformedValue = dayjs(value.end).format('YYYY-MM-DD');
 				} else if (value.start) {
-					transformedValue = dayjs(new Date(value.start)).add(24, 'hour').format('YYYY-MM-DD');
+					transformedValue = dayjs(value.start).add(24, 'hour').format('YYYY-MM-DD');
 				}
 				break;
 			case componentTypes.dateRange:
 				transformedValue = []; // array of strings
 				if (Array.isArray(value)) {
-					transformedValue = value.map(t => dayjs(new Date(t)).format('YYYY-MM-DD'));
+					transformedValue = value.map(t => dayjs(t).format('YYYY-MM-DD'));
 				} else if (typeof value === 'object') {
 					transformedValue = [
-						dayjs(new Date(value.start)).format('YYYY-MM-DD'),
-						dayjs(new Date(value.end)).format('YYYY-MM-DD'),
+						dayjs(value.start).format('YYYY-MM-DD'),
+						dayjs(value.end).format('YYYY-MM-DD'),
 					];
 				}
 				break;
