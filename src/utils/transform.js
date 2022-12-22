@@ -151,6 +151,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 				: {}),
 			calendarInterval: props.calendarInterval,
 			endpoint,
+			range: props.range,
 		};
 	}
 	return null;
@@ -186,6 +187,8 @@ export const extractPropsFromState = (store, component, customOptions) => {
 	let aggregations = componentProps.aggregations;
 	let pagination; // pagination for `term` type of queries
 	let from = componentProps.from; // offset for RL
+	let range; // applicable for range components supporting histogram
+
 	// For term queries i.e list component `dataField` will be treated as aggregationField
 	if (queryType === queryTypes.term) {
 		// Only apply pagination prop for the components which supports it otherwise it can break the UI
@@ -266,6 +269,47 @@ export const extractPropsFromState = (store, component, customOptions) => {
 					value = {
 						start: parseFloat(value.start),
 						end: parseFloat(value.end),
+					};
+				}
+			}
+
+			let rangeValue;
+			if (componentProps.componentType === componentTypes.dynamicRangeSlider) {
+				rangeValue = store.aggregations[`${component}__range__internal`];
+				if (componentProps.nestedField) {
+					rangeValue
+						= rangeValue
+						&& store.aggregations[`${component}__range__internal`][
+							componentProps.nestedField
+						].min
+							? {
+								start: store.aggregations[`${component}__range__internal`][componentProps.nestedField].min.value,
+								end: store.aggregations[`${component}__range__internal`][componentProps.nestedField].max.value,
+							} // prettier-ignore
+							: null;
+				} else {
+					rangeValue
+						= rangeValue && store.aggregations[`${component}__range__internal`].min
+							? {
+								start: store.aggregations[`${component}__range__internal`].min.value,
+								end: store.aggregations[`${component}__range__internal`].max.value,
+							} // prettier-ignore
+							: null;
+				}
+			} else {
+				rangeValue = componentProps.range;
+			}
+			if (rangeValue) {
+				if (isValidDateRangeQueryFormat(componentProps.queryFormat)) {
+					// check if date types are dealt with
+					range = {
+						start: formatDate(new XDate(rangeValue.start), componentProps),
+						end: formatDate(new XDate(rangeValue.end), componentProps),
+					};
+				} else {
+					range = {
+						start: parseFloat(rangeValue.start),
+						end: parseFloat(rangeValue.end),
 					};
 				}
 			}
@@ -432,6 +476,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		value: queryValue,
 		pagination,
 		from,
+		range,
 		...customOptions,
 	};
 };
