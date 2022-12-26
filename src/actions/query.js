@@ -34,6 +34,7 @@ import {
 	isSearchComponent,
 } from '../utils/transform';
 import { getInternalComponentID } from '../../lib/utils/transform';
+import { SET_COMPONENT_MOUNTED } from '../constants';
 
 export function loadPopularSuggestions(componentId) {
 	return (dispatch, getState) => {
@@ -296,9 +297,7 @@ function appbaseSearch({
 			settings.emptyQuery = isPropertyDefined(config.analyticsConfig.emptyQuery)
 				? config.analyticsConfig.emptyQuery
 				: undefined;
-			settings.enableSearchRelevancy = isPropertyDefined(config
-				.analyticsConfig
-				.enableSearchRelevancy)
+			settings.enableSearchRelevancy = isPropertyDefined(config.analyticsConfig.enableSearchRelevancy)
 				? config.analyticsConfig.enableSearchRelevancy
 				: undefined;
 			settings.suggestionAnalytics = isPropertyDefined(config.analyticsConfig.suggestionAnalytics)
@@ -727,7 +726,10 @@ export function updateQuery(
 			dispatch(setInternalValue(componentId, value, componentType, category, meta));
 		}
 		dispatch(setQuery(componentId, queryToDispatch));
-		if (execute) dispatch(executeQuery(componentId, true, false, componentType));
+		if (execute) {
+			dispatch({ type: SET_COMPONENT_MOUNTED, component: componentId });
+			dispatch(executeQuery(componentId, true, false, componentType));
+		}
 	};
 }
 

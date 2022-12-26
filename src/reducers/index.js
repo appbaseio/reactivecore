@@ -37,8 +37,10 @@ import recentSearchesReducer from './recentSearches';
 import googleMapScriptReducer from './googleMapScriptReducer';
 import analyticsRefReducer from './analyticsRefReducer';
 import registeredComponentReducer from './registeredComponentReducer';
+import mountStatusReducer from './mountStatusReducer';
 
 export default combineReducers({
+	componentsMountStatus: mountStatusReducer,
 	components: componentsReducer,
 	customQueries: customQueriesReducer,
 	defaultQueries: defaultQueriesReducer,
