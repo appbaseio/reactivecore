@@ -35,6 +35,8 @@ import defaultPopularSuggestionsReducer from './defaultPopularSuggestions';
 import queryToHitsReducer from './queryToHitsReducer';
 import recentSearchesReducer from './recentSearches';
 import googleMapScriptReducer from './googleMapScriptReducer';
+import analyticsRefReducer from './analyticsRefReducer';
+import registeredComponentReducer from './registeredComponentReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -47,6 +49,7 @@ export default combineReducers({
 	queryOptions: queryOptionsReducer,
 	dependencyTree: dependencyTreeReducer,
 	appbaseRef: appbaseRefReducer,
+	analyticsRef: analyticsRefReducer,
 	config: configReducer,
 	hits: hitsReducer,
 	promotedResults: promotedResultsReducer,
@@ -73,4 +76,5 @@ export default combineReducers({
 	urlValues: (state = {}) => state,
 	googleMapScriptStatus: googleMapScriptReducer,
 	lastUsedAppbaseQuery: appbaseQueryReducer,
+	registeredComponentsTimestamps: registeredComponentReducer,
 });

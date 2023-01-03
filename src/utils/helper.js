@@ -888,13 +888,13 @@ export const hasCustomRenderer = (props = {}) => {
 /**
  * Recursively look for a path in a nested object
  */
-export const recLookup = (obj, path) => {
+export const recLookup = (obj, path, separator = '.') => {
 	try {
-		const parts = path.split('.');
+		const parts = path.split(separator);
 		if (parts.length === 1) {
 			return obj[parts[0]];
 		}
-		return recLookup(obj[parts[0]], parts.slice(1).join('.'));
+		return recLookup(obj[parts[0]], parts.slice(1).join(separator), separator);
 	} catch (e) {
 		return false;
 	}
