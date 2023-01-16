@@ -28,10 +28,10 @@
 	"homepage": "https://github.com/appbaseio/reactivecore#readme",
 	"dependencies": {
 		"cross-fetch": "^3.0.4",
+		"dayjs": "^1.11.7",
 		"prop-types": "^15.6.0",
 		"redux": "^4.0.0",
-		"redux-thunk": "^2.3.0",
-		"xdate": "^0.8.2"
+		"redux-thunk": "^2.3.0"
 	},
 	"devDependencies": {
 		"babel-cli": "^6.24.1",

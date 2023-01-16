@@ -1,4 +1,4 @@
-import XDate from 'xdate';
+import dayjs from 'dayjs';
 import { componentTypes, queryTypes } from './constants';
 import dateFormats from './dateFormats';
 import { formatDate, isValidDateRangeQueryFormat } from './helper';
@@ -260,8 +260,8 @@ export const extractPropsFromState = (store, component, customOptions) => {
 				if (isValidDateRangeQueryFormat(componentProps.queryFormat)) {
 					// check if date types are dealt with
 					value = {
-						start: formatDate(new XDate(value.start), componentProps),
-						end: formatDate(new XDate(value.end), componentProps),
+						start: formatDate(dayjs(new Date(value.start)), componentProps),
+						end: formatDate(dayjs(new Date(value.end)), componentProps),
 					};
 				} else {
 					value = {
@@ -301,8 +301,8 @@ export const extractPropsFromState = (store, component, customOptions) => {
 				if (isValidDateRangeQueryFormat(componentProps.queryFormat)) {
 					// check if date types are dealt with
 					range = {
-						start: formatDate(new XDate(rangeValue.start), componentProps),
-						end: formatDate(new XDate(rangeValue.end), componentProps),
+						start: formatDate(dayjs(rangeValue.start), componentProps),
+						end: formatDate(dayjs(rangeValue.end), componentProps),
 					};
 				} else {
 					range = {
@@ -320,18 +320,23 @@ export const extractPropsFromState = (store, component, customOptions) => {
 				if (isValidDateRangeQueryFormat(componentProps.queryFormat)) {
 					if (typeof value === 'string') {
 						value = {
-							start: formatDate(new XDate(value).addHours(-24), componentProps),
-							end: formatDate(new XDate(value), componentProps),
+							// value would be an ISO Date string
+							start: formatDate(dayjs(value).subtract(24, 'hour'), componentProps),
+							end: formatDate(dayjs(value), componentProps),
 						};
 					} else if (Array.isArray(value)) {
 						value = value.map(val => ({
-							start: formatDate(new XDate(val).addHours(-24), componentProps),
-							end: formatDate(new XDate(val), componentProps),
+							// value would be one of ISO Date string, number, native date
+							start: formatDate(dayjs(val).subtract(24, 'hour'), componentProps),
+							end: formatDate(dayjs(val), componentProps),
 						}));
 					} else {
 						value = {
-							start: formatDate(new XDate(value.start).addHours(-24), componentProps),
-							end: formatDate(new XDate(value.end), componentProps),
+							start: formatDate(
+								dayjs(value.start).subtract(24, 'hour'),
+								componentProps,
+							),
+							end: formatDate(dayjs(value.end), componentProps),
 						};
 					}
 				}
@@ -654,11 +659,11 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 				if (queryFormat) {
 					if (Array.isArray(value)) {
 						transformedValue = value.map(item =>
-							formatDate(new XDate(item), componentProps));
+							formatDate(dayjs(item), componentProps));
 					} else if (typeof value === 'object') {
 						transformedValue = [
-							formatDate(new XDate(value.start), componentProps),
-							formatDate(new XDate(value.end), componentProps),
+							formatDate(dayjs(value.start), componentProps),
+							formatDate(dayjs(value.end), componentProps),
 						];
 					}
 				} else if (Array.isArray(value)) {
@@ -681,21 +686,21 @@ export const transformValueToComponentStateFormat = (value, componentProps) => {
 			case componentTypes.datePicker:
 				transformedValue = '';
 				if (typeof value !== 'object') {
-					transformedValue = new XDate(value).toString('yyyy-MM-dd');
+					transformedValue = dayjs(value).format('YYYY-MM-DD');
 				} else if (value.end) {
-					transformedValue = new XDate(value.end).toString('yyyy-MM-dd');
+					transformedValue = dayjs(value.end).format('YYYY-MM-DD');
 				} else if (value.start) {
-					transformedValue = new XDate(value.start).addHours(24).toString('yyyy-MM-dd');
+					transformedValue = dayjs(value.start).add(24, 'hour').format('YYYY-MM-DD');
 				}
 				break;
 			case componentTypes.dateRange:
 				transformedValue = []; // array of strings
 				if (Array.isArray(value)) {
-					transformedValue = value.map(t => new XDate(t).toString('yyyy-MM-dd'));
+					transformedValue = value.map(t => dayjs(t).format('YYYY-MM-DD'));
 				} else if (typeof value === 'object') {
 					transformedValue = [
-						new XDate(value.start).toString('yyyy-MM-dd'),
-						new XDate(value.end).toString('yyyy-MM-dd'),
+						dayjs(value.start).format('YYYY-MM-DD'),
+						dayjs(value.end).format('YYYY-MM-DD'),
 					];
 				}
 				break;

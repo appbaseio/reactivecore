@@ -21,10 +21,10 @@ function addComponentTimestamp(component, timestamp) {
 		timestamp,
 	};
 }
-export function addComponent(component) {
+export function addComponent(component, timestamp) {
 	return (dispatch) => {
 		dispatch(addComponentToList(component));
-		dispatch(addComponentTimestamp(component, new Date().getTime()));
+		dispatch(addComponentTimestamp(component, timestamp));
 	};
 }
 
