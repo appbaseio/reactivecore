@@ -296,10 +296,9 @@ function appbaseSearch({
 			settings.emptyQuery = isPropertyDefined(config.analyticsConfig.emptyQuery)
 				? config.analyticsConfig.emptyQuery
 				: undefined;
-			settings.enableSearchRelevancy = isPropertyDefined(config
-				.analyticsConfig
-				.enableSearchRelevancy)
-				? config.analyticsConfig.enableSearchRelevancy
+			const searchRelevancy = config.analyticsConfig.enableSearchRelevancy;
+			settings.enableSearchRelevancy = isPropertyDefined(searchRelevancy)
+				? searchRelevancy
 				: undefined;
 			settings.suggestionAnalytics = isPropertyDefined(config.analyticsConfig.suggestionAnalytics)
 				? config.analyticsConfig.suggestionAnalytics
@@ -380,7 +379,7 @@ export function executeQuery(
 			internalValues,
 			lock,
 		} = getState();
-		let lockTime = config.initialQueriesSyncTime;
+		let lockTime = config.initialQueriesSyncTime || 50;
 		let initialTimestamp = config.initialTimestamp;
 		const queryId = requestId || new Date().getTime();
 		// override logic for locking queries for a period of time
