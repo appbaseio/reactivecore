@@ -262,8 +262,8 @@ export const extractPropsFromState = (store, component, customOptions) => {
 				if (isValidDateRangeQueryFormat(componentProps.queryFormat)) {
 					// check if date types are dealt with
 					value = {
-						start: formatDate(dayjs(new Date((value.start))), componentProps),
-						end: formatDate(dayjs(new Date((value.end))), componentProps),
+						start: formatDate(dayjs(new Date(value.start)), componentProps),
+						end: formatDate(dayjs(new Date(value.end)), componentProps),
 					};
 				} else {
 					value = {
@@ -303,8 +303,8 @@ export const extractPropsFromState = (store, component, customOptions) => {
 				if (isValidDateRangeQueryFormat(componentProps.queryFormat)) {
 					// check if date types are dealt with
 					range = {
-						start: formatDate(new XDate(rangeValue.start), componentProps),
-						end: formatDate(new XDate(rangeValue.end), componentProps),
+						start: formatDate(dayjs(rangeValue.start), componentProps),
+						end: formatDate(dayjs(rangeValue.end), componentProps),
 					};
 				} else {
 					range = {
@@ -329,21 +329,15 @@ export const extractPropsFromState = (store, component, customOptions) => {
 					} else if (Array.isArray(value)) {
 						value = value.map(val => ({
 							// value would be one of ISO Date string, number, native date
-							start: formatDate(
-								dayjs(val).subtract(
-									24,
-									'hour',
-								),
-								componentProps,
-							),
-							end: formatDate(
-								dayjs(val),
-								componentProps,
-							),
+							start: formatDate(dayjs(val).subtract(24, 'hour'), componentProps),
+							end: formatDate(dayjs(val), componentProps),
 						}));
 					} else {
 						value = {
-							start: formatDate(dayjs(value.start).subtract(24, 'hour'), componentProps),
+							start: formatDate(
+								dayjs(value.start).subtract(24, 'hour'),
+								componentProps,
+							),
 							end: formatDate(dayjs(value.end), componentProps),
 						};
 					}
