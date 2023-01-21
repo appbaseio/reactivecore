@@ -123,10 +123,10 @@ function appbaseSearch({
 			settings.emptyQuery = isPropertyDefined(config.analyticsConfig.emptyQuery)
 				? config.analyticsConfig.emptyQuery
 				: undefined;
-			settings.enableSearchRelevancy = undefined;
-			if (isPropertyDefined(config.analyticsConfig.enableSearchRelevancy)) {
-				settings.enableSearchRelevancy = config.analyticsConfig.enableSearchRelevancy;
-			}
+			const searchRelevancy = config.analyticsConfig.enableSearchRelevancy;
+			settings.enableSearchRelevancy = isPropertyDefined(searchRelevancy)
+				? searchRelevancy
+				: undefined;
 			settings.suggestionAnalytics = isPropertyDefined(config.analyticsConfig.suggestionAnalytics)
 				? config.analyticsConfig.suggestionAnalytics
 				: undefined;
@@ -207,7 +207,7 @@ export function executeQuery(
 			queryList,
 			queryOptions,
 		} = getState();
-		let lockTime = config.initialQueriesSyncTime;
+		let lockTime = config.initialQueriesSyncTime || 50;
 		let initialTimestamp = config.initialTimestamp;
 		const queryId = requestId || new Date().getTime();
 		// override logic for locking queries for a period of time
@@ -294,8 +294,6 @@ export function executeQuery(
 						),
 					};
 				}
-				// console.log('COMPONENT: New Query', component, JSON.stringify(queryToLog));
-				// console.log('COMPONENT: Old Query', component, JSON.stringify(oldQuery));
 
 				if (mustExecuteMapQuery || !compareQueries(queryToLog, oldQuery, false)) {
 					orderOfQueries = [...orderOfQueries, component];
