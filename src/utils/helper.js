@@ -549,7 +549,7 @@ export const extractQueryFromDefaultQuery = (props, value) => {
 export const getAggsQuery = (value, query, props) => {
 	const clonedQuery = query;
 	const {
-		dataField, size, sortBy, showMissing, missingLabel,
+		dataField, size, sortBy, showMissing, missingLabel, aggregationSize,
 	} = props;
 	clonedQuery.size = 0;
 	if (typeof dataField === 'string') {
@@ -558,6 +558,7 @@ export const getAggsQuery = (value, query, props) => {
 				terms: {
 					field: dataField,
 					size,
+					aggregationSize,
 					order: getAggsOrder(sortBy || 'count'),
 					...(showMissing ? { missing: missingLabel } : {}),
 				},
@@ -571,6 +572,7 @@ export const getAggsQuery = (value, query, props) => {
 					terms: {
 						field: dataFieldItem,
 						size,
+						aggregationSize,
 						order: getAggsOrder(sortBy || 'count'),
 						...(showMissing ? { missing: missingLabel } : {}),
 					},
