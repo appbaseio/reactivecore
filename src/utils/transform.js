@@ -303,8 +303,8 @@ export const extractPropsFromState = (store, component, customOptions) => {
 				if (isValidDateRangeQueryFormat(componentProps.queryFormat)) {
 					// check if date types are dealt with
 					range = {
-						start: formatDate(new XDate(rangeValue.start), componentProps),
-						end: formatDate(new XDate(rangeValue.end), componentProps),
+						start: formatDate(dayjs(rangeValue.start), componentProps),
+						end: formatDate(dayjs(rangeValue.end), componentProps),
 					};
 				} else {
 					range = {
