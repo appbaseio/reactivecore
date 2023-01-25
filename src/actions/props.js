@@ -1,5 +1,6 @@
 import { SET_PROPS, REMOVE_PROPS, UPDATE_PROPS } from '../constants';
 import { validProps } from '../utils/constants';
+import { removeComponentRawProps, setComponentRawProps } from './rawProps';
 
 const getfilteredOptions = (options = {}) => {
 	const filteredOptions = {};
@@ -15,11 +16,15 @@ const getfilteredOptions = (options = {}) => {
  * @param {String} component
  * @param {Object} options
  */
+
 export function setComponentProps(component, options, componentType) {
-	return {
-		type: SET_PROPS,
-		component,
-		options: getfilteredOptions({ ...options, componentType }),
+	return (dispatch) => {
+		dispatch({
+			type: SET_PROPS,
+			component,
+			options: getfilteredOptions({ ...options, componentType }),
+		});
+		dispatch(setComponentRawProps(component, options, componentType));
 	};
 }
 
@@ -42,8 +47,11 @@ export function updateComponentProps(component, options, componentType) {
  * @param {Object} options
  */
 export function removeComponentProps(component) {
-	return {
-		type: REMOVE_PROPS,
-		component,
+	return (dispatch) => {
+		dispatch({
+			type: REMOVE_PROPS,
+			component,
+		});
+		dispatch(removeComponentRawProps(component));
 	};
 }
