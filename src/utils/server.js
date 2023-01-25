@@ -1,5 +1,5 @@
 import { componentTypes, queryTypes } from './constants';
-import { isPropertyDefined } from '../actions/utils';
+import { handleTransformResponse, isPropertyDefined } from '../actions/utils';
 import {
 	componentToTypeMap,
 	extractPropsFromState,
@@ -9,7 +9,8 @@ import {
 
 import valueReducer from '../reducers/valueReducer';
 import queryReducer from '../reducers/queryReducer';
-import { buildQuery } from './helper';
+import dependencyTreeReducer from '../reducers/dependencyTreeReducer';
+import { buildQuery, pushToAndClause } from './helper';
 
 function getValue(state, id, defaultValue) {
 	if (state && state[id]) {
@@ -81,26 +82,24 @@ function parseValue(componentId, value, props) {
 
 function getQuery(componentId, value, props) {
 	// get default query of result components
-	// if (resultComponents.includes(props.componentType)) {
-	// 	return component.defaultQuery ? component.defaultQuery() : {};
-	// }
+	if (resultComponents.includes(props.componentType)) {
+		return props.defaultQuery ? props.defaultQuery() : {};
+	}
 
 	// get custom or default query of sensor components
 	const currentValue = parseValue(componentId, value, props);
-	// if (component.customQuery) {
-	// 	const customQuery = component.customQuery(currentValue, component);
-	// 	return customQuery && customQuery.query;
-	// }
+	if (props.customQuery) {
+		const customQuery = props.customQuery(currentValue, props);
+		return customQuery && customQuery.query;
+	}
 
 	switch (props.componentType) {
 		case componentTypes.multiList:
 			return {
-				query: {
-					queryFormat: props.queryFormat,
-					dataField: props.dataField,
-					value,
-					showMissing: props.showMissing,
-				},
+				queryFormat: props.queryFormat || 'or',
+				dataField: props.dataField,
+				value,
+				showMissing: props.showMissing || false,
 			};
 
 		case componentTypes.numberBox:
@@ -156,11 +155,36 @@ const getServerResults = () => {
 			const parsedQueryString = parseQuery(queryString);
 
 			if (!appContext) {
+				let newSelectedValues = {};
 				// callback function to collect SearchBase context
 				const contextCollector = (params) => {
 					if (params.ctx) {
+						// store collected
+
 						appContext = params.ctx;
+
+						Object.keys(parsedQueryString).forEach((componentId) => {
+							const { value, reference } = getValue(
+								parsedQueryString,
+								componentId,
+								null,
+							);
+							if (value) {
+								newSelectedValues = valueReducer(newSelectedValues, {
+									type: 'PATCH_VALUE',
+									component: componentId,
+									payload: {
+										value,
+										reference,
+									},
+								});
+							}
+						});
 					}
+
+					return {
+						selectedValues: newSelectedValues,
+					};
 				};
 
 				// render the app server-side to collect context and build initial state
@@ -173,15 +197,14 @@ const getServerResults = () => {
 						components,
 						config,
 						appbaseRef,
-						dependencyTree,
 						queryOptions,
-						selectedValues,
 						internalValues,
 						props,
+						queryList,
+						dependencyTree,
 					} = extractedState;
-					let { queryList } = extractedState;
 
-					let queryLog = {};
+					let { queryLog } = extractedState;
 
 					let finalQuery = [];
 					let appbaseQuery = {}; // Use object to prevent duplicate query added by react prop
@@ -189,51 +212,6 @@ const getServerResults = () => {
 					let hits = {};
 					let aggregations = {};
 					let state = { ...extractedState };
-					let newselectedValues = { ...selectedValues };
-
-					components
-						.filter(t => !t.endsWith('__internal'))
-						.forEach((componentId) => {
-							const { value, reference } = getValue(
-								parsedQueryString,
-								componentId,
-								newselectedValues[componentId]
-									? newselectedValues[componentId].value
-									: null,
-							);
-							if (value) {
-								newselectedValues = valueReducer(newselectedValues, {
-									type: 'PATCH_VALUE',
-									component: componentId,
-									payload: {
-										label: props[componentId].filterLabel || componentId,
-										value,
-										reference,
-										componentType: props[componentId].componentType,
-									},
-								});
-
-								const isResultComponent = resultComponents.includes(props[componentId].componentType);
-								if (isResultComponent) {
-									const { query } = getQuery(
-										componentId,
-										value,
-										props[componentId],
-									);
-									queryList = queryReducer(queryList, {
-										type: 'SET_QUERY',
-										component: `${componentId}__internal`,
-										query,
-									});
-								} else {
-									queryList = queryReducer(queryList, {
-										type: 'SET_QUERY',
-										component: componentId,
-										query: getQuery(componentId, value, props[componentId]),
-									});
-								}
-							}
-						});
 
 					// Generate finalQuery for search
 					components
@@ -316,24 +294,14 @@ const getServerResults = () => {
 								}
 							}
 						});
-					state.queryLog = queryLog;
-					const handleTransformResponse = (res, component) => {
-						if (
-							config.transformResponse
-							&& typeof config.transformResponse === 'function'
-						) {
-							return config.transformResponse(res, component);
-						}
-						return new Promise(resolveTransformResponse =>
-							resolveTransformResponse(res));
-					};
+
 					const handleRSResponse = (res) => {
 						const promotedResults = {};
 						const rawData = {};
 						const customData = {};
 						const allPromises = orderOfQueries.map(component =>
 							new Promise((responseResolve, responseReject) => {
-								handleTransformResponse(res[component], component)
+								handleTransformResponse(res[component], config, component)
 									.then((response) => {
 										if (response) {
 											if (response.promoted) {
@@ -381,7 +349,7 @@ const getServerResults = () => {
 							state = {
 								queryList,
 								queryOptions,
-								selectedValues: newselectedValues,
+								selectedValues: newSelectedValues,
 								internalValues,
 								queryLog,
 								hits,
