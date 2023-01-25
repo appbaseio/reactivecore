@@ -101,6 +101,7 @@ const getServerResults = () => {
 					}
 
 					return {
+						// send back to ReactiveBase to hydrate the store with values from queryParams(if present)
 						selectedValues: newSelectedValues,
 					};
 				};
