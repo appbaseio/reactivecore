@@ -1,11 +1,122 @@
-import { componentTypes } from './constants';
+import { componentTypes, queryTypes } from './constants';
 import { isPropertyDefined } from '../actions/utils';
-import { extractPropsFromState, getDependentQueries, getRSQuery } from './transform';
+import {
+	componentToTypeMap,
+	extractPropsFromState,
+	getDependentQueries,
+	getRSQuery,
+} from './transform';
 
 import valueReducer from '../reducers/valueReducer';
 import queryReducer from '../reducers/queryReducer';
 import { buildQuery } from './helper';
 
+function getValue(state, id, defaultValue) {
+	if (state && state[id]) {
+		try {
+			// parsing for next.js - since it uses extra set of quotes to wrap params
+			const parsedValue = JSON.parse(state[id]);
+			return {
+				value: parsedValue,
+				reference: 'URL',
+			};
+		} catch (error) {
+			// using react-dom-server for ssr
+			return {
+				value: state[id],
+				reference: 'URL',
+			};
+		}
+	}
+	return {
+		value: defaultValue,
+		reference: 'DEFAULT',
+	};
+}
+const componentsWithInternalComponent = {
+	// search components
+	[componentTypes.reactiveList]: true,
+	[componentTypes.searchBox]: true,
+	// term components
+	[componentTypes.singleList]: true,
+	[componentTypes.multiList]: true,
+	[componentTypes.singleDropdownList]: true,
+	[componentTypes.singleDataList]: false,
+	[componentTypes.multiDataList]: false,
+	[componentTypes.multiDropdownList]: true,
+	[componentTypes.tagCloud]: true,
+	[componentTypes.toggleButton]: false,
+	[componentTypes.reactiveChart]: true,
+	[componentTypes.treeList]: true,
+	// basic components
+	[componentTypes.numberBox]: false,
+
+	// range components
+	[componentTypes.datePicker]: false,
+	[componentTypes.dateRange]: false,
+	[componentTypes.dynamicRangeSlider]: true,
+	[componentTypes.singleDropdownRange]: true,
+	[componentTypes.multiDropdownRange]: true,
+	[componentTypes.singleRange]: false,
+	[componentTypes.multiRange]: false,
+	[componentTypes.rangeSlider]: true,
+	[componentTypes.ratingsFilter]: false,
+	[componentTypes.rangeInput]: true,
+
+	// map components
+	[componentTypes.geoDistanceDropdown]: true,
+	[componentTypes.geoDistanceSlider]: true,
+	[componentTypes.reactiveMap]: true,
+};
+
+const componentsWithoutFilters = [componentTypes.numberBox, componentTypes.ratingsFilter];
+
+const resultComponents = [componentTypes.reactiveList, componentTypes.reactiveMap];
+function parseValue(componentId, value, props) {
+	switch (props.componentType) {
+		default:
+			return value;
+	}
+}
+
+function getQuery(componentId, value, props) {
+	// get default query of result components
+	// if (resultComponents.includes(props.componentType)) {
+	// 	return component.defaultQuery ? component.defaultQuery() : {};
+	// }
+
+	// get custom or default query of sensor components
+	const currentValue = parseValue(componentId, value, props);
+	// if (component.customQuery) {
+	// 	const customQuery = component.customQuery(currentValue, component);
+	// 	return customQuery && customQuery.query;
+	// }
+
+	switch (props.componentType) {
+		case componentTypes.multiList:
+			return {
+				query: {
+					queryFormat: props.queryFormat,
+					dataField: props.dataField,
+					value,
+					showMissing: props.showMissing,
+				},
+			};
+
+		case componentTypes.numberBox:
+			return {
+				query: {
+					queryFormat: props.queryFormat,
+					dataField: props.dataField,
+					value,
+					nestedField: props.nestedField,
+				},
+			};
+
+		default:
+			return null;
+	}
+}
 // parse query string
 // ref: https://stackoverflow.com/a/13896633/10822996
 function parseQuery(str) {
@@ -34,56 +145,6 @@ function parseQuery(str) {
 		else query[first] = [query[first], second];
 	}
 	return query;
-}
-
-function getSourceFromComponentType() {
-	return { [componentTypes.multiList]: 'MultiList' };
-}
-
-function getValue(state, id, defaultValue) {
-	if (state && state[id]) {
-		try {
-			// parsing for next.js - since it uses extra set of quotes to wrap params
-			const parsedValue = JSON.parse(state[id]);
-			return {
-				value: parsedValue,
-				reference: 'URL',
-			};
-		} catch (error) {
-			// using react-dom-server for ssr
-			return {
-				value: state[id],
-				reference: 'URL',
-			};
-		}
-	}
-	return {
-		value: defaultValue,
-		reference: 'DEFAULT',
-	};
-}
-const resultComponents = [componentTypes.reactiveList, componentTypes.reactiveMap];
-function parseValue(value, component) {
-	if (component.source && component.source.parseValue) {
-		return component.source.parseValue(value, component);
-	}
-	return value;
-}
-function getQuery(component, value, componentType) {
-	// get default query of result components
-	if (resultComponents.includes(componentType)) {
-		return component.defaultQuery ? component.defaultQuery() : {};
-	}
-
-	// get custom or default query of sensor components
-	const currentValue = parseValue(value, component);
-	if (component.customQuery) {
-		const customQuery = component.customQuery(currentValue, component);
-		return customQuery && customQuery.query;
-	}
-	return component.source.defaultQuery
-		? component.source.defaultQuery(currentValue, component)
-		: {};
 }
 
 const getServerResults = () => {
@@ -155,13 +216,9 @@ const getServerResults = () => {
 								const isResultComponent = resultComponents.includes(props[componentId].componentType);
 								if (isResultComponent) {
 									const { query } = getQuery(
-										{
-											componentId,
-											...props[componentId],
-											source: getSourceFromComponentType(props[componentId].componentType),
-										},
+										componentId,
 										value,
-										props[componentId].componentType,
+										props[componentId],
 									);
 									queryList = queryReducer(queryList, {
 										type: 'SET_QUERY',
@@ -172,100 +229,93 @@ const getServerResults = () => {
 									queryList = queryReducer(queryList, {
 										type: 'SET_QUERY',
 										component: componentId,
-										query: getQuery(
-											{
-												componentId,
-												...props[componentId],
-												source: getSourceFromComponentType(props[componentId].componentType),
-											},
-											value,
-											props[componentId].componentType,
-										),
+										query: getQuery(componentId, value, props[componentId]),
 									});
 								}
 							}
 						});
 
-					console.log('⛈⛈⛈⛈⛈⛈⛈⛈⛈⛈⛈⛈⛈', newselectedValues);
-
 					// Generate finalQuery for search
 					components
 						.filter(t => !t.endsWith('__internal'))
 						.forEach((componentId) => {
-							// eslint-disable-next-line prefer-const
+							// eslint-disable-next-line
 							let { queryObj, options } = buildQuery(
 								componentId,
 								dependencyTree,
 								queryList,
 								queryOptions,
 							);
+							if (!queryObj && !options) {
+								return;
+							}
 
-							const validOptions = ['aggs', 'from', 'sort'];
+							const query = getRSQuery(
+								componentId,
+								extractPropsFromState(
+									state,
+									componentId,
+									queryOptions && queryOptions[componentId]
+										? { from: queryOptions[componentId].from }
+										: null,
+								),
+							);
+
 							// check if query or options are valid - non-empty
-							if (
-								(queryObj && !!Object.keys(queryObj).length)
-								|| (options
-									&& Object.keys(options).some(item =>
-										validOptions.includes(item)))
-							) {
-								if (!queryObj || (queryObj && !Object.keys(queryObj).length)) {
-									queryObj = { match_all: {} };
+							if (query && !!Object.keys(query).length) {
+								const currentQuery = query;
+
+								const dependentQueries = getDependentQueries(
+									state,
+									componentId,
+									orderOfQueries,
+								);
+								let queryToLog = {
+									...{ [componentId]: currentQuery },
+									...Object.keys(dependentQueries).reduce(
+										(acc, q) => ({
+											...acc,
+											[q]: { ...dependentQueries[q], execute: false },
+										}),
+										{},
+									),
+								};
+								if (
+									[queryTypes.range, queryTypes.term].includes(componentToTypeMap[props[componentId].componentType])
+								) {
+									// Avoid logging `value` for term type of components
+									// eslint-disable-next-line
+									const { value, ...rest } = currentQuery;
+
+									queryToLog = {
+										...{ [componentId]: rest },
+										...Object.keys(dependentQueries).reduce(
+											(acc, q) => ({
+												...acc,
+												[q]: { ...dependentQueries[q], execute: false },
+											}),
+											{},
+										),
+									};
 								}
 
 								orderOfQueries = [...orderOfQueries, componentId];
 
-								const currentQuery = {
-									query: { ...queryObj },
-									...options,
-									...queryOptions[componentId],
-								};
-
 								queryLog = {
 									...queryLog,
-									[componentId]: currentQuery,
+									[componentId]: queryToLog,
 								};
 
-								if (config.enableAppbase) {
-									const query = getRSQuery(
-										componentId,
-										extractPropsFromState(
-											state,
-											componentId,
-											queryOptions && queryOptions[componentId]
-												? { from: queryOptions[componentId].from }
-												: null,
-										),
-									);
-									if (query) {
-										// Apply dependent queries
-										appbaseQuery = {
-											...appbaseQuery,
-											...{ [componentId]: query },
-											...getDependentQueries(
-												state,
-												componentId,
-												orderOfQueries,
-											),
-										};
-									}
-								} else {
-									const preference
-										= config
-										&& config.analyticsConfig
-										&& config.analyticsConfig.userId
-											? `${config.analyticsConfig.userId}_${componentId}`
-											: componentId;
-									finalQuery = [
-										...finalQuery,
-										{
-											preference,
-										},
-										currentQuery,
-									];
+								if (query) {
+									// Apply dependent queries
+									appbaseQuery = {
+										...appbaseQuery,
+										...{ [componentId]: query },
+										...getDependentQueries(state, componentId, orderOfQueries),
+									};
 								}
 							}
 						});
-
 					state.queryLog = queryLog;
 					const handleTransformResponse = (res, component) => {
 						if (
@@ -322,7 +372,9 @@ const getServerResults = () => {
 											responseResolve();
 										}
 									})
-									.catch(err => responseReject(err));
+									.catch((err) => {
+										responseReject(err);
+									});
 							}));
 
 						return Promise.all(allPromises).then(() => {
@@ -337,14 +389,12 @@ const getServerResults = () => {
 								promotedResults,
 								customData,
 								rawData,
-								// registeredComponentsTimestamps,
 								dependencyTree,
 							};
-							return Promise.resolve(state);
+							return Promise.resolve(JSON.parse(JSON.stringify(state)));
 						});
 					};
-
-					if (config.enableAppbase && Object.keys(appbaseQuery).length) {
+					if (Object.keys(appbaseQuery).length) {
 						finalQuery = Object.keys(appbaseQuery).map(c => appbaseQuery[c]);
 						// Call RS API
 						const rsAPISettings = {};
@@ -365,7 +415,10 @@ const getServerResults = () => {
 						return appbaseRef
 							.reactiveSearchv3(finalQuery, rsAPISettings)
 							.then(res => handleRSResponse(res))
-							.catch(err => Promise.reject(err));
+							.catch((err) => {
+								console.log('err', err);
+								return Promise.reject(err);
+							});
 					}
 					throw new Error('Could not compute server-side initial state of the app!');
 				} else {
@@ -375,10 +428,9 @@ const getServerResults = () => {
 				return null;
 			}
 		} catch (error) {
-			console.log('🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫', error);
-			return Promise.reject(new Error('Could not compute server-side initial state of the app!', error.stack));
+			console.log('🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫', error.stack);
+			return Promise.reject(new Error('Could not compute server-side initial state of the app!'));
 		}
 	};
 };
-
 export default getServerResults;
