@@ -37,7 +37,6 @@ import recentSearchesReducer from './recentSearches';
 import googleMapScriptReducer from './googleMapScriptReducer';
 import analyticsRefReducer from './analyticsRefReducer';
 import registeredComponentReducer from './registeredComponentReducer';
-import rawPropsReducer from './rawPropsReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -69,7 +68,6 @@ export default combineReducers({
 	queryListener: queryListenerReducer,
 	analytics: analyticsReducer,
 	props: propsReducer,
-	rawProps: rawPropsReducer,
 	rawData: rawDataReducer,
 	querySuggestions: querySuggestionsReducer,
 	defaultPopularSuggestions: defaultPopularSuggestionsReducer,
