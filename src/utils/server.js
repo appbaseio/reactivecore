@@ -1,4 +1,5 @@
-import { componentTypes, queryTypes } from './constants';
+/* eslint-disable max-len */
+import { queryTypes } from './constants';
 import { handleTransformResponse, isPropertyDefined } from '../actions/utils';
 import {
 	componentToTypeMap,
@@ -8,9 +9,7 @@ import {
 } from './transform';
 
 import valueReducer from '../reducers/valueReducer';
-import queryReducer from '../reducers/queryReducer';
-import dependencyTreeReducer from '../reducers/dependencyTreeReducer';
-import { buildQuery, pushToAndClause } from './helper';
+import { buildQuery } from './helper';
 
 function getValue(state, id, defaultValue) {
 	if (state && state[id]) {
@@ -34,88 +33,7 @@ function getValue(state, id, defaultValue) {
 		reference: 'DEFAULT',
 	};
 }
-const componentsWithInternalComponent = {
-	// search components
-	[componentTypes.reactiveList]: true,
-	[componentTypes.searchBox]: true,
-	// term components
-	[componentTypes.singleList]: true,
-	[componentTypes.multiList]: true,
-	[componentTypes.singleDropdownList]: true,
-	[componentTypes.singleDataList]: false,
-	[componentTypes.multiDataList]: false,
-	[componentTypes.multiDropdownList]: true,
-	[componentTypes.tagCloud]: true,
-	[componentTypes.toggleButton]: false,
-	[componentTypes.reactiveChart]: true,
-	[componentTypes.treeList]: true,
-	// basic components
-	[componentTypes.numberBox]: false,
 
-	// range components
-	[componentTypes.datePicker]: false,
-	[componentTypes.dateRange]: false,
-	[componentTypes.dynamicRangeSlider]: true,
-	[componentTypes.singleDropdownRange]: true,
-	[componentTypes.multiDropdownRange]: true,
-	[componentTypes.singleRange]: false,
-	[componentTypes.multiRange]: false,
-	[componentTypes.rangeSlider]: true,
-	[componentTypes.ratingsFilter]: false,
-	[componentTypes.rangeInput]: true,
-
-	// map components
-	[componentTypes.geoDistanceDropdown]: true,
-	[componentTypes.geoDistanceSlider]: true,
-	[componentTypes.reactiveMap]: true,
-};
-
-const componentsWithoutFilters = [componentTypes.numberBox, componentTypes.ratingsFilter];
-
-const resultComponents = [componentTypes.reactiveList, componentTypes.reactiveMap];
-function parseValue(componentId, value, props) {
-	switch (props.componentType) {
-		default:
-			return value;
-	}
-}
-
-function getQuery(componentId, value, props) {
-	// get default query of result components
-	if (resultComponents.includes(props.componentType)) {
-		return props.defaultQuery ? props.defaultQuery() : {};
-	}
-
-	// get custom or default query of sensor components
-	const currentValue = parseValue(componentId, value, props);
-	if (props.customQuery) {
-		const customQuery = props.customQuery(currentValue, props);
-		return customQuery && customQuery.query;
-	}
-
-	switch (props.componentType) {
-		case componentTypes.multiList:
-			return {
-				queryFormat: props.queryFormat || 'or',
-				dataField: props.dataField,
-				value,
-				showMissing: props.showMissing || false,
-			};
-
-		case componentTypes.numberBox:
-			return {
-				query: {
-					queryFormat: props.queryFormat,
-					dataField: props.dataField,
-					value,
-					nestedField: props.nestedField,
-				},
-			};
-
-		default:
-			return null;
-	}
-}
 // parse query string
 // ref: https://stackoverflow.com/a/13896633/10822996
 function parseQuery(str) {
@@ -383,10 +301,7 @@ const getServerResults = () => {
 						return appbaseRef
 							.reactiveSearchv3(finalQuery, rsAPISettings)
 							.then(res => handleRSResponse(res))
-							.catch((err) => {
-								console.log('err', err);
-								return Promise.reject(err);
-							});
+							.catch(err => Promise.reject(err));
 					}
 					throw new Error('Could not compute server-side initial state of the app!');
 				} else {
@@ -396,7 +311,6 @@ const getServerResults = () => {
 				return null;
 			}
 		} catch (error) {
-			console.log('🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫🚫', error.stack);
 			return Promise.reject(new Error('Could not compute server-side initial state of the app!'));
 		}
 	};
