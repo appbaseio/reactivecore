@@ -84,10 +84,7 @@ const getServerResults = () => {
 						// store collected
 
 						appContext = params.ctx;
-						console.log(
-							' 💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥parsedQueryString',
-							parsedQueryString,
-						);
+
 						Object.keys(parsedQueryString).forEach((componentId) => {
 							const { value, reference } = getValue(
 								parsedQueryString,
@@ -179,7 +176,14 @@ const getServerResults = () => {
 									...Object.keys(dependentQueries).reduce(
 										(acc, q) => ({
 											...acc,
-											[q]: { ...dependentQueries[q], execute: false },
+											[q]: {
+												...dependentQueries[q],
+												execute: false,
+												...(dependentQueries[q].type
+												=== queryTypes.suggestion
+													? { type: 'search' }
+													: {}),
+											},
 										}),
 										{},
 									),
@@ -196,18 +200,26 @@ const getServerResults = () => {
 										...Object.keys(dependentQueries).reduce(
 											(acc, q) => ({
 												...acc,
-												[q]: { ...dependentQueries[q], execute: false },
+												[q]: {
+													...dependentQueries[q],
+													execute: false,
+													...(dependentQueries[q].type
+													=== queryTypes.suggestion
+														? { type: 'search' }
+														: {}),
+												},
 											}),
 											{},
 										),
 									};
 								}
-
+								// if (!compareQueries(queryToLog, currentQuery, false)) {
 								orderOfQueries = [...orderOfQueries, componentId];
 								queryLog = {
 									...queryLog,
 									[componentId]: queryToLog,
 								};
+								// }
 
 								if (query) {
 									// Apply dependent queries
@@ -332,7 +344,10 @@ const getServerResults = () => {
 				return null;
 			}
 		} catch (error) {
-			return Promise.reject(new Error('Could not compute server-side initial state of the app!'));
+			return Promise.reject(
+				new Error('Could not compute server-side initial state of the app!'),
+				error.stack,
+			);
 		}
 	};
 };
