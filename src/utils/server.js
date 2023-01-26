@@ -45,12 +45,17 @@ function parseQuery(str) {
 	if (str.split('/?')[1]) {
 		s = str.split('/?')[1].split('&');
 	}
+	if (str.split('?')[1]) {
+		s = str.split('?')[1].split('&');
+	}
+
 	if (!s) return {};
 	const sLength = s.length;
 	let bit;
 	const query = {};
 	let first;
 	let second;
+
 	for (let i = 0; i < sLength; i += 1) {
 		bit = s[i].split('=');
 		first = decodeURIComponent(bit[0]);
@@ -71,7 +76,6 @@ const getServerResults = () => {
 		try {
 			// parse the query String to respect url params in SSR
 			const parsedQueryString = parseQuery(queryString);
-
 			if (!appContext) {
 				let newSelectedValues = {};
 				// callback function to collect SearchBase context
@@ -80,7 +84,10 @@ const getServerResults = () => {
 						// store collected
 
 						appContext = params.ctx;
-
+						console.log(
+							' 💥💥💥💥💥💥💥💥💥💥💥💥💥💥💥parsedQueryString',
+							parsedQueryString,
+						);
 						Object.keys(parsedQueryString).forEach((componentId) => {
 							const { value, reference } = getValue(
 								parsedQueryString,
@@ -161,12 +168,12 @@ const getServerResults = () => {
 							// check if query or options are valid - non-empty
 							if (query && !!Object.keys(query).length) {
 								const currentQuery = query;
-
 								const dependentQueries = getDependentQueries(
 									state,
 									componentId,
 									orderOfQueries,
 								);
+
 								let queryToLog = {
 									...{ [componentId]: currentQuery },
 									...Object.keys(dependentQueries).reduce(
@@ -197,7 +204,6 @@ const getServerResults = () => {
 								}
 
 								orderOfQueries = [...orderOfQueries, componentId];
-
 								queryLog = {
 									...queryLog,
 									[componentId]: queryToLog,
@@ -205,11 +211,23 @@ const getServerResults = () => {
 
 								if (query) {
 									// Apply dependent queries
+									const dependentQueriesToAppend = getDependentQueries(
+										state,
+										componentId,
+										orderOfQueries,
+									);
 									appbaseQuery = {
 										...appbaseQuery,
 										...{ [componentId]: query },
-										...getDependentQueries(state, componentId, orderOfQueries),
 									};
+									Object.keys(dependentQueriesToAppend).forEach((cId) => {
+										if (appbaseQuery[cId]) {
+											appbaseQuery[cId + Math.random()]
+												= dependentQueriesToAppend[cId];
+										} else {
+											appbaseQuery[cId] = dependentQueriesToAppend[cId];
+										}
+									});
 								}
 							}
 						});
@@ -281,8 +299,9 @@ const getServerResults = () => {
 							return Promise.resolve(JSON.parse(JSON.stringify(state)));
 						});
 					};
+
 					if (Object.keys(appbaseQuery).length) {
-						finalQuery = Object.keys(appbaseQuery).map(c => appbaseQuery[c]);
+						finalQuery = Object.values(appbaseQuery);
 						// Call RS API
 						const rsAPISettings = {};
 						if (config.analyticsConfig) {
@@ -299,6 +318,7 @@ const getServerResults = () => {
 								? config.analyticsConfig.customEvents
 								: undefined;
 						}
+
 						return appbaseRef
 							.reactiveSearchv3(finalQuery, rsAPISettings)
 							.then(res => handleRSResponse(res))
