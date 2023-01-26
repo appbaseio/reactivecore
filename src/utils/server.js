@@ -346,7 +346,7 @@ const getServerResults = () => {
 		} catch (error) {
 			return Promise.reject(
 				new Error('Could not compute server-side initial state of the app!'),
-				error.stack,
+				error,
 			);
 		}
 	};
