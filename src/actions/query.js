@@ -288,13 +288,21 @@ export function executeQuery(
 						...Object.keys(dependentQueries).reduce(
 							(acc, q) => ({
 								...acc,
-								[q]: [...dependentQueries[q], ...{ execute: false }],
+								[q]: { ...dependentQueries[q], ...{ execute: false } },
 							}),
 							{},
 						),
 					};
 				}
 
+				if (queryToLog && oldQuery && !compareQueries(queryToLog, oldQuery, false)) {
+					console.log('comparing Queries 😅', component, {
+						currentQuery,
+						dependentQueries,
+						newQuery: JSON.parse(JSON.stringify(queryToLog)),
+						oldQuery: JSON.parse(JSON.stringify(oldQuery)),
+					});
+				}
 				if (mustExecuteMapQuery || !compareQueries(queryToLog, oldQuery, false)) {
 					orderOfQueries = [...orderOfQueries, component];
 
