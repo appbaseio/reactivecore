@@ -76,21 +76,21 @@ function parseQuery(str) {
 }
 
 const getServerResults = () => {
-	let appContext = null;
+	let storeReference = null;
 
 	return (App, queryString = '', ssrRenderFunc) => {
 		try {
 			// parse the query String to respect url params in SSR
 			const parsedQueryString = parseQuery(queryString);
-			if (!appContext) {
+			if (!storeReference) {
 				let newSelectedValues = {};
 				// callback function to collect SearchBase context
 				const contextCollector = (params) => {
 					if (params.ctx) {
 						// store collected
+						storeReference = params.ctx;
 
-						appContext = params.ctx;
-
+						// collect selected values from the URL query string
 						Object.keys(parsedQueryString).forEach((componentId) => {
 							const { value, reference } = getValue(
 								parsedQueryString,
@@ -118,10 +118,12 @@ const getServerResults = () => {
 
 				// render the app server-side to collect context and build initial state
 				// for hydration on client side
+				// in case of React, ssrRenderFunc === renderToString || renderToStaticMarkup
+				// in case of Vue, ssrRenderFunc === renderToString (import { renderToString } from 'vue/server-renderer')
 				ssrRenderFunc(App({ contextCollector }));
 
-				if (appContext) {
-					const extractedState = appContext.getState();
+				if (storeReference) {
+					const extractedState = storeReference.getState();
 					const {
 						components,
 						config,
