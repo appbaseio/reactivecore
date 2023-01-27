@@ -207,7 +207,7 @@ export function executeQuery(
 			queryList,
 			queryOptions,
 		} = getState();
-		let lockTime = config.initialQueriesSyncTime || 50;
+		let lockTime = config.initialQueriesSyncTime || 100;
 		let initialTimestamp = config.initialTimestamp;
 		const queryId = requestId || new Date().getTime();
 		// override logic for locking queries for a period of time
