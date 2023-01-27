@@ -16,8 +16,14 @@ function getValue(state, id, defaultValue) {
 		try {
 			// parsing for next.js - since it uses extra set of quotes to wrap params
 			const parsedValue = JSON.parse(state[id]);
+
 			return {
-				value: parsedValue,
+				...(typeof parsedValue === 'object' && parsedValue.value
+					? {
+						value: parsedValue.value,
+						...(parsedValue.category ? { category: parsedValue.category } : {}),
+					  }
+					: { value: parsedValue }),
 				reference: 'URL',
 			};
 		} catch (error) {
@@ -272,9 +278,7 @@ const getServerResults = () => {
 													[component]: response.aggregations,
 												};
 											}
-											const hitsObj = response.hits
-												? response.hits
-												: response[component].hits;
+											const hitsObj = response.hits || {};
 											hits = {
 												...hits,
 												[component]: {
@@ -344,10 +348,7 @@ const getServerResults = () => {
 				return null;
 			}
 		} catch (error) {
-			return Promise.reject(
-				new Error('Could not compute server-side initial state of the app!'),
-				error,
-			);
+			return Promise.reject(error);
 		}
 	};
 };
