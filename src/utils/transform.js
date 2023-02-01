@@ -107,7 +107,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			excludeFields: props.excludeFields,
 			size: props.size,
 			aggregationSize: props.aggregationSize,
-			from: props.from, // Need to maintain for RL
+			from: props.from || undefined, // Need to maintain for RL
 			queryFormat: props.queryFormat,
 			sortBy: props.sortBy,
 			fieldWeights: getNormalizedField(props.fieldWeights),
