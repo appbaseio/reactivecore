@@ -53,7 +53,7 @@ export function setValue(
 					&& [componentTypes.reactiveList, componentTypes.reactiveMap].includes(componentProps.componentType)
 				) {
 					if (selectedValues[comp] !== null) {
-						componentsToReset[comp] = null;
+						componentsToReset[comp] = 0;
 					}
 				}
 			});

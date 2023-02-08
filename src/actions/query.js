@@ -378,6 +378,7 @@ export function executeQuery(
 			props,
 			internalValues,
 			lock,
+			selectedValues,
 		} = getState();
 		let lockTime = config.initialQueriesSyncTime || 50;
 		let initialTimestamp = config.initialTimestamp;
@@ -419,20 +420,36 @@ export function executeQuery(
 				if (!queryObj || (queryObj && !Object.keys(queryObj).length)) {
 					queryObj = { ...matchAllQuery };
 				}
+				let from;
+				const depComponentType = props[component] ? props[component].componentType : null;
+				if (depComponentType === componentTypes.reactiveList) {
+					const componentValue = selectedValues[component]
+						? selectedValues[component].value
+						: undefined;
+					const componentProps = props[component];
+					if (componentValue !== undefined && componentProps) {
+						if (componentValue > 0) {
+							from = (componentValue - 1) * (componentProps.size || 10);
+						} else {
+							from = 0;
+						}
+					}
+				}
 
 				const currentQuery = {
 					query: { ...queryObj },
 					...options,
 					...queryOptions[component],
+					from,
 				};
 
 				const queryToLog = {
 					query: { ...queryObj },
 					...options,
 					...queryOptions[component],
+					from,
 				};
 				const oldQuery = queryLog[component];
-
 				if (mustExecuteMapQuery || !compareQueries(currentQuery, oldQuery, false)) {
 					orderOfQueries = [...orderOfQueries, component];
 
@@ -489,6 +506,7 @@ export function executeQuery(
 							value
 								= internalValues[componentId] && internalValues[componentId].value;
 						}
+
 						// build query
 						const query = getRSQuery(
 							component,
@@ -497,6 +515,7 @@ export function executeQuery(
 								...(metaOptions ? { from: metaOptions.from } : null),
 							}),
 						);
+
 						if (query) {
 							// Apply dependent queries
 							appbaseQuery = {

@@ -447,6 +447,8 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		// It's complex to change this logic in the component so changed it here.
 		if (value > 0) {
 			from = (value - 1) * (componentProps.size || 10);
+		} else {
+			from = 0;
 		}
 		value = undefined;
 	}
