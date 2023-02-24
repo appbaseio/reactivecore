@@ -82,6 +82,10 @@ export const hasPaginationSupport = (componentType = '') =>
 
 export const getRSQuery = (componentId, props, execute = true) => {
 	if (props && componentId) {
+		// Avoid executing null query
+		if (props.defaultQuery === null) {
+			return null;
+		}
 		const queryType = props.type ? props.type : componentToTypeMap[props.componentType];
 		// dataField is a required field for components other than search
 		// TODO: Revisit this logic based on the Appbase version
@@ -473,7 +477,7 @@ export const extractPropsFromState = (store, component, customOptions) => {
 		interval,
 		react: store.dependencyTree ? store.dependencyTree[component] : undefined,
 		customQuery: store.customQueries ? store.customQueries[component] : undefined,
-		defaultQuery: store.defaultQueries ? store.defaultQueries[component] : undefined,
+		defaultQuery: store.defaultQueries[component],
 		customHighlight: store.customHighlightOptions
 			? store.customHighlightOptions[component]
 			: undefined,
