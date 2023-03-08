@@ -293,7 +293,9 @@ export const extractPropsFromState = (store, component, customOptions) => {
 							: null;
 				} else {
 					rangeValue
-						= rangeValue && store.aggregations[`${component}__range__internal`].min
+						= rangeValue
+						&& store.aggregations[`${component}__range__internal`].min
+						&& store.aggregations[`${component}__range__internal`].min.value
 							? {
 								start: store.aggregations[`${component}__range__internal`].min.value,
 								end: store.aggregations[`${component}__range__internal`].max.value,
