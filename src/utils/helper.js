@@ -815,6 +815,7 @@ export const suggestionTypes = {
 export const featuredSuggestionsActionTypes = {
 	NAVIGATE: 'navigate',
 	FUNCTION: 'function',
+	SELECT: 'select',
 };
 
 // this map helps to get the interval divider
