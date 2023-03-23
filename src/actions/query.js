@@ -20,6 +20,7 @@ import {
 	setLastUsedAppbaseQuery,
 	setAIResponse,
 	setAIResponseLoding,
+	setAIResponseError,
 } from './misc';
 import { buildQuery, compareQueries } from '../utils/helper';
 import { updateMapData } from './maps';
@@ -700,12 +701,10 @@ export function fetchAIResponse({ AIAnswerKey, componentId } = {}) {
 		fetch(fetchUrl, { headers })
 			.then(async (res) => {
 				const parsedRes = await res.json();
-				console.log('🚀 ~ file: query.js:701 ~ .then ~ parsedRes:', parsedRes);
 				dispatch(setAIResponse(componentId, parsedRes));
 			})
 			.catch((e) => {
-				console.log(e);
-				dispatch(setAIResponse(componentId, { error: e }));
+				dispatch(setAIResponseError(componentId, e));
 			});
 	};
 }
