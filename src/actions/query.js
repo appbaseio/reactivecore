@@ -18,6 +18,8 @@ import {
 	setPopularSuggestions,
 	setDefaultPopularSuggestions,
 	setLastUsedAppbaseQuery,
+	setAIResponse,
+	setAIResponseLoding,
 } from './misc';
 import { buildQuery, compareQueries } from '../utils/helper';
 import { updateMapData } from './maps';
@@ -668,5 +670,42 @@ export function loadDataToExport(componentId, deepPaginationCursor = '', totalRe
 				});
 		}
 		return console.error('Error fetching data to export!');
+	};
+}
+
+export function fetchAIResponse({ AIAnswerKey, componentId } = {}) {
+	return (dispatch, getState) => {
+		dispatch(setAIResponseLoding(componentId, true));
+		const {
+			config: { url, credentials: configCredentials },
+		} = getState();
+		const urlObj = new URL(url);
+
+		let credentials = configCredentials;
+		if (urlObj.username && urlObj.password) {
+			credentials = `${urlObj.username}:${urlObj.password}`;
+			// Remove credentials from the URL
+			urlObj.username = '';
+			urlObj.password = '';
+		}
+
+		const fetchUrl = `${urlObj.toString()}/_ai/${AIAnswerKey}`;
+
+		const headers = new Headers();
+		if (credentials) {
+			const encodedCredentials = btoa(credentials);
+			headers.append('Authorization', `Basic ${encodedCredentials}`);
+		}
+
+		fetch(fetchUrl, { headers })
+			.then(async (res) => {
+				const parsedRes = await res.json();
+				console.log('🚀 ~ file: query.js:701 ~ .then ~ parsedRes:', parsedRes);
+				dispatch(setAIResponse(componentId, parsedRes));
+			})
+			.catch((e) => {
+				console.log(e);
+				dispatch(setAIResponse(componentId, { error: e }));
+			});
 	};
 }
