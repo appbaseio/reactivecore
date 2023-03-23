@@ -78,5 +78,5 @@ export default combineReducers({
 	googleMapScriptStatus: googleMapScriptReducer,
 	lastUsedAppbaseQuery: appbaseQueryReducer,
 	registeredComponentsTimestamps: registeredComponentReducer,
-	aiReducer,
+	AIResponses: aiReducer,
 });
