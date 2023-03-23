@@ -15,6 +15,7 @@ import { updateHits, updateAggs, updateCompositeAggs, saveQueryToHits } from './
 import { getInternalComponentID } from '../../lib/utils/transform';
 import { componentTypes } from '../../lib/utils/constants';
 import { UPDATE_CONFIG } from '../constants';
+import { fetchAIResponse } from './query';
 
 export const handleTransformResponse = (res = null, config = {}, component = '') => {
 	if (config.transformResponse && typeof config.transformResponse === 'function') {
@@ -125,6 +126,15 @@ export const handleResponse = (
 							}
 							// set raw response in rawData
 							dispatch(setRawData(component, response));
+
+							if (response.AIAnswerKey) {
+								// set AIKey in store
+								dispatch(fetchAIResponse({
+									AIAnswerKey: response.AIAnswerKey,
+									componentId: component,
+								}));
+							}
+
 							// Update custom data
 							dispatch(setCustomData(response.customData, component));
 							if (response.hits) {
