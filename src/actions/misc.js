@@ -23,6 +23,10 @@ import {
 	SET_GOOGLE_MAP_SCRIPT_LOADED,
 	SET_GOOGLE_MAP_SCRIPT_ERROR,
 	SET_APPBASE_QUERY,
+	SET_AI_RESPONSE,
+	REMOVE_AI_RESPONSE,
+	SET_AI_RESPONSE_ERROR,
+	SET_AI_RESPONSE_LOADING,
 } from '../constants';
 
 import { transformValueToComponentStateFormat } from '../utils/transform';
@@ -235,5 +239,36 @@ export function setSearchState(componentsValueAndTypeMap = {}) {
 		});
 
 		dispatch(setValues(componentValues));
+	};
+}
+
+export function setAIResponse(component, payload) {
+	return {
+		type: SET_AI_RESPONSE,
+		component,
+		payload,
+	};
+}
+
+export function removeAIResponse(component) {
+	return {
+		type: REMOVE_AI_RESPONSE,
+		component,
+	};
+}
+
+export function setAIResponseError(component, error) {
+	return {
+		type: SET_AI_RESPONSE_ERROR,
+		component,
+		error,
+	};
+}
+
+export function setAIResponseLoding(component, isLoading) {
+	return {
+		type: SET_AI_RESPONSE_LOADING,
+		component,
+		isLoading,
 	};
 }
