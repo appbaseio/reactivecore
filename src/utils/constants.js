@@ -126,6 +126,8 @@ export const validProps = [
 	'searchboxId',
 	'endpoint',
 	'enableEndpointSuggestions',
+	'enableAI',
+	'aiConfig',
 ];
 
 export const CLEAR_ALL = {
