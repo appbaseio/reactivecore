@@ -194,6 +194,14 @@ const types = {
 		body: object,
 		/* eslint-enable react/forbid-prop-types */
 	}),
+	AIConfig: shape({
+		docTemplate: string,
+		queryTemplate: string,
+		maxTokens: number,
+		systemPrompt: string,
+		temperature: number,
+		topDocsForContext: number,
+	}),
 };
 
 export default types;
