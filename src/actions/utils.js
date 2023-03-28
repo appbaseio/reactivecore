@@ -16,6 +16,7 @@ import { getInternalComponentID } from '../../lib/utils/transform';
 import { componentTypes } from '../../lib/utils/constants';
 import { UPDATE_CONFIG } from '../constants';
 import { fetchAIResponse } from './query';
+import { setObjectInLocalStorage } from '../utils/helper';
 
 export const handleTransformResponse = (res = null, config = {}, component = '') => {
 	if (config.transformResponse && typeof config.transformResponse === 'function') {
@@ -127,12 +128,12 @@ export const handleResponse = (
 							// set raw response in rawData
 							dispatch(setRawData(component, response));
 
-							if (response.AIAnswerKey) {
+							if (response.AISessionId) {
 								// set AIKey in store
-								dispatch(fetchAIResponse({
-									AIAnswerKey: response.AIAnswerKey,
-									componentId: component,
-								}));
+								dispatch(fetchAIResponse(response.AISessionId, component));
+								setObjectInLocalStorage('sessionIds', {
+									[component]: response.AISessionId,
+								});
 							}
 
 							// Update custom data
