@@ -674,7 +674,7 @@ export function loadDataToExport(componentId, deepPaginationCursor = '', totalRe
 	};
 }
 
-export function fetchAIResponse({ AIAnswerKey, componentId } = {}) {
+export function fetchAIResponse(AIAnswerKey, componentId, message) {
 	return (dispatch, getState) => {
 		dispatch(setAIResponseLoding(componentId, true));
 		const {
@@ -697,8 +697,12 @@ export function fetchAIResponse({ AIAnswerKey, componentId } = {}) {
 			const encodedCredentials = btoa(credentials);
 			headers.append('Authorization', `Basic ${encodedCredentials}`);
 		}
-
-		fetch(fetchUrl, { headers })
+		const method = message ? 'POST' : 'GET';
+		let body;
+		if (message) {
+			body = JSON.stringify({ message });
+		}
+		fetch(fetchUrl, { headers, method, body })
 			.then(async (res) => {
 				const parsedRes = await res.json();
 				dispatch(setAIResponse(componentId, parsedRes));
