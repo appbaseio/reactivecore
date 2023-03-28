@@ -35,6 +35,8 @@ export const componentTypes = {
 	reactiveMap: 'REACTIVE_MAP',
 	// chart components
 	reactiveChart: 'REACTIVE_CHART',
+	// ai component
+	AIAnswer: 'AI_ANSWER',
 };
 
 export const queryTypes = {
