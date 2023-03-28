@@ -9,6 +9,7 @@ export const componentToTypeMap = {
 	[componentTypes.dataSearch]: queryTypes.search,
 	[componentTypes.categorySearch]: queryTypes.search,
 	[componentTypes.searchBox]: queryTypes.suggestion,
+	[componentTypes.AIAnswer]: queryTypes.search,
 	// term components
 	[componentTypes.singleList]: queryTypes.term,
 	[componentTypes.multiList]: queryTypes.term,
@@ -86,7 +87,11 @@ export const getRSQuery = (componentId, props, execute = true) => {
 		// dataField is a required field for components other than search
 		// TODO: Revisit this logic based on the Appbase version
 		// dataField is no longer a required field in RS API
-		if (!isSearchComponent(props.componentType) && !props.dataField) {
+		if (
+			props.componentType !== componentTypes.AIAnswer
+			&& !isSearchComponent(props.componentType)
+			&& !props.dataField
+		) {
 			return null;
 		}
 		let endpoint;
@@ -147,13 +152,17 @@ export const getRSQuery = (componentId, props, execute = true) => {
 					enableFeaturedSuggestions: props.enableFeaturedSuggestions,
 					enableIndexSuggestions: props.enableIndexSuggestions,
 					...(props.searchboxId ? { searchboxId: props.searchboxId } : {}),
-					enableAI: props.enableAI,
-					...(props.enableAI ? { AIConfig: props.aiConfig } : {}),
 				  }
 				: {}),
 			calendarInterval: props.calendarInterval,
 			endpoint,
 			range: props.range,
+			...(props.enableAI
+				? {
+					enableAI: true,
+					...(props.aiConfig ? { AIConfig: props.AIConfig } : {}),
+				  }
+				: {}),
 		};
 	}
 	return null;
