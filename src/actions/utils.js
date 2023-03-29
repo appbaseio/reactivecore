@@ -9,6 +9,7 @@ import {
 	setCustomData,
 	setTimestamp,
 	setLastUsedAppbaseQuery,
+	setAIResponse,
 } from './misc';
 
 import { updateHits, updateAggs, updateCompositeAggs, saveQueryToHits } from './hits';
@@ -16,6 +17,8 @@ import { getInternalComponentID } from '../../lib/utils/transform';
 import { componentTypes } from '../../lib/utils/constants';
 import { UPDATE_CONFIG } from '../constants';
 import { fetchAIResponse } from './query';
+import { AI_LOCAL_CACHE_KEY } from '../utils/constants';
+import { getObjectFromLocalStorage } from '../utils/helper';
 
 export const handleTransformResponse = (res = null, config = {}, component = '') => {
 	if (config.transformResponse && typeof config.transformResponse === 'function') {
@@ -128,8 +131,19 @@ export const handleResponse = (
 							dispatch(setRawData(component, response));
 
 							if (response.AISessionId) {
-								// fetch initial AIResponse
-								dispatch(fetchAIResponse(response.AISessionId, component));
+								const localCache = (getObjectFromLocalStorage(AI_LOCAL_CACHE_KEY)
+									|| {})[props.componentId];
+								if (
+									localCache
+									&& localCache.sessionId
+									&& localCache.sessionId === response.AISessionId
+								) {
+									// hydrate the store from cache
+									dispatch(setAIResponse(component, localCache));
+								} else {
+									// fetch initial AIResponse
+									dispatch(fetchAIResponse(response.AISessionId, component));
+								}
 							}
 
 							// Update custom data
