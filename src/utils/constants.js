@@ -151,3 +151,5 @@ export const AI_ROLES = {
 	SYSTEM: 'system',
 	ASSISTANT: 'assistant',
 };
+
+export const AI_LOCAL_CACHE_KEY = 'AISessions';
