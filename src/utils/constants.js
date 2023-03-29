@@ -145,3 +145,9 @@ export const SEARCH_COMPONENTS_MODES = {
 };
 
 export const TREELIST_VALUES_PATH_SEPARATOR = '◐◑◒◓';
+
+export const AI_ROLES = {
+	USER: 'user',
+	SYSTEM: 'system',
+	ASSISTANT: 'assistant',
+};
