@@ -22,9 +22,9 @@ import {
 	setAIResponseLoding,
 	setAIResponseError,
 } from './misc';
-import { buildQuery, compareQueries } from '../utils/helper';
+import { buildQuery, compareQueries, getObjectFromLocalStorage } from '../utils/helper';
 import { updateMapData } from './maps';
-import { componentTypes, queryTypes } from '../utils/constants';
+import { AI_LOCAL_CACHE_KEY, componentTypes, queryTypes } from '../utils/constants';
 import {
 	getRSQuery,
 	extractPropsFromState,
@@ -674,7 +674,7 @@ export function loadDataToExport(componentId, deepPaginationCursor = '', totalRe
 	};
 }
 
-export function fetchAIResponse(AIAnswerKey, componentId, message) {
+export function fetchAIResponse(AIAnswerKey, componentId, question) {
 	return (dispatch, getState) => {
 		dispatch(setAIResponseLoding(componentId, true));
 		const {
@@ -690,22 +690,37 @@ export function fetchAIResponse(AIAnswerKey, componentId, message) {
 			urlObj.password = '';
 		}
 
-		const fetchUrl = `${urlObj.toString()}/_ai/${AIAnswerKey}`;
+		const fetchUrl = `${urlObj.toString()}_ai/${AIAnswerKey}`;
 
 		const headers = new Headers();
 		if (credentials) {
 			const encodedCredentials = btoa(credentials);
 			headers.append('Authorization', `Basic ${encodedCredentials}`);
 		}
-		const method = message ? 'POST' : 'GET';
+		const method = question ? 'POST' : 'GET';
 		let body;
-		if (message) {
-			body = JSON.stringify({ message });
+		let request;
+		const localCache = (getObjectFromLocalStorage(AI_LOCAL_CACHE_KEY) || {})[componentId];
+		if (localCache && localCache.request && Array.isArray(localCache.request.messages)) {
+			request = { ...localCache.request, messages: [...localCache.request.messages] };
+			if (
+				localCache
+				&& localCache.response
+				&& Array.isArray(localCache.response.choices)
+				&& localCache.response.choices.length > 0
+				&& localCache.response.choices[0].message
+			) {
+				request.messages.push(localCache.response.choices[0].message);
+			}
+		}
+
+		if (question) {
+			body = JSON.stringify({ question, ...{ request } });
 		}
 		fetch(fetchUrl, { headers, method, body })
 			.then(async (res) => {
 				const parsedRes = await res.json();
-				dispatch(setAIResponse(componentId, parsedRes));
+				dispatch(setAIResponse(componentId, { sessionId: AIAnswerKey, ...parsedRes }));
 			})
 			.catch((e) => {
 				dispatch(setAIResponseError(componentId, e));
