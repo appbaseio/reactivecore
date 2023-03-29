@@ -4,9 +4,15 @@ import {
 	SET_AI_RESPONSE_ERROR,
 	SET_AI_RESPONSE_LOADING,
 } from '../constants';
+import { AI_LOCAL_CACHE_KEY } from '../utils/constants';
+import { getObjectFromLocalStorage, setObjectInLocalStorage } from '../utils/helper';
 
 export default function aiReducer(state = {}, action) {
 	if (action.type === SET_AI_RESPONSE) {
+		setObjectInLocalStorage('AISessions', {
+			...(getObjectFromLocalStorage(AI_LOCAL_CACHE_KEY) || {}),
+			[action.component]: { ...(state[action.component] || {}), ...action.payload },
+		});
 		return {
 			...state,
 			[action.component]: {
