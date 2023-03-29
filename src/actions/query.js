@@ -720,7 +720,9 @@ export function fetchAIResponse(AIAnswerKey, componentId, question) {
 		fetch(fetchUrl, { headers, method, body })
 			.then(async (res) => {
 				const parsedRes = await res.json();
-				dispatch(setAIResponse(componentId, { sessionId: AIAnswerKey, ...parsedRes }));
+				if (parsedRes.error) {
+					dispatch(setAIResponseError(componentId, parsedRes.error));
+				} else { dispatch(setAIResponse(componentId, { sessionId: AIAnswerKey, ...parsedRes })); }
 			})
 			.catch((e) => {
 				dispatch(setAIResponseError(componentId, e));
