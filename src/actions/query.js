@@ -19,7 +19,7 @@ import {
 	setDefaultPopularSuggestions,
 	setLastUsedAppbaseQuery,
 	setAIResponse,
-	setAIResponseLoding,
+	setAIResponseLoading,
 	setAIResponseError,
 } from './misc';
 import { buildQuery, compareQueries, getObjectFromLocalStorage } from '../utils/helper';
@@ -676,7 +676,7 @@ export function loadDataToExport(componentId, deepPaginationCursor = '', totalRe
 
 export function fetchAIResponse(AIAnswerKey, componentId, question) {
 	return (dispatch, getState) => {
-		dispatch(setAIResponseLoding(componentId, true));
+		dispatch(setAIResponseLoading(componentId, true));
 		const {
 			config: { url, credentials: configCredentials },
 		} = getState();

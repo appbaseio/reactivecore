@@ -265,7 +265,7 @@ export function setAIResponseError(component, error) {
 	};
 }
 
-export function setAIResponseLoding(component, isLoading) {
+export function setAIResponseLoading(component, isLoading) {
 	return {
 		type: SET_AI_RESPONSE_LOADING,
 		component,
