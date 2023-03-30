@@ -160,7 +160,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			...(props.enableAI
 				? {
 					enableAI: true,
-					...(props.aiConfig ? { AIConfig: props.AIConfig } : {}),
+					...(props.AIConfig ? { AIConfig: props.AIConfig } : {}),
 				  }
 				: {}),
 		};

@@ -129,7 +129,7 @@ export const validProps = [
 	'endpoint',
 	'enableEndpointSuggestions',
 	'enableAI',
-	'aiConfig',
+	'AIConfig',
 ];
 
 export const CLEAR_ALL = {
