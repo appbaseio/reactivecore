@@ -1,6 +1,6 @@
 {
 	"name": "@appbaseio/reactivecore",
-	"version": "10.0.0-alpha.4",
+	"version": "10.0.0-alpha.7",
 	"description": "Core architecture of reactive UI libraries",
 	"main": "lib/index.js",
 	"files": [
@@ -13,7 +13,6 @@
 		"precommit": "eslint .",
 		"prepublishOnly": "yarn run build",
 		"version-upgrade": "nps upgrade-core -c ../../package-scripts.js",
-		"postpublish": "yarn run version-upgrade",
 		"test": "../../node_modules/jest/bin/jest.js --watch --env node"
 	},
 	"repository": {
