@@ -95,7 +95,9 @@ function appbaseSearch({
 	appendToAggs = false,
 } = {}) {
 	return (dispatch, getState) => {
-		const { appbaseRef, config, headers } = getState();
+		const {
+			appbaseRef, config, headers, props,
+		} = getState();
 		let isAnalyticsEnabled = false;
 		if (config) {
 			if (isPropertyDefined(config.analytics)) {
@@ -144,6 +146,10 @@ function appbaseSearch({
 		// set loading as active for the given component
 		orderOfQueries.forEach((component) => {
 			dispatch(setLoading(component, true));
+
+			if (props[component] && props[component].enableAI) {
+				dispatch(setAIResponse(component, {}));
+			}
 			// reset error
 			dispatch(setError(component, null));
 		});
@@ -722,7 +728,9 @@ export function fetchAIResponse(AIAnswerKey, componentId, question) {
 				const parsedRes = await res.json();
 				if (parsedRes.error) {
 					dispatch(setAIResponseError(componentId, parsedRes.error));
-				} else { dispatch(setAIResponse(componentId, { sessionId: AIAnswerKey, ...parsedRes })); }
+				} else {
+					dispatch(setAIResponse(componentId, { sessionId: AIAnswerKey, ...parsedRes }));
+				}
 			})
 			.catch((e) => {
 				dispatch(setAIResponseError(componentId, e));
