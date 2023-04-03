@@ -485,7 +485,10 @@ export function executeQuery(
 				dispatch(appbaseSearch({
 					queryId,
 					query: finalQuery,
-					orderOfQueries,
+					orderOfQueries: Array.from(new Set([
+						...orderOfQueries,
+						...componentList.filter(c => props[c].enableAI),
+					])),
 					isSuggestionsQuery,
 					searchComponentID: componentId,
 				}));

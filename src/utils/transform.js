@@ -157,10 +157,11 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			calendarInterval: props.calendarInterval,
 			endpoint,
 			range: props.range,
-			...(props.enableAI
+			...(queryType !== queryTypes.suggestion && props.enableAI
 				? {
 					enableAI: true,
 					...(props.AIConfig ? { AIConfig: props.AIConfig } : {}),
+					execute: true,
 				  }
 				: {}),
 		};

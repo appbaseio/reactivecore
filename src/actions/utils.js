@@ -78,6 +78,7 @@ export const handleResponse = (
 	const {
 		config, internalValues, lastUsedAppbaseQuery, analyticsRef,
 	} = getState();
+
 	const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
 	if (searchId) {
 		if (isSuggestionsQuery) {
@@ -113,6 +114,7 @@ export const handleResponse = (
 				.then((response) => {
 					if (response) {
 						const { timestamp, props } = getState();
+
 						if (
 							timestamp[component] === undefined
 							|| timestamp[component] < res._timestamp
@@ -151,7 +153,13 @@ export const handleResponse = (
 
 							// Update custom data
 							dispatch(setCustomData(response.customData, component));
-							if (response.hits) {
+							if (
+								response.hits
+								&& !(
+									(response.AIAnswer || response.AISessionId)
+									&& props[component].componentType === componentTypes.searchBox
+								)
+							) {
 								dispatch(setTimestamp(component, res._timestamp));
 								// store last used query for REACTIVE_LIST only
 
