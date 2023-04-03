@@ -682,6 +682,7 @@ export function loadDataToExport(componentId, deepPaginationCursor = '', totalRe
 
 export function fetchAIResponse(AIAnswerKey, componentId, question) {
 	return (dispatch, getState) => {
+		const isPostRequest = !!question;
 		dispatch(setAIResponseLoading(componentId, true));
 		const {
 			config: { url, credentials: configCredentials },
@@ -703,7 +704,8 @@ export function fetchAIResponse(AIAnswerKey, componentId, question) {
 			const encodedCredentials = btoa(credentials);
 			headers.append('Authorization', `Basic ${encodedCredentials}`);
 		}
-		const method = question ? 'POST' : 'GET';
+
+		const method = isPostRequest ? 'POST' : 'GET';
 		let body;
 		let request;
 		const localCache = (getObjectFromLocalStorage(AI_LOCAL_CACHE_KEY) || {})[componentId];
@@ -720,7 +722,7 @@ export function fetchAIResponse(AIAnswerKey, componentId, question) {
 			}
 		}
 
-		if (question) {
+		if (isPostRequest && question) {
 			body = JSON.stringify({ question, ...{ request } });
 		}
 		fetch(fetchUrl, { headers, method, body })
@@ -729,7 +731,30 @@ export function fetchAIResponse(AIAnswerKey, componentId, question) {
 				if (parsedRes.error) {
 					dispatch(setAIResponseError(componentId, parsedRes.error));
 				} else {
-					dispatch(setAIResponse(componentId, { sessionId: AIAnswerKey, ...parsedRes }));
+					dispatch(setAIResponse(componentId, {
+						sessionId: AIAnswerKey,
+						...parsedRes,
+						...(isPostRequest
+							? {
+								request: {
+									messages: [
+										...(localCache
+												&& localCache.request
+												&& Array.isArray(localCache.request.messages)
+											? localCache.request.messages
+											: []),
+										...(localCache
+												&& localCache.response
+												&& Array.isArray(localCache.response.choices)
+												&& localCache.response.choices[0].message
+											? [localCache.response.choices[0].message]
+											: []),
+										{ content: question, role: 'user' },
+									],
+								},
+								  }
+							: {}),
+					}));
 				}
 			})
 			.catch((e) => {
