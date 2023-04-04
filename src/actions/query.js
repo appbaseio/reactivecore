@@ -683,7 +683,7 @@ export function loadDataToExport(componentId, deepPaginationCursor = '', totalRe
 	};
 }
 
-export function fetchAIResponse(AIAnswerKey, componentId, question) {
+export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 	return (dispatch, getState) => {
 		const isPostRequest = !!question;
 		dispatch(setAIResponseLoading(componentId, true));
@@ -735,6 +735,7 @@ export function fetchAIResponse(AIAnswerKey, componentId, question) {
 					dispatch(setAIResponseError(componentId, parsedRes.error));
 				} else {
 					dispatch(setAIResponse(componentId, {
+						meta,
 						sessionId: AIAnswerKey,
 						...parsedRes,
 						...(isPostRequest

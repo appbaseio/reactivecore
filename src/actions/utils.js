@@ -144,7 +144,9 @@ export const handleResponse = (
 									dispatch(setAIResponse(component, localCache));
 								} else {
 									// fetch initial AIResponse
-									dispatch(fetchAIResponse(response.AISessionId, component));
+									dispatch(fetchAIResponse(response.AISessionId, component, '', {
+										hits: response.hits || {},
+									}));
 								}
 							} else if (response.AIAnswer) {
 								// store direct answer returned from API call
