@@ -730,8 +730,8 @@ export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 			body = JSON.stringify({ question, ...{ request } });
 		}
 		fetch(fetchUrl, { headers, method, body })
-			.then(async (res) => {
-				const parsedRes = await res.json();
+			.then(res => res.json())
+			.then((parsedRes) => {
 				if (parsedRes.error) {
 					dispatch(setAIResponseError(componentId, parsedRes.error));
 				} else {
