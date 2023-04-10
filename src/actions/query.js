@@ -21,6 +21,7 @@ import {
 	setAIResponse,
 	setAIResponseLoading,
 	setAIResponseError,
+	removeAIResponse,
 } from './misc';
 import { buildQuery, compareQueries, getObjectFromLocalStorage } from '../utils/helper';
 import { updateMapData } from './maps';
@@ -148,7 +149,7 @@ function appbaseSearch({
 			dispatch(setLoading(component, true));
 
 			if (props[component] && props[component].enableAI) {
-				dispatch(setAIResponse(component, {}));
+				dispatch(removeAIResponse(component));
 			}
 			// reset error
 			dispatch(setError(component, null));
@@ -729,8 +730,8 @@ export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 			body = JSON.stringify({ question, ...{ request } });
 		}
 		fetch(fetchUrl, { headers, method, body })
-			.then(async (res) => {
-				const parsedRes = await res.json();
+			.then(res => res.json())
+			.then((parsedRes) => {
 				if (parsedRes.error) {
 					dispatch(setAIResponseError(componentId, parsedRes.error));
 				} else {
