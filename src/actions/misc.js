@@ -257,11 +257,12 @@ export function removeAIResponse(component) {
 	};
 }
 
-export function setAIResponseError(component, error) {
+export function setAIResponseError(component, error, meta = {}) {
 	return {
 		type: SET_AI_RESPONSE_ERROR,
 		component,
 		error,
+		meta,
 	};
 }
 

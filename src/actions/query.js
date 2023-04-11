@@ -733,7 +733,9 @@ export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 			.then(res => res.json())
 			.then((parsedRes) => {
 				if (parsedRes.error) {
-					dispatch(setAIResponseError(componentId, parsedRes.error));
+					dispatch(setAIResponseError(componentId, parsedRes.error, {
+						sessionId: AIAnswerKey,
+					}));
 				} else {
 					dispatch(setAIResponse(componentId, {
 						meta,
