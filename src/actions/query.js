@@ -765,7 +765,7 @@ export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 				}
 			})
 			.catch((e) => {
-				dispatch(setAIResponseError(componentId, e));
+				dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey }));
 			});
 	};
 }
