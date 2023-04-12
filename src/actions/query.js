@@ -719,7 +719,11 @@ export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 		fetch(fetchUrl, { headers, method, body })
 			.then(res => res.json())
 			.then((parsedRes) => {
-				if (parsedRes.error) {
+				if (parsedRes.response && parsedRes.response.error) {
+					dispatch(setAIResponseError(componentId, parsedRes.response.error, {
+						sessionId: AIAnswerKey,
+					}));
+				} else if (parsedRes.error) {
 					dispatch(setAIResponseError(componentId, parsedRes.error, {
 						sessionId: AIAnswerKey,
 					}));
