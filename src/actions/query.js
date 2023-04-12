@@ -25,7 +25,7 @@ import {
 } from './misc';
 import { buildQuery, compareQueries, getObjectFromLocalStorage } from '../utils/helper';
 import { updateMapData } from './maps';
-import { AI_LOCAL_CACHE_KEY, componentTypes, queryTypes } from '../utils/constants';
+import { AI_LOCAL_CACHE_KEY, AI_ROLES, componentTypes, queryTypes } from '../utils/constants';
 import {
 	getRSQuery,
 	extractPropsFromState,
@@ -711,23 +711,10 @@ export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 
 		const method = isPostRequest ? 'POST' : 'GET';
 		let body;
-		let request;
 		const localCache = (getObjectFromLocalStorage(AI_LOCAL_CACHE_KEY) || {})[componentId];
-		if (localCache && localCache.request && Array.isArray(localCache.request.messages)) {
-			request = { ...localCache.request, messages: [...localCache.request.messages] };
-			if (
-				localCache
-				&& localCache.response
-				&& Array.isArray(localCache.response.choices)
-				&& localCache.response.choices.length > 0
-				&& localCache.response.choices[0].message
-			) {
-				request.messages.push(localCache.response.choices[0].message);
-			}
-		}
 
 		if (isPostRequest && question) {
-			body = JSON.stringify({ question, ...{ request } });
+			body = JSON.stringify({ question });
 		}
 		fetch(fetchUrl, { headers, method, body })
 			.then(res => res.json())
@@ -737,30 +724,33 @@ export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 						sessionId: AIAnswerKey,
 					}));
 				} else {
+					const finalResponse = { ...parsedRes };
+					if (finalResponse.answer) {
+						finalResponse.answer.role = AI_ROLES.ASSISTANT;
+					}
 					dispatch(setAIResponse(componentId, {
 						meta,
 						sessionId: AIAnswerKey,
-						...parsedRes,
-						...(isPostRequest
-							? {
-								request: {
-									messages: [
-										...(localCache
-												&& localCache.request
-												&& Array.isArray(localCache.request.messages)
-											? localCache.request.messages
-											: []),
-										...(localCache
-												&& localCache.response
-												&& Array.isArray(localCache.response.choices)
-												&& localCache.response.choices[0].message
-											? [localCache.response.choices[0].message]
-											: []),
-										{ content: question, role: 'user' },
-									],
-								},
-								  }
-							: {}),
+						messages: [
+							...(isPostRequest ? localCache.messages : []),
+							...(finalResponse.question
+								? [
+									{
+										content: finalResponse.question,
+										role: AI_ROLES.USER,
+									},
+									  ]
+								: []),
+							...(finalResponse.answer
+								? [
+									{
+										content: finalResponse.answer.text,
+										role: AI_ROLES.ASSISTANT,
+									},
+									  ]
+								: []),
+						],
+						response: { ...finalResponse },
 					}));
 				}
 			})
