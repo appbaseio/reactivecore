@@ -1195,3 +1195,12 @@ export const hexToRGBA = (colorParam) => {
 
 	return `rgba(${r}, ${g}, ${b}, ${a})`;
 };
+
+// Just for debuggin
+// Call this function inside the function for which
+// a stack trace is needed
+export function getStackTrace() {
+	const error = new Error();
+	// eslint-disable-next-line no-console
+	console.log(error.stack);
+}
