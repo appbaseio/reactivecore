@@ -266,7 +266,14 @@ export function executeQuery(
 				component,
 				extractPropsFromState(getState(), component, {
 					...(value ? { value } : null),
-					...(metaOptions ? { from: metaOptions.from } : null),
+					...(metaOptions
+						? {
+							from: metaOptions.from,
+							...(value && metaOptions.enableAI === true
+								? { enableAI: true, type: 'search' }
+								: {}),
+						  }
+						: null),
 				}),
 			);
 			// check if query or options are valid - non-empty
@@ -486,10 +493,7 @@ export function executeQuery(
 				dispatch(appbaseSearch({
 					queryId,
 					query: finalQuery,
-					orderOfQueries: Array.from(new Set([
-						...orderOfQueries,
-						...componentList.filter(c => props[c].enableAI),
-					])),
+					orderOfQueries,
 					isSuggestionsQuery,
 					searchComponentID: componentId,
 				}));
@@ -565,7 +569,21 @@ export function updateQuery(
 			dispatch(setInternalValue(componentId, value, componentType, category, meta));
 		}
 		dispatch(setQuery(componentId, queryToDispatch));
-		if (execute) dispatch(executeQuery(componentId, true, false, componentType));
+		if (execute) {
+			dispatch(executeQuery(
+				componentId,
+				true,
+				false,
+				componentType,
+				componentType === componentTypes.searchBox
+						&& meta
+						&& typeof meta.enableAI === 'boolean'
+					? {
+						enableAI: meta.enableAI,
+						  }
+					: undefined,
+			));
+		}
 	};
 }
 
