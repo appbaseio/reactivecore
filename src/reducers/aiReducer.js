@@ -38,6 +38,7 @@ export default function aiReducer(state = {}, action) {
 				error: action.error,
 				isLoading: false,
 				response: null,
+				...(action.meta || {}),
 			},
 		};
 	} else if (action.type === SET_AI_RESPONSE_LOADING) {
