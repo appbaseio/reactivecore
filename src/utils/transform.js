@@ -157,7 +157,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			calendarInterval: props.calendarInterval,
 			endpoint,
 			range: props.range,
-			...(queryType !== queryTypes.suggestion && props.enableAI
+			...(queryType !== queryTypes.suggestion && props.enableAI && execute
 				? {
 					enableAI: true,
 					...(props.AIConfig ? { AIConfig: props.AIConfig } : {}),
@@ -532,10 +532,17 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 			// Only include queries for that component that has `customQuery` or `value` defined
 			if (((calcValues && calcValues.value) || customQuery) && !finalQuery[component]) {
 				let execute = false;
-				if (Array.isArray(orderOfQueries) && orderOfQueries.includes(component)) {
+				const componentProps = store.props[component];
+				if (
+					Array.isArray(orderOfQueries)
+					&& orderOfQueries.includes(component)
+					&& !(
+						componentProps.componentType === componentTypes.searchBox
+						&& componentProps.enableAI
+					)
+				) {
 					execute = true;
 				}
-				const componentProps = store.props[component];
 				// build query
 				const dependentQuery = getRSQuery(
 					component,
