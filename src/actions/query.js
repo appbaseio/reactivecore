@@ -1,3 +1,4 @@
+import { EventSourcePolyfill } from 'event-source-polyfill'; // Import this if you need to support older browsers
 import { setValue, setInternalValue } from './value';
 import {
 	handleError,
@@ -702,10 +703,110 @@ export function loadDataToExport(componentId, deepPaginationCursor = '', totalRe
 	};
 }
 
+function processJSONResponse(dispatch, componentId, AIAnswerKey, localCache, parsedRes, meta = {}) {
+	const finalResponse = { ...parsedRes };
+	if (finalResponse.answer) {
+		finalResponse.answer.role = AI_ROLES.ASSISTANT;
+	}
+
+	dispatch(setAIResponse(componentId, {
+		meta,
+		sessionId: AIAnswerKey,
+		messages: [
+			...(localCache.messages || []),
+			...(finalResponse.question
+				? [{ content: finalResponse.question, role: AI_ROLES.USER }]
+				: []),
+			...(finalResponse.answer
+				? [{ content: finalResponse.answer.text, role: AI_ROLES.ASSISTANT }]
+				: []),
+		],
+		response: { ...finalResponse },
+	}));
+}
+
+function processSSEStream(
+	dispatch,
+	componentId,
+	AIAnswerKey,
+	localCache,
+	fetchUrl,
+	headers,
+	meta = {},
+) {
+	const eventSource = new EventSourcePolyfill(fetchUrl, { headers });
+
+	let responseText = '';
+	let answerIndex;
+
+	const updateMessage = () => {
+		const messages = [...(localCache.messages || [])];
+
+		if (answerIndex === undefined) {
+			answerIndex = messages.length;
+			messages.push({ content: responseText, role: AI_ROLES.ASSISTANT });
+		} else {
+			messages[answerIndex] = { content: responseText, role: AI_ROLES.ASSISTANT };
+		}
+
+		dispatch(setAIResponse(componentId, {
+			meta,
+			sessionId: AIAnswerKey,
+			messages,
+			response: { answer: { text: responseText, role: AI_ROLES.ASSISTANT } },
+		}));
+	};
+
+	eventSource.onmessage = (event) => {
+		if (event.data === '[DONE]') {
+			eventSource.close();
+		} else {
+			responseText += event.data;
+			updateMessage();
+		}
+	};
+
+	eventSource.onerror = (e) => {
+		eventSource.close();
+		dispatch(setAIResponseError(componentId, e));
+	};
+}
+
+function handleAIResponse(res, dispatch, componentId, AIAnswerKey, localCache, meta) {
+	const contentType = res.headers.get('content-type');
+	if (contentType && contentType.startsWith('application/json')) {
+		res.json().then((parsedRes) => {
+			if (parsedRes.error) {
+				dispatch(setAIResponseError(componentId, parsedRes.error));
+			} else {
+				processJSONResponse(
+					dispatch,
+					componentId,
+					AIAnswerKey,
+					localCache,
+					parsedRes,
+					meta,
+				);
+			}
+		});
+	} else {
+		processSSEStream(
+			dispatch,
+			componentId,
+			AIAnswerKey,
+			localCache,
+			res.url,
+			res.headers,
+			meta,
+		);
+	}
+}
+
 export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 	return (dispatch, getState) => {
 		const isPostRequest = !!question;
 		dispatch(setAIResponseLoading(componentId, true));
+
 		const {
 			config: { url, credentials: configCredentials },
 		} = getState();
@@ -714,12 +815,11 @@ export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 		let credentials = configCredentials;
 		if (urlObj.username && urlObj.password) {
 			credentials = `${urlObj.username}:${urlObj.password}`;
-			// Remove credentials from the URL
 			urlObj.username = '';
 			urlObj.password = '';
 		}
 
-		const fetchUrl = `${urlObj.toString()}_ai/${AIAnswerKey}`;
+		const fetchUrl = `${urlObj.toString()}_ai/${AIAnswerKey}/sse`;
 
 		const headers = new Headers();
 		if (credentials) {
@@ -728,53 +828,17 @@ export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 		}
 
 		const method = isPostRequest ? 'POST' : 'GET';
-		let body;
 		const localCache = (getObjectFromLocalStorage(AI_LOCAL_CACHE_KEY) || {})[componentId];
 
-		if (isPostRequest && question) {
-			body = JSON.stringify({ question });
-		}
-		fetch(fetchUrl, { headers, method, body })
-			.then(res => res.json())
-			.then((parsedRes) => {
-				if (parsedRes.response && parsedRes.response.error) {
-					dispatch(setAIResponseError(componentId, parsedRes.response.error, {
-						sessionId: AIAnswerKey,
-					}));
-				} else if (parsedRes.error) {
-					dispatch(setAIResponseError(componentId, parsedRes.error, {
-						sessionId: AIAnswerKey,
-					}));
-				} else {
-					const finalResponse = { ...parsedRes };
-					if (finalResponse.answer) {
-						finalResponse.answer.role = AI_ROLES.ASSISTANT;
-					}
-					dispatch(setAIResponse(componentId, {
-						meta,
-						sessionId: AIAnswerKey,
-						messages: [
-							...(isPostRequest ? localCache.messages : []),
-							...(finalResponse.question
-								? [
-									{
-										content: finalResponse.question,
-										role: AI_ROLES.USER,
-									},
-									  ]
-								: []),
-							...(finalResponse.answer
-								? [
-									{
-										content: finalResponse.answer.text,
-										role: AI_ROLES.ASSISTANT,
-									},
-									  ]
-								: []),
-						],
-						response: { ...finalResponse },
-					}));
-				}
+		const requestOptions = {
+			headers,
+			method,
+			body: isPostRequest ? JSON.stringify({ question }) : undefined,
+		};
+
+		fetch(fetchUrl, requestOptions)
+			.then((res) => {
+				handleAIResponse(res, dispatch, componentId, AIAnswerKey, localCache, meta);
 			})
 			.catch((e) => {
 				dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey }));
