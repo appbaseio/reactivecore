@@ -24,7 +24,12 @@ import {
 	setAIResponseError,
 	removeAIResponse,
 } from './misc';
-import { buildQuery, compareQueries, getObjectFromLocalStorage } from '../utils/helper';
+import {
+	buildQuery,
+	compareQueries,
+	getObjectFromLocalStorage,
+	getStackTrace,
+} from '../utils/helper';
 import { updateMapData } from './maps';
 import { AI_LOCAL_CACHE_KEY, AI_ROLES, componentTypes, queryTypes } from '../utils/constants';
 import {
@@ -704,43 +709,41 @@ export function loadDataToExport(componentId, deepPaginationCursor = '', totalRe
 }
 
 function processJSONResponse(dispatch, componentId, AIAnswerKey, localCache, parsedRes, meta = {}) {
-	const finalResponse = { ...parsedRes };
-	if (finalResponse.answer) {
-		finalResponse.answer.role = AI_ROLES.ASSISTANT;
+	try {
+		const finalResponse = { ...parsedRes };
+		if (finalResponse.answer) {
+			finalResponse.answer.role = AI_ROLES.ASSISTANT;
+		}
+
+		dispatch(setAIResponse(componentId, {
+			meta,
+			sessionId: AIAnswerKey,
+			messages: [
+				...((localCache && localCache.messages) || []),
+				...(finalResponse.question
+					? [{ content: finalResponse.question, role: AI_ROLES.USER }]
+					: []),
+				...(finalResponse.answer
+					? [{ content: finalResponse.answer.text, role: AI_ROLES.ASSISTANT }]
+					: []),
+			],
+			response: { ...finalResponse },
+		}));
+	} catch (e) {
+		getStackTrace();
+		dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey }));
 	}
-
-	dispatch(setAIResponse(componentId, {
-		meta,
-		sessionId: AIAnswerKey,
-		messages: [
-			...(localCache.messages || []),
-			...(finalResponse.question
-				? [{ content: finalResponse.question, role: AI_ROLES.USER }]
-				: []),
-			...(finalResponse.answer
-				? [{ content: finalResponse.answer.text, role: AI_ROLES.ASSISTANT }]
-				: []),
-		],
-		response: { ...finalResponse },
-	}));
 }
-
-function processSSEStream(
-	dispatch,
-	componentId,
-	AIAnswerKey,
-	localCache,
-	fetchUrl,
-	headers,
-	meta = {},
-) {
-	const eventSource = new EventSourcePolyfill(fetchUrl, { headers });
-
+function processStream(res, dispatch, componentId, AIAnswerKey, localCache, meta = {}) {
+	const reader = res.body.getReader();
+	const decoder = new TextDecoder();
 	let responseText = '';
 	let answerIndex;
 
-	const updateMessage = () => {
-		const messages = [...(localCache.messages || [])];
+	const updateMessage = (content) => {
+		responseText += content;
+
+		const messages = [...((localCache && localCache.messages) || [])];
 
 		if (answerIndex === undefined) {
 			answerIndex = messages.length;
@@ -757,49 +760,38 @@ function processSSEStream(
 		}));
 	};
 
-	eventSource.onmessage = (event) => {
-		if (event.data === '[DONE]') {
-			eventSource.close();
-		} else {
-			responseText += event.data;
-			updateMessage();
-		}
-	};
+	function readStream() {
+		reader
+			.read()
+			.then(({ value, done }) => {
+				if (done) {
+					reader.releaseLock();
+					return;
+				}
 
-	eventSource.onerror = (e) => {
-		eventSource.close();
-		dispatch(setAIResponseError(componentId, e));
-	};
-}
+				const chunk = decoder.decode(value, { stream: true });
+				const lines = chunk.split('\n');
 
-function handleAIResponse(res, dispatch, componentId, AIAnswerKey, localCache, meta) {
-	const contentType = res.headers.get('content-type');
-	if (contentType && contentType.startsWith('application/json')) {
-		res.json().then((parsedRes) => {
-			if (parsedRes.error) {
-				dispatch(setAIResponseError(componentId, parsedRes.error));
-			} else {
-				processJSONResponse(
-					dispatch,
-					componentId,
-					AIAnswerKey,
-					localCache,
-					parsedRes,
-					meta,
-				);
-			}
-		});
-	} else {
-		processSSEStream(
-			dispatch,
-			componentId,
-			AIAnswerKey,
-			localCache,
-			res.url,
-			res.headers,
-			meta,
-		);
+				for (const line of lines) {
+					if (line.startsWith('data: ')) {
+						const content = line.slice(6);
+						if (content === '[DONE]') {
+							reader.releaseLock();
+							return;
+						}
+						updateMessage(content);
+					}
+				}
+
+				readStream();
+			})
+			.catch((e) => {
+				reader.releaseLock();
+				dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey }));
+			});
 	}
+
+	readStream();
 }
 
 export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
@@ -835,10 +827,27 @@ export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 			method,
 			body: isPostRequest ? JSON.stringify({ question }) : undefined,
 		};
-
 		fetch(fetchUrl, requestOptions)
 			.then((res) => {
-				handleAIResponse(res, dispatch, componentId, AIAnswerKey, localCache, meta);
+				const contentType = res.headers.get('content-type');
+				if (contentType && contentType.startsWith('application/json')) {
+					res.json().then((parsedRes) => {
+						if (parsedRes.error) {
+							dispatch(setAIResponseError(componentId, parsedRes.error));
+						} else {
+							processJSONResponse(
+								dispatch,
+								componentId,
+								AIAnswerKey,
+								localCache,
+								parsedRes,
+								meta,
+							);
+						}
+					});
+				} else {
+					processStream(res, dispatch, componentId, AIAnswerKey, localCache, meta);
+				}
 			})
 			.catch((e) => {
 				dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey }));
