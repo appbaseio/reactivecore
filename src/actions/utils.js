@@ -18,7 +18,7 @@ import { componentTypes } from '../../lib/utils/constants';
 import { UPDATE_CONFIG } from '../constants';
 import { fetchAIResponse } from './query';
 import { AI_LOCAL_CACHE_KEY } from '../utils/constants';
-import { getObjectFromLocalStorage } from '../utils/helper';
+import { getObjectFromLocalStorage, setObjectInLocalStorage } from '../utils/helper';
 
 export const handleTransformResponse = (res = null, config = {}, component = '') => {
 	if (config.transformResponse && typeof config.transformResponse === 'function') {
@@ -143,6 +143,10 @@ export const handleResponse = (
 									// hydrate the store from cache
 									dispatch(setAIResponse(component, localCache));
 								} else {
+									// delete localCache
+									setObjectInLocalStorage('AISessions', {
+										[component]: {},
+									});
 									// fetch initial AIResponse
 									dispatch(fetchAIResponse(response.AISessionId, component, '', {
 										hits: response.hits || {},

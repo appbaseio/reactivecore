@@ -836,7 +836,6 @@ export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 
 		const method = isPostRequest ? 'POST' : 'GET';
 		const localCache = (getObjectFromLocalStorage(AI_LOCAL_CACHE_KEY) || {})[componentId];
-
 		const requestOptions = {
 			headers,
 			method,
