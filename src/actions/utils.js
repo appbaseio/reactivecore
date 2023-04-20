@@ -148,9 +148,16 @@ export const handleResponse = (
 										[component]: {},
 									});
 									// fetch initial AIResponse
-									dispatch(fetchAIResponse(response.AISessionId, component, '', {
-										hits: response.hits || {},
-									}));
+									dispatch(fetchAIResponse(
+										response.AISessionId,
+										component,
+										'',
+										{
+											hits: response.hits || {},
+										},
+										props[component].componentType
+												!== componentTypes.searchBox, // avoid using streaming for SearchBox q-n-a
+									));
 								}
 							} else if (response.AIAnswer) {
 								// store direct answer returned from API call

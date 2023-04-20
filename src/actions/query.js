@@ -809,7 +809,13 @@ function processStream(res, dispatch, componentId, AIAnswerKey, localCache, meta
 	readStream();
 }
 
-export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
+export function fetchAIResponse(
+	AIAnswerKey,
+	componentId,
+	question,
+	meta = {},
+	shouldUseStreaming = true,
+) {
 	return (dispatch, getState) => {
 		const isPostRequest = !!question;
 		dispatch(setAIResponseLoading(componentId, true));
@@ -826,8 +832,10 @@ export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 			urlObj.password = '';
 		}
 
-		const fetchUrl = `${urlObj.toString()}_ai/${AIAnswerKey}/sse`;
-
+		let fetchUrl = `${urlObj.toString()}_ai/${AIAnswerKey}`;
+		if (shouldUseStreaming) {
+			fetchUrl += '/sse';
+		}
 		const headers = new Headers();
 		if (credentials) {
 			const encodedCredentials = btoa(credentials);
