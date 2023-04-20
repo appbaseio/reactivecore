@@ -1,4 +1,3 @@
-import { EventSourcePolyfill } from 'event-source-polyfill'; // Import this if you need to support older browsers
 import { setValue, setInternalValue } from './value';
 import {
 	handleError,
