@@ -27,6 +27,7 @@ import {
 	REMOVE_AI_RESPONSE,
 	SET_AI_RESPONSE_ERROR,
 	SET_AI_RESPONSE_LOADING,
+	SET_AI_RESPONSE_DELAYED,
 } from '../constants';
 
 import { transformValueToComponentStateFormat } from '../utils/transform';
@@ -245,6 +246,14 @@ export function setSearchState(componentsValueAndTypeMap = {}) {
 export function setAIResponse(component, payload) {
 	return {
 		type: SET_AI_RESPONSE,
+		component,
+		payload,
+	};
+}
+
+export function setAIResponseDelayed(component, payload) {
+	return {
+		type: SET_AI_RESPONSE_DELAYED,
 		component,
 		payload,
 	};

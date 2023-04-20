@@ -23,6 +23,7 @@ import {
 	setAIResponseLoading,
 	setAIResponseError,
 	removeAIResponse,
+	setAIResponseDelayed,
 } from './misc';
 import {
 	buildQuery,
@@ -734,16 +735,25 @@ function processJSONResponse(dispatch, componentId, AIAnswerKey, localCache, par
 		dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey }));
 	}
 }
-function processStream(res, dispatch, componentId, AIAnswerKey, localCache, meta = {}) {
+function processStream(res, dispatch, componentId, AIAnswerKey, localCache, meta = {}, question) {
 	const reader = res.body.getReader();
 	const decoder = new TextDecoder();
 	let responseText = '';
 	let answerIndex;
+	const questionMessage = question ? { content: question, role: AI_ROLES.USER } : null;
 
 	const updateMessage = (content) => {
 		responseText += content;
 
 		const messages = [...((localCache && localCache.messages) || [])];
+
+		if (
+			questionMessage
+			&& messages.findIndex(msg =>
+				msg.content === questionMessage.content && msg.role === questionMessage.role) === -1
+		) {
+			messages.push(questionMessage);
+		}
 
 		if (answerIndex === undefined) {
 			answerIndex = messages.length;
@@ -752,7 +762,7 @@ function processStream(res, dispatch, componentId, AIAnswerKey, localCache, meta
 			messages[answerIndex] = { content: responseText, role: AI_ROLES.ASSISTANT };
 		}
 
-		dispatch(setAIResponse(componentId, {
+		dispatch(setAIResponseDelayed(componentId, {
 			meta,
 			sessionId: AIAnswerKey,
 			messages,
@@ -772,18 +782,24 @@ function processStream(res, dispatch, componentId, AIAnswerKey, localCache, meta
 				const chunk = decoder.decode(value, { stream: true });
 				const lines = chunk.split('\n');
 
-				for (const line of lines) {
+				let shouldStop = false;
+				for (let i = 0; i < lines.length; i++) {
+					const line = lines[i];
 					if (line.startsWith('data: ')) {
 						const content = line.slice(6);
 						if (content === '[DONE]') {
-							reader.releaseLock();
-							return;
+							shouldStop = true;
+							break;
 						}
 						updateMessage(content);
 					}
 				}
 
-				readStream();
+				if (shouldStop) {
+					reader.releaseLock();
+				} else {
+					readStream();
+				}
 			})
 			.catch((e) => {
 				reader.releaseLock();
@@ -846,7 +862,15 @@ export function fetchAIResponse(AIAnswerKey, componentId, question, meta = {}) {
 						}
 					});
 				} else {
-					processStream(res, dispatch, componentId, AIAnswerKey, localCache, meta);
+					processStream(
+						res,
+						dispatch,
+						componentId,
+						AIAnswerKey,
+						localCache,
+						meta,
+						question,
+					);
 				}
 			})
 			.catch((e) => {
