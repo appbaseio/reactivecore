@@ -4,6 +4,7 @@
 	"description": "Core architecture of reactive UI libraries",
 	"main": "cjs/index.js",
 	"module": "lib/index.js",
+	"type": "module",
 	"files": [
 		"lib/",
 		"cjs/"
