@@ -141,3 +141,12 @@ export const SEARCH_COMPONENTS_MODES = {
 };
 
 export const TREELIST_VALUES_PATH_SEPARATOR = '◐◑◒◓';
+
+export default {
+	componentTypes,
+	queryTypes,
+	validProps,
+	CLEAR_ALL,
+	SEARCH_COMPONENTS_MODES,
+	TREELIST_VALUES_PATH_SEPARATOR,
+};

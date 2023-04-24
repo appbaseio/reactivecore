@@ -12,8 +12,8 @@ import {
 } from './misc';
 
 import { updateHits, updateAggs, updateCompositeAggs, saveQueryToHits } from './hits';
-import { getInternalComponentID } from '../../lib/utils/transform';
-import { componentTypes } from '../../lib/utils/constants';
+import { getInternalComponentID } from '../utils/transform';
+import { componentTypes } from '../utils/constants';
 import { UPDATE_CONFIG } from '../constants';
 
 export const handleTransformResponse = (res = null, config = {}, component = '') => {

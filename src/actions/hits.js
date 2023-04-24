@@ -1,5 +1,4 @@
-import { UPDATE_HITS, UPDATE_AGGS, UPDATE_COMPOSITE_AGGS } from '../constants';
-import { SET_QUERY_TO_HITS } from '../../lib/constants';
+import { UPDATE_HITS, UPDATE_AGGS, UPDATE_COMPOSITE_AGGS, SET_QUERY_TO_HITS } from '../constants';
 import { setError } from './misc';
 
 export function updateAggs(component, aggregations, append = false) {
