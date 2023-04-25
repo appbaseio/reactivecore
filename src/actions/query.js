@@ -734,7 +734,16 @@ function processJSONResponse(dispatch, componentId, AIAnswerKey, localCache, par
 		dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey }));
 	}
 }
-function processStream(res, dispatch, componentId, AIAnswerKey, localCache, meta = {}, question) {
+function processStream(
+	res,
+	dispatch,
+	componentId,
+	AIAnswerKey,
+	localCache,
+	meta = {},
+	question,
+	metaInfoPromise,
+) {
 	const reader = res.body.getReader();
 	const decoder = new TextDecoder();
 	let responseText = '';
@@ -788,6 +797,26 @@ function processStream(res, dispatch, componentId, AIAnswerKey, localCache, meta
 						const content = line.slice(6);
 						if (content === '[DONE]') {
 							shouldStop = true;
+							if (Promise.resolve(metaInfoPromise) === metaInfoPromise) {
+								metaInfoPromise
+									.then(resMeta => resMeta.json())
+									// eslint-disable-next-line no-loop-func
+									.then((parsedRes) => {
+										dispatch(setAIResponseDelayed(componentId, {
+											meta,
+											sessionId: AIAnswerKey,
+											response: {
+												...parsedRes,
+											},
+										}));
+									})
+									.catch((e) => {
+										console.error(
+											`Error fetching meta details for sessionId: ${AIAnswerKey}`,
+											e,
+										);
+									});
+							}
 							break;
 						}
 						updateMessage(content);
@@ -814,7 +843,7 @@ export function fetchAIResponse(
 	componentId,
 	question,
 	meta = {},
-	shouldUseStreaming = true,
+	shouldFetchMetaInfoUsingGET = false,
 ) {
 	return (dispatch, getState) => {
 		const isPostRequest = !!question;
@@ -832,10 +861,10 @@ export function fetchAIResponse(
 			urlObj.password = '';
 		}
 
-		let fetchUrl = `${urlObj.toString()}_ai/${AIAnswerKey}`;
-		if (shouldUseStreaming) {
-			fetchUrl += '/sse';
-		}
+		const fetchUrl = `${urlObj.toString()}_ai/${AIAnswerKey}`;
+
+		const ssefetchUrl = `${fetchUrl}/sse`;
+
 		const headers = new Headers();
 		if (credentials) {
 			const encodedCredentials = btoa(credentials);
@@ -849,7 +878,7 @@ export function fetchAIResponse(
 			method,
 			body: isPostRequest ? JSON.stringify({ question }) : undefined,
 		};
-		fetch(fetchUrl, requestOptions)
+		fetch(ssefetchUrl, requestOptions)
 			.then((res) => {
 				const contentType = res.headers.get('content-type');
 				if (contentType && contentType.startsWith('application/json')) {
@@ -868,6 +897,10 @@ export function fetchAIResponse(
 						}
 					});
 				} else {
+					let metaInfoPromise;
+					if (shouldFetchMetaInfoUsingGET) {
+						metaInfoPromise = fetch(fetchUrl, requestOptions);
+					}
 					processStream(
 						res,
 						dispatch,
@@ -876,6 +909,7 @@ export function fetchAIResponse(
 						localCache,
 						meta,
 						question,
+						metaInfoPromise,
 					);
 				}
 			})

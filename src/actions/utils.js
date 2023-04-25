@@ -156,7 +156,7 @@ export const handleResponse = (
 											hits: response.hits || {},
 										},
 										props[component].componentType
-												!== componentTypes.searchBox, // avoid using streaming for SearchBox q-n-a
+												=== componentTypes.searchBox, // make extra GET call to fetch meta info
 									));
 								}
 							} else if (response.AIAnswer) {
