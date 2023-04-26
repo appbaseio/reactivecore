@@ -850,9 +850,11 @@ export function fetchAIResponse(
 		dispatch(setAIResponseLoading(componentId, true));
 
 		const {
-			config: { url, credentials: configCredentials },
+			config: { url, credentials: configCredentials, endpoint },
 		} = getState();
-		const urlObj = new URL(url);
+
+		const regex = /https:\/\/[^/]+/;
+		const urlObj = new URL(url.match(regex)[0]);
 
 		let credentials = configCredentials;
 		if (urlObj.username && urlObj.password) {
@@ -869,6 +871,8 @@ export function fetchAIResponse(
 		if (credentials) {
 			const encodedCredentials = btoa(credentials);
 			headers.append('Authorization', `Basic ${encodedCredentials}`);
+		} else if (endpoint && endpoint.headers && endpoint.headers.Authorization) {
+			headers.append('Authorization', endpoint.headers.Authorization);
 		}
 
 		const method = isPostRequest ? 'POST' : 'GET';
