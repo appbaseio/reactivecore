@@ -773,6 +773,7 @@ function processStream(
 		dispatch(setAIResponseDelayed(componentId, {
 			meta,
 			sessionId: AIAnswerKey,
+			isTyping: true,
 			messages,
 			response: { answer: { text: responseText, role: AI_ROLES.ASSISTANT } },
 		}));
@@ -808,6 +809,7 @@ function processStream(
 											response: {
 												...parsedRes,
 											},
+											isTyping: false,
 										}));
 									})
 									.catch((e) => {
