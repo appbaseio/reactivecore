@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import babel from '@rollup/plugin-babel';
@@ -12,12 +13,12 @@ export default files.map(file => ({
 		{
 			file: `lib/${file.substring(4)}`, // Remove "src/" from the path
 			format: 'es',
-			sourcemap: true,
+			sourcemap: false,
 		},
 		{
 			file: `cjs/${file.substring(4)}`, // Remove "src/" from the path
 			format: 'cjs',
-			sourcemap: true,
+			sourcemap: false,
 		},
 	],
 	plugins: [
@@ -47,21 +48,5 @@ export default files.map(file => ({
 			],
 		}),
 		json(),
-		{
-			// Replace "@appbaseio/reactivecore/lib" with the appropriate path
-			// based on the output format
-			name: 'replace-paths',
-			transform(code, id) {
-				if (/\/node_modules\/@appbaseio\/reactivecore\/lib\//.test(id)) {
-					return code.replace(
-						'@appbaseio/reactivecore/lib',
-						id.endsWith('/cjs/')
-							? '@appbaseio/reactivecore/lib/cjs'
-							: '@appbaseio/reactivecore/lib/es',
-					);
-				}
-				return code;
-			},
-		},
 	],
 }));
