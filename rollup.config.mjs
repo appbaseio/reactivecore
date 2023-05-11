@@ -11,7 +11,7 @@ export default files.map(file => ({
 	input: file,
 	output: [
 		{
-			file: `lib/${file.substring(4)}`, // Remove "src/" from the path
+			file: `lib/${file.substring(4).replace(/\.js$/, '.mjs')}`, // Remove "src/" from the path and replace .js with .mjs
 			format: 'es',
 			sourcemap: false,
 		},
