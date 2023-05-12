@@ -257,9 +257,15 @@ export function recordImpressions(queryId, impressions = []) {
 export function recordAISessionUsefulness(sessionId, otherInfo) {
 	return (dispatch, getState) => {
 		const { analyticsRef: analyticsInstance, config } = getState();
+		if (!config || !config.analyticsConfig || !config.analyticsConfig.recordAnalytics) {
+			console.warn('ReactiveSearch: Unable to record usefulness of session. To enable analytics, make sure to include the following prop on your <ReactiveBase> component: reactivesearchAPIConfig={{ recordAnalytics: true }}');
+			return;
+		}
+
 		const userID = config && config.analyticsConfig && config.analyticsConfig.userId;
 		if (!sessionId) {
 			console.warn('ReactiveSearch: AI sessionID is required to record the usefulness of session.');
+			return;
 		}
 		// Save session usefulness
 		analyticsInstance.saveSessionUsefulness(
