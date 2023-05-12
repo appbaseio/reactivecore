@@ -840,6 +840,8 @@ function processStream(
 	readStream();
 }
 
+const cancellationTokens = {}; // initialize cancellationTokens map
+
 export function fetchAIResponse(
 	AIAnswerKey,
 	componentId,
@@ -889,7 +891,15 @@ export function fetchAIResponse(
 		const maxAttempts = 2; // set max number of attempts
 
 		const doFetch = () => {
-			fetch(ssefetchUrl, requestOptions)
+			// Create a new cancellation token for this componentId
+			// and abort any previous requests for this componentId
+			const controller = new AbortController();
+			if (cancellationTokens[componentId]) {
+				cancellationTokens[componentId].abort();
+			}
+			cancellationTokens[componentId] = controller;
+
+			fetch(ssefetchUrl, { ...requestOptions, signal: controller.signal })
 				.then((res) => {
 					if (!res.ok) {
 						if (attempt < maxAttempts) {
@@ -933,6 +943,10 @@ export function fetchAIResponse(
 					}
 				})
 				.catch((e) => {
+					// Ignore abort errors
+					if (e.name === 'AbortError') {
+						return;
+					}
 					dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey }));
 				});
 		};
