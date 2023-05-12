@@ -884,43 +884,59 @@ export function fetchAIResponse(
 			method,
 			body: isPostRequest ? JSON.stringify({ question }) : undefined,
 		};
-		fetch(ssefetchUrl, requestOptions)
-			.then((res) => {
-				const contentType = res.headers.get('content-type');
-				if (contentType && contentType.startsWith('application/json')) {
-					res.json().then((parsedRes) => {
-						if (parsedRes.error) {
-							dispatch(setAIResponseError(componentId, parsedRes.error));
-						} else {
-							processJSONResponse(
-								dispatch,
-								componentId,
-								AIAnswerKey,
-								localCache,
-								parsedRes,
-								meta,
-							);
+
+		let attempt = 1; // initialize attempt number
+		const maxAttempts = 2; // set max number of attempts
+
+		const doFetch = () => {
+			fetch(ssefetchUrl, requestOptions)
+				.then((res) => {
+					if (!res.ok) {
+						if (attempt < maxAttempts) {
+							// retry on 400 error, up to maxAttempts times
+							attempt++;
+							setTimeout(doFetch, 1000); // retry
+							return;
 						}
-					});
-				} else {
-					let metaInfoPromise;
-					if (shouldFetchMetaInfoUsingGET) {
-						metaInfoPromise = fetch(fetchUrl, requestOptions);
 					}
-					processStream(
-						res,
-						dispatch,
-						componentId,
-						AIAnswerKey,
-						localCache,
-						meta,
-						question,
-						metaInfoPromise,
-					);
-				}
-			})
-			.catch((e) => {
-				dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey }));
-			});
+					const contentType = res.headers.get('content-type');
+					if (contentType && contentType.startsWith('application/json')) {
+						res.json().then((parsedRes) => {
+							if (parsedRes.error) {
+								dispatch(setAIResponseError(componentId, parsedRes.error));
+							} else {
+								processJSONResponse(
+									dispatch,
+									componentId,
+									AIAnswerKey,
+									localCache,
+									parsedRes,
+									meta,
+								);
+							}
+						});
+					} else {
+						let metaInfoPromise;
+						if (shouldFetchMetaInfoUsingGET) {
+							metaInfoPromise = fetch(fetchUrl, requestOptions);
+						}
+						processStream(
+							res,
+							dispatch,
+							componentId,
+							AIAnswerKey,
+							localCache,
+							meta,
+							question,
+							metaInfoPromise,
+						);
+					}
+				})
+				.catch((e) => {
+					dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey }));
+				});
+		};
+
+		doFetch();
 	};
 }
