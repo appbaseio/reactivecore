@@ -16,7 +16,7 @@ export default files.map(file => ({
 			sourcemap: false,
 		},
 		{
-			file: `cjs/${file.substring(4)}`, // Remove "src/" from the path
+			file: `lib/${file.substring(4)}`, // Remove "src/" from the path
 			format: 'cjs',
 			sourcemap: false,
 		},
