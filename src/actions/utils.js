@@ -160,8 +160,20 @@ export const handleResponse = (
 									));
 								}
 							} else if (response.AIAnswer) {
+								const input = response.AIAnswer;
 								// store direct answer returned from API call
-								dispatch(setAIResponse(component, { response: response.AIAnswer }));
+								const finalResponse = {
+									answer: {
+										documentIds: input.documentIds,
+										model: input.model,
+										text: input.choices[0].message.content,
+									},
+								};
+								dispatch(setAIResponse(component, {
+									response: finalResponse,
+									meta: response.hits,
+									isTyping: false,
+								}));
 							}
 
 							// Update custom data
