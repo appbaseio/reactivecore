@@ -10,6 +10,7 @@ import {
 	setTimestamp,
 	setLastUsedAppbaseQuery,
 	setAIResponse,
+	setAIResponseError,
 } from './misc';
 
 import { updateHits, updateAggs, updateCompositeAggs, saveQueryToHits } from './hits';
@@ -160,6 +161,13 @@ export const handleResponse = (
 									));
 								}
 							} else if (response.AIAnswer) {
+								if (response.AIAnswer.error) {
+									dispatch(setAIResponseError(component, {
+										message: response.AIAnswer.error,
+									}));
+									dispatch(setLoading(component, false));
+									return;
+								}
 								const input = response.AIAnswer;
 								// store direct answer returned from API call
 								const finalResponse = {
