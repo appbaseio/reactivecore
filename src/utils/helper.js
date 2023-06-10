@@ -810,6 +810,7 @@ export const suggestionTypes = {
 	Recent: 'recent',
 	Promoted: 'promoted',
 	Featured: 'featured',
+	FAQ: 'faq',
 };
 
 export const featuredSuggestionsActionTypes = {
