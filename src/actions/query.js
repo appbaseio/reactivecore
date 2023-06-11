@@ -789,14 +789,14 @@ function processStream(
 				}
 
 				const chunk = decoder.decode(value, { stream: true });
-				const lines = chunk.split('\n');
-
+				const regex = /\n\n(?=data:)/;
+				const lines = chunk.split(regex);
 				let shouldStop = false;
 				for (let i = 0; i < lines.length; i++) {
 					const line = lines[i];
 					if (line.startsWith('data: ')) {
 						const content = line.slice(6);
-						if (content === '[DONE]') {
+						if (content === '[DONE]\n\n') {
 							shouldStop = true;
 							if (Promise.resolve(metaInfoPromise) === metaInfoPromise) {
 								metaInfoPromise
@@ -952,5 +952,47 @@ export function fetchAIResponse(
 		};
 
 		doFetch();
+	};
+}
+
+export function createAISession(question = 'Reactivesearch') {
+	return (dispatch, getState) => {
+		const {
+			config: { url, credentials: configCredentials, endpoint },
+		} = getState();
+
+		const regex = /https:\/\/[^/]+/;
+		const urlObj = new URL(url.match(regex)[0]);
+
+		let credentials = configCredentials;
+		if (urlObj.username && urlObj.password) {
+			credentials = `${urlObj.username}:${urlObj.password}`;
+			urlObj.username = '';
+			urlObj.password = '';
+		}
+
+		const fetchUrl = `${urlObj.toString()}_ai`;
+
+		const headers = new Headers();
+		if (credentials) {
+			const encodedCredentials = btoa(credentials);
+			headers.append('Authorization', `Basic ${encodedCredentials}`);
+		} else if (endpoint && endpoint.headers && endpoint.headers.Authorization) {
+			headers.append('Authorization', endpoint.headers.Authorization);
+		}
+
+		const requestOptions = {
+			headers,
+			method: 'POST',
+			body: JSON.stringify({ question }),
+		};
+
+		return fetch(fetchUrl, { ...requestOptions })
+			.then(res => res.json())
+			.then(parsedRes => parsedRes)
+			.catch((e) => {
+				// Ignore abort errors
+				console.error('Error creating an AI session: ', e);
+			});
 	};
 }

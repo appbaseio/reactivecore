@@ -10,6 +10,7 @@ import {
 	setTimestamp,
 	setLastUsedAppbaseQuery,
 	setAIResponse,
+	setAIResponseError,
 } from './misc';
 
 import { updateHits, updateAggs, updateCompositeAggs, saveQueryToHits } from './hits';
@@ -131,8 +132,33 @@ export const handleResponse = (
 							}
 							// set raw response in rawData
 							dispatch(setRawData(component, response));
-
-							if (response.AISessionId) {
+							if (response.AIAnswer) {
+								if (response.AIAnswer.error) {
+									dispatch(setAIResponseError(component, {
+										message: response.AIAnswer.error,
+									}));
+									dispatch(setLoading(component, false));
+									return;
+								}
+								const input = response.AIAnswer;
+								// store direct answer returned from API call
+								const finalResponse = {
+									answer: {
+										documentIds: input.documentIds,
+										model: input.model,
+										text: input.choices[0].message.content,
+									},
+								};
+								const finalResponseObj = {
+									response: finalResponse,
+									meta: response.hits,
+									isTyping: false,
+								};
+								if (response.AISessionId) {
+									finalResponseObj.sessionId = response.AISessionId;
+								}
+								dispatch(setAIResponse(component, finalResponseObj));
+							} else if (response.AISessionId) {
 								const localCache = (getObjectFromLocalStorage(AI_LOCAL_CACHE_KEY)
 									|| {})[props.componentId];
 								if (
@@ -159,21 +185,6 @@ export const handleResponse = (
 												=== componentTypes.searchBox, // make extra GET call to fetch meta info
 									));
 								}
-							} else if (response.AIAnswer) {
-								const input = response.AIAnswer;
-								// store direct answer returned from API call
-								const finalResponse = {
-									answer: {
-										documentIds: input.documentIds,
-										model: input.model,
-										text: input.choices[0].message.content,
-									},
-								};
-								dispatch(setAIResponse(component, {
-									response: finalResponse,
-									meta: response.hits,
-									isTyping: false,
-								}));
 							}
 
 							// Update custom data
