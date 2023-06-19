@@ -276,7 +276,33 @@ export function recordAISessionUsefulness(sessionId, otherInfo) {
 			},
 			(err, res) => {
 				// eslint-disable-next-line no-console
-				console.log('res', res);
+
+				res._bodyBlob
+					.text()
+					.then((textData) => {
+						try {
+							const parsedErrorRes = JSON.parse(textData);
+							if (parsedErrorRes.error) {
+								const errorCode = parsedErrorRes.error.code;
+								const errorMessage = parsedErrorRes.error.message;
+
+								let finalErrorMessage
+									= 'There was an error recording the usefulness of the session. \n\n';
+								if (errorCode) {
+									finalErrorMessage += errorCode;
+								}
+								if (errorMessage) {
+									finalErrorMessage += `${errorCode ? ': ' : ''}${errorMessage}`;
+								}
+								console.error(finalErrorMessage);
+							}
+						} catch (error) {
+							console.error('There was an error recording the usefulness of the session. \n\n');
+						}
+					})
+					.catch((error) => {
+						console.error('Error reading  component error text data:', error);
+					});
 			},
 		);
 	};
