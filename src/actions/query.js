@@ -789,14 +789,14 @@ function processStream(
 				}
 
 				const chunk = decoder.decode(value, { stream: true });
-				const regex = /\n\n(?=data:)/;
+				const regex = /\n\n(?=data:|$)/;
 				const lines = chunk.split(regex);
 				let shouldStop = false;
 				for (let i = 0; i < lines.length; i++) {
 					const line = lines[i];
 					if (line.startsWith('data: ')) {
 						const content = line.slice(6);
-						if (content === '[DONE]\n\n') {
+						if (content === '[DONE]') {
 							shouldStop = true;
 							if (Promise.resolve(metaInfoPromise) === metaInfoPromise) {
 								metaInfoPromise
