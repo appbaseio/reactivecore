@@ -119,6 +119,9 @@ export const handleResponse = (
 						if (
 							timestamp[component] === undefined
 							|| timestamp[component] < res._timestamp
+							|| (response.AISessionId
+								&& props[component].enableAI
+								&& props[component].componentType === componentTypes.searchBox)
 						) {
 							const promotedResults = response.promoted;
 							if (promotedResults) {
@@ -132,6 +135,7 @@ export const handleResponse = (
 							}
 							// set raw response in rawData
 							dispatch(setRawData(component, response));
+
 							if (response.AIAnswer) {
 								if (response.AIAnswer.error) {
 									dispatch(setAIResponseError(component, {
