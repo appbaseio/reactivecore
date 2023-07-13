@@ -186,7 +186,9 @@ export const handleResponse = (
 											hits: response.hits || {},
 										},
 										props[component].componentType
-												=== componentTypes.searchBox, // make extra GET call to fetch meta info
+												=== componentTypes.searchBox
+												|| props[component].componentType
+													=== componentTypes.AIAnswer, // make extra GET call to fetch meta info
 									));
 								}
 							}
