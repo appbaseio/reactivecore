@@ -714,7 +714,6 @@ function processJSONResponse(dispatch, componentId, AIAnswerKey, localCache, par
 		if (finalResponse.answer) {
 			finalResponse.answer.role = AI_ROLES.ASSISTANT;
 		}
-
 		dispatch(setAIResponse(componentId, {
 			meta,
 			sessionId: AIAnswerKey,
@@ -739,7 +738,6 @@ function processStream(
 	dispatch,
 	componentId,
 	AIAnswerKey,
-	localCache,
 	meta = {},
 	question,
 	metaInfoPromise,
@@ -748,13 +746,17 @@ function processStream(
 	const decoder = new TextDecoder();
 	let responseText = '';
 	let answerIndex;
+
 	const questionMessage = question ? { content: question, role: AI_ROLES.USER } : null;
 
 	const updateMessage = (content) => {
 		responseText += content;
-
-		const messages = [...((localCache && localCache.messages) || [])];
-
+		const localCache = (getObjectFromLocalStorage(AI_LOCAL_CACHE_KEY) || {})[componentId];
+		const messages = [
+			...((localCache && localCache.messages)
+				|| (localCache && localCache.response && localCache.response.messages)
+				|| []),
+		];
 		if (
 			questionMessage
 			&& messages.findIndex(msg =>
@@ -803,12 +805,27 @@ function processStream(
 									.then(resMeta => resMeta.json())
 									// eslint-disable-next-line no-loop-func
 									.then((parsedRes) => {
+										const messagesArr = [];
+
+										if (parsedRes.question && parsedRes.answer) {
+											messagesArr.push(...[
+												{
+													content: parsedRes.question,
+													role: AI_ROLES.USER,
+												},
+												{
+													content: parsedRes.answer.text,
+													role: AI_ROLES.ASSISTANT,
+												},
+											]);
+										}
 										dispatch(setAIResponseDelayed(componentId, {
 											meta,
 											sessionId: AIAnswerKey,
 											response: {
 												...parsedRes,
 											},
+											messages: messagesArr,
 											isTyping: false,
 										}));
 									})
@@ -837,7 +854,7 @@ function processStream(
 			})
 			.catch((e) => {
 				reader.releaseLock();
-				dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey }));
+				dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey, isTyping: false }));
 			});
 	}
 
@@ -939,7 +956,6 @@ export function fetchAIResponse(
 							dispatch,
 							componentId,
 							AIAnswerKey,
-							localCache,
 							meta,
 							question,
 							metaInfoPromise,
