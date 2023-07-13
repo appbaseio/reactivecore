@@ -818,6 +818,10 @@ function processStream(
 											e,
 										);
 									});
+							} else {
+								dispatch(setAIResponseDelayed(componentId, {
+									isTyping: false,
+								}));
 							}
 							break;
 						}
