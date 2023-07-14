@@ -177,19 +177,33 @@ export const handleResponse = (
 									setObjectInLocalStorage('AISessions', {
 										[component]: {},
 									});
-									// fetch initial AIResponse
-									dispatch(fetchAIResponse(
-										response.AISessionId,
-										component,
-										'',
-										{
-											hits: response.hits || {},
-										},
-										props[component].componentType
-												=== componentTypes.searchBox
-												|| props[component].componentType
-													=== componentTypes.AIAnswer, // make extra GET call to fetch meta info
-									));
+
+									// rely on trigger from within the component
+									// to fetch initial result for AIAnswer component
+									if (
+										props[component].componentType === componentTypes.AIAnswer
+									) {
+										dispatch(setAIResponse(component, {
+											sessionId: response.AISessionId,
+											meta: {
+												hits: response.hits || {},
+											},
+										}));
+									} else {
+										// fetch initial AIResponse
+										dispatch(fetchAIResponse(
+											response.AISessionId,
+											component,
+											'',
+											{
+												hits: response.hits || {},
+											},
+											props[component].componentType
+													=== componentTypes.searchBox
+													|| props[component].componentType
+														=== componentTypes.AIAnswer, // make extra GET call to fetch meta info
+										));
+									}
 								}
 							}
 

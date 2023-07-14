@@ -949,7 +949,12 @@ export function fetchAIResponse(
 					} else {
 						let metaInfoPromise;
 						if (shouldFetchMetaInfoUsingGET) {
-							metaInfoPromise = fetch(fetchUrl, requestOptions);
+							metaInfoPromise = fetch(fetchUrl, {
+								...(requestOptions.headers
+									? { headers: requestOptions.headers }
+									: {}),
+								method: 'GET',
+							});
 						}
 						processStream(
 							res,
