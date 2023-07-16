@@ -98,6 +98,23 @@ export const getRSQuery = (componentId, props, execute = true) => {
 		if (props.endpoint instanceof Object) {
 			endpoint = props.endpoint;
 		}
+		let featuredSuggestionsProps = {
+			enableFeaturedSuggestions: props.enableFeaturedSuggestions,
+			featuredSuggestionsConfig: props.featuredSuggestionsConfig,
+		};
+		let faqSuggestionsProps = {
+			enableFAQSuggestions: props.enableFAQSuggestions,
+			FAQSuggestionsConfig: props.faqSuggestionsConfig,
+		};
+
+		if (props.enableFAQSuggestions && !props.searchboxId) {
+			faqSuggestionsProps = {};
+			console.error('Reactivesearch Error: You should also pass a searchboxId when passing enableFAQSuggestions as true.\nRefer to Searchbox component documentation specific to frontend frameworks.\n\nReact(https://docs.reactivesearch.io/docs/reactivesearch/react/search/searchbox/)\n\nVue(https://docs.reactivesearch.io/docs/reactivesearch/vue/search/SearchBox/).');
+		}
+		if (props.enableFeaturedSuggestions && !props.searchboxId) {
+			featuredSuggestionsProps = {};
+			console.error('Reactivesearch Error: You should also pass a searchboxId when passing enableFeaturedSuggestions.\nRefer to Searchbox component documentation specific to frontend frameworks.\n\nReact(https://docs.reactivesearch.io/docs/reactivesearch/react/search/searchbox/)\n\nVue(https://docs.reactivesearch.io/docs/reactivesearch/vue/search/SearchBox/).');
+		}
 		return {
 			id: componentId,
 			type: queryType || queryTypes.search,
@@ -147,9 +164,9 @@ export const getRSQuery = (componentId, props, execute = true) => {
 					applyStopwords: props.applyStopwords,
 					customStopwords: props.customStopwords,
 					enablePredictiveSuggestions: props.enablePredictiveSuggestions,
-					featuredSuggestionsConfig: props.featuredSuggestionsConfig,
 					indexSuggestionsConfig: props.indexSuggestionsConfig,
-					enableFeaturedSuggestions: props.enableFeaturedSuggestions,
+					...featuredSuggestionsProps,
+					...faqSuggestionsProps,
 					enableIndexSuggestions: props.enableIndexSuggestions,
 					...(props.searchboxId ? { searchboxId: props.searchboxId } : {}),
 				  }
