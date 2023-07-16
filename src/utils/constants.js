@@ -159,4 +159,5 @@ export const AI_LOCAL_CACHE_KEY = 'AISessions';
 export const AI_TRIGGER_MODES = {
 	QUESTION: 'question',
 	MANUAL: 'manual',
+	ALWAYS: 'always',
 };
