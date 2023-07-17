@@ -56,6 +56,7 @@ export const validProps = [
 	'distinctFieldConfig',
 	'index',
 	'aggregations',
+	'compoundClause',
 	// Specific to ReactiveList
 	'dataField',
 	'includeFields',

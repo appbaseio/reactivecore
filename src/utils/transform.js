@@ -154,6 +154,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			distinctField: props.distinctField,
 			distinctFieldConfig: props.distinctFieldConfig,
 			index: props.index,
+			compoundClause: props.compoundClause,
 			...(queryType === queryTypes.suggestion
 				? {
 					enablePopularSuggestions: props.enablePopularSuggestions,
