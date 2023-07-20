@@ -95,6 +95,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			return null;
 		}
 		let endpoint;
+		let compoundClause = props.compoundClause;
 		if (props.endpoint instanceof Object) {
 			endpoint = props.endpoint;
 		}
@@ -114,6 +115,10 @@ export const getRSQuery = (componentId, props, execute = true) => {
 		if (props.enableFeaturedSuggestions && !props.searchboxId) {
 			featuredSuggestionsProps = {};
 			console.error('Reactivesearch Error: You should also pass a searchboxId when passing enableFeaturedSuggestions.\nRefer to Searchbox component documentation specific to frontend frameworks.\n\nReact(https://docs.reactivesearch.io/docs/reactivesearch/react/search/searchbox/)\n\nVue(https://docs.reactivesearch.io/docs/reactivesearch/vue/search/SearchBox/).');
+		}
+		if (compoundClause && !['filter', 'must'].includes(compoundClause)) {
+			console.error("Reactivesearch Error: Invalid prop supplied - compoundClause. Prop can be one of ['filter', 'must']");
+			compoundClause = undefined;
 		}
 		return {
 			id: componentId,
@@ -154,6 +159,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			distinctField: props.distinctField,
 			distinctFieldConfig: props.distinctFieldConfig,
 			index: props.index,
+			compoundClause,
 			...(queryType === queryTypes.suggestion
 				? {
 					enablePopularSuggestions: props.enablePopularSuggestions,
