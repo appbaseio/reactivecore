@@ -70,6 +70,7 @@ const types = {
 	bool,
 	boolRequired: bool.isRequired,
 	components: arrayOf(string),
+	compoundClause: oneOf(['filter', 'must']),
 	children: any,
 	data: arrayOf(object),
 	dataFieldArray: oneOfType([string, arrayOf(string)]).isRequired,
