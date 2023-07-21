@@ -105,7 +105,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 		};
 		let faqSuggestionsProps = {
 			enableFAQSuggestions: props.enableFAQSuggestions,
-			FAQSuggestionsConfig: props.faqSuggestionsConfig,
+			FAQSuggestionsConfig: props.FAQSuggestionsConfig,
 		};
 
 		if (props.enableFAQSuggestions && !props.searchboxId) {
