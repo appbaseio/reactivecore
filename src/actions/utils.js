@@ -34,25 +34,41 @@ export const isComponentActive = (getState = () => {}, componentId = '') => {
 
 export const getQuerySuggestionsId = (componentId = '') => `${componentId}__suggestions`;
 
+function errorToObject(error) {
+	if (!(error instanceof Error)) {
+		return error; // If it's not an Error object, return as is
+	}
+
+	const errorObject = {};
+	const errorProperties = Object.getOwnPropertyNames(error);
+
+	errorProperties.forEach((property) => {
+		errorObject[property] = error[property];
+	});
+
+	return errorObject;
+}
+
 export const handleError = (
 	{ orderOfQueries = [], error = null } = {},
 	getState = () => {},
 	dispatch,
 ) => {
+	const processedError = errorToObject(error);
 	const { queryListener } = getState();
 	try {
-		console.error(JSON.stringify(error));
+		console.error(JSON.stringify(processedError));
 	} catch (e) {
-		console.error(error);
+		console.error(processedError);
 	}
 
 	orderOfQueries.forEach((component) => {
 		if (isComponentActive(getState, component)) {
 			// Only update state for active components
 			if (queryListener[component] && queryListener[component].onError) {
-				queryListener[component].onError(error);
+				queryListener[component].onError(processedError);
 			}
-			dispatch(setError(component, error));
+			dispatch(setError(component, processedError));
 			dispatch(setLoading(component, false));
 		}
 	});
