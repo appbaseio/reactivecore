@@ -94,8 +94,13 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			return null;
 		}
 		let endpoint;
+		let compoundClause = props.compoundClause;
 		if (props.endpoint instanceof Object) {
 			endpoint = props.endpoint;
+		}
+		if (compoundClause && !['filter', 'must'].includes(compoundClause)) {
+			console.error("Reactivesearch Error: Invalid prop supplied - compoundClause. Prop can be one of ['filter', 'must']");
+			compoundClause = undefined;
 		}
 		return {
 			id: componentId,
@@ -136,6 +141,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			distinctField: props.distinctField,
 			distinctFieldConfig: props.distinctFieldConfig,
 			index: props.index,
+			compoundClause,
 			...(queryType === queryTypes.suggestion
 				? {
 					enablePopularSuggestions: props.enablePopularSuggestions,
