@@ -85,7 +85,7 @@ export function getRecentSearches(queryOptions = {
 				addParam('min_chars', String(queryOptions.minChars));
 			}
 			if (queryOptions.customEvents) {
-				Object.keys(queryOptions.customEvents).forEach((key: string) => {
+				Object.keys(queryOptions.customEvents).forEach((key) => {
 					addParam(key, queryOptions.customEvents[key]);
 				});
 			}
@@ -96,7 +96,10 @@ export function getRecentSearches(queryOptions = {
 				data: [],
 			});
 		}
-		return fetch(`${parsedURL}/_analytics/${app}/recent-searches?${queryString}`, requestOptions)
+		return fetch(
+			`${parsedURL}/_analytics/${app}/recent-searches?${queryString}`,
+			requestOptions,
+		)
 			.then((res) => {
 				if (res.status >= 500 || res.status >= 400) {
 					return dispatch({
@@ -126,10 +129,7 @@ export function getRecentSearches(queryOptions = {
 }
 
 function recordClick({
-	documentId,
-	clickPosition,
-	analyticsInstance,
-	isSuggestionClick,
+	documentId, clickPosition, analyticsInstance, isSuggestionClick,
 }) {
 	if (!documentId) {
 		console.warn('ReactiveSearch: document id is required to record the click analytics');
@@ -240,11 +240,70 @@ export function recordImpressions(queryId, impressions = []) {
 		} = getState();
 		const esURL = `${protocol}://${url}`;
 		const parsedURL = esURL.replace(/\/+$/, '');
-		if (config.analytics && !parsedURL.includes('scalr.api.appbase.io') && queryId && impressions.length) {
+		if (
+			config.analytics
+			&& !parsedURL.includes('scalr.api.appbase.io')
+			&& queryId
+			&& impressions.length
+		) {
 			analyticsInstance.search({
 				queryID: analyticsInstance.getQueryID(),
 				impressions,
 			});
 		}
+	};
+}
+
+export function recordAISessionUsefulness(sessionId, otherInfo) {
+	return (dispatch, getState) => {
+		const { analyticsRef: analyticsInstance, config } = getState();
+		if (!config || !config.analyticsConfig || !config.analyticsConfig.recordAnalytics) {
+			console.warn('ReactiveSearch: Unable to record usefulness of session. To enable analytics, make sure to include the following prop on your <ReactiveBase> component: reactivesearchAPIConfig={{ recordAnalytics: true }}');
+			return;
+		}
+
+		const userID = config && config.analyticsConfig && config.analyticsConfig.userId;
+		if (!sessionId) {
+			console.warn('ReactiveSearch: AI sessionID is required to record the usefulness of session.');
+			return;
+		}
+		// Save session usefulness
+		analyticsInstance.saveSessionUsefulness(
+			sessionId,
+			{
+				...otherInfo,
+				userID,
+			},
+			(err, res) => {
+				// eslint-disable-next-line no-console
+
+				res._bodyBlob
+					.text()
+					.then((textData) => {
+						try {
+							const parsedErrorRes = JSON.parse(textData);
+							if (parsedErrorRes.error) {
+								const errorCode = parsedErrorRes.error.code;
+								const errorMessage = parsedErrorRes.error.message;
+
+								let finalErrorMessage
+									= 'There was an error recording the usefulness of the session. \n\n';
+								if (errorCode) {
+									finalErrorMessage += errorCode;
+								}
+								if (errorMessage) {
+									finalErrorMessage += `${errorCode ? ': ' : ''}${errorMessage}`;
+								}
+								console.error(finalErrorMessage);
+							}
+						} catch (error) {
+							console.error('There was an error recording the usefulness of the session. \n\n');
+						}
+					})
+					.catch((error) => {
+						console.error('Error reading  component error text data:', error);
+					});
+			},
+		);
 	};
 }

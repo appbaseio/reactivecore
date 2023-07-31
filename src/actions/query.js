@@ -18,10 +18,20 @@ import {
 	setPopularSuggestions,
 	setDefaultPopularSuggestions,
 	setLastUsedAppbaseQuery,
+	setAIResponse,
+	setAIResponseLoading,
+	setAIResponseError,
+	removeAIResponse,
+	setAIResponseDelayed,
 } from './misc';
-import { buildQuery, compareQueries } from '../utils/helper';
+import {
+	buildQuery,
+	compareQueries,
+	getObjectFromLocalStorage,
+	getStackTrace,
+} from '../utils/helper';
 import { updateMapData } from './maps';
-import { componentTypes, queryTypes } from '../utils/constants';
+import { AI_LOCAL_CACHE_KEY, AI_ROLES, componentTypes, queryTypes } from '../utils/constants';
 import {
 	getRSQuery,
 	extractPropsFromState,
@@ -92,7 +102,9 @@ function appbaseSearch({
 	appendToAggs = false,
 } = {}) {
 	return (dispatch, getState) => {
-		const { appbaseRef, config, headers } = getState();
+		const {
+			appbaseRef, config, headers, props,
+		} = getState();
 		let isAnalyticsEnabled = false;
 		if (config) {
 			if (isPropertyDefined(config.analytics)) {
@@ -141,6 +153,10 @@ function appbaseSearch({
 		// set loading as active for the given component
 		orderOfQueries.forEach((component) => {
 			dispatch(setLoading(component, true));
+
+			if (props[component] && props[component].enableAI) {
+				dispatch(removeAIResponse(component));
+			}
 			// reset error
 			dispatch(setError(component, null));
 		});
@@ -256,7 +272,14 @@ export function executeQuery(
 				component,
 				extractPropsFromState(getState(), component, {
 					...(value ? { value } : null),
-					...(metaOptions ? { from: metaOptions.from } : null),
+					...(metaOptions
+						? {
+							from: metaOptions.from,
+							...(value && metaOptions.enableAI === true
+								? { enableAI: true, type: 'search' }
+								: {}),
+						  }
+						: null),
 				}),
 			);
 			// check if query or options are valid - non-empty
@@ -552,7 +575,21 @@ export function updateQuery(
 			dispatch(setInternalValue(componentId, value, componentType, category, meta));
 		}
 		dispatch(setQuery(componentId, queryToDispatch));
-		if (execute) dispatch(executeQuery(componentId, true, false, componentType));
+		if (execute) {
+			dispatch(executeQuery(
+				componentId,
+				true,
+				false,
+				componentType,
+				componentType === componentTypes.searchBox
+						&& meta
+						&& typeof meta.enableAI === 'boolean'
+					? {
+						enableAI: meta.enableAI,
+						  }
+					: undefined,
+			));
+		}
 	};
 }
 
@@ -668,5 +705,319 @@ export function loadDataToExport(componentId, deepPaginationCursor = '', totalRe
 				});
 		}
 		return console.error('Error fetching data to export!');
+	};
+}
+
+function processJSONResponse(dispatch, componentId, AIAnswerKey, localCache, parsedRes, meta = {}) {
+	try {
+		const finalResponse = { ...parsedRes };
+		if (finalResponse.answer) {
+			finalResponse.answer.role = AI_ROLES.ASSISTANT;
+		}
+		dispatch(setAIResponse(componentId, {
+			meta,
+			sessionId: AIAnswerKey,
+			messages: [
+				...((localCache && localCache.messages) || []),
+				...(finalResponse.question
+					? [{ content: finalResponse.question, role: AI_ROLES.USER }]
+					: []),
+				...(finalResponse.answer
+					? [{ content: finalResponse.answer.text, role: AI_ROLES.ASSISTANT }]
+					: []),
+			],
+			response: { ...finalResponse },
+		}));
+	} catch (e) {
+		getStackTrace();
+		dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey }));
+	}
+}
+function processStream(
+	res,
+	dispatch,
+	componentId,
+	AIAnswerKey,
+	meta = {},
+	question,
+	metaInfoPromise,
+) {
+	const reader = res.body.getReader();
+	const decoder = new TextDecoder();
+	let responseText = '';
+	let answerIndex;
+
+	const questionMessage = question ? { content: question, role: AI_ROLES.USER } : null;
+
+	const updateMessage = (content) => {
+		responseText += content;
+		const localCache = (getObjectFromLocalStorage(AI_LOCAL_CACHE_KEY) || {})[componentId];
+		const messages = [
+			...((localCache && localCache.messages)
+				|| (localCache && localCache.response && localCache.response.messages)
+				|| []),
+		];
+		if (
+			questionMessage
+			&& messages.findIndex(msg =>
+				msg.content === questionMessage.content && msg.role === questionMessage.role) === -1
+		) {
+			messages.push(questionMessage);
+		}
+
+		if (answerIndex === undefined) {
+			answerIndex = messages.length;
+			messages.push({ content: responseText, role: AI_ROLES.ASSISTANT });
+		} else {
+			messages[answerIndex] = { content: responseText, role: AI_ROLES.ASSISTANT };
+		}
+
+		dispatch(setAIResponseDelayed(componentId, {
+			meta,
+			sessionId: AIAnswerKey,
+			isTyping: true,
+			messages,
+			response: { answer: { text: responseText, role: AI_ROLES.ASSISTANT } },
+		}));
+	};
+
+	function readStream() {
+		reader
+			.read()
+			.then(({ value, done }) => {
+				if (done) {
+					reader.releaseLock();
+					return;
+				}
+
+				const chunk = decoder.decode(value, { stream: true });
+				const regex = /\n\n(?=data:|$)/;
+				const lines = chunk.split(regex);
+				let shouldStop = false;
+				for (let i = 0; i < lines.length; i++) {
+					const line = lines[i];
+					if (line.startsWith('data: ')) {
+						const content = line.slice(6);
+						if (content === '[DONE]') {
+							shouldStop = true;
+							if (Promise.resolve(metaInfoPromise) === metaInfoPromise) {
+								metaInfoPromise
+									.then(resMeta => resMeta.json())
+									// eslint-disable-next-line no-loop-func
+									.then((parsedRes) => {
+										const messagesArr = [];
+
+										if (parsedRes.question && parsedRes.answer) {
+											messagesArr.push(...[
+												{
+													content: parsedRes.question,
+													role: AI_ROLES.USER,
+												},
+												{
+													content: parsedRes.answer.text,
+													role: AI_ROLES.ASSISTANT,
+												},
+											]);
+										}
+										dispatch(setAIResponseDelayed(componentId, {
+											meta,
+											sessionId: AIAnswerKey,
+											response: {
+												...parsedRes,
+											},
+											messages: messagesArr,
+											isTyping: false,
+										}));
+									})
+									.catch((e) => {
+										console.error(
+											`Error fetching meta details for sessionId: ${AIAnswerKey}`,
+											e,
+										);
+									});
+							} else {
+								dispatch(setAIResponseDelayed(componentId, {
+									isTyping: false,
+								}));
+							}
+							break;
+						}
+						updateMessage(content);
+					}
+				}
+
+				if (shouldStop) {
+					reader.releaseLock();
+				} else {
+					readStream();
+				}
+			})
+			.catch((e) => {
+				reader.releaseLock();
+				dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey, isTyping: false }));
+			});
+	}
+
+	readStream();
+}
+
+const cancellationTokens = {}; // initialize cancellationTokens map
+
+export function fetchAIResponse(
+	AIAnswerKey,
+	componentId,
+	question,
+	meta = {},
+	shouldFetchMetaInfoUsingGET = false,
+) {
+	return (dispatch, getState) => {
+		const isPostRequest = !!question;
+		dispatch(setAIResponseLoading(componentId, true));
+
+		const {
+			config: { url, credentials: configCredentials, endpoint },
+		} = getState();
+
+		const regex = /https:\/\/[^/]+/;
+		const urlObj = new URL(url.match(regex)[0]);
+
+		let credentials = configCredentials;
+		if (urlObj.username && urlObj.password) {
+			credentials = `${urlObj.username}:${urlObj.password}`;
+			urlObj.username = '';
+			urlObj.password = '';
+		}
+
+		const fetchUrl = `${urlObj.toString()}_ai/${AIAnswerKey}`;
+
+		const ssefetchUrl = `${fetchUrl}/sse`;
+
+		const headers = new Headers();
+		if (credentials) {
+			const encodedCredentials = btoa(credentials);
+			headers.append('Authorization', `Basic ${encodedCredentials}`);
+		} else if (endpoint && endpoint.headers && endpoint.headers.Authorization) {
+			headers.append('Authorization', endpoint.headers.Authorization);
+		}
+
+		const method = isPostRequest ? 'POST' : 'GET';
+		const localCache = (getObjectFromLocalStorage(AI_LOCAL_CACHE_KEY) || {})[componentId];
+		const requestOptions = {
+			headers,
+			method,
+			body: isPostRequest ? JSON.stringify({ question }) : undefined,
+		};
+
+		let attempt = 1; // initialize attempt number
+		const maxAttempts = 2; // set max number of attempts
+
+		const doFetch = () => {
+			// Create a new cancellation token for this componentId
+			// and abort any previous requests for this componentId
+			const controller = new AbortController();
+			if (cancellationTokens[componentId]) {
+				cancellationTokens[componentId].abort();
+			}
+			cancellationTokens[componentId] = controller;
+
+			fetch(ssefetchUrl, { ...requestOptions, signal: controller.signal })
+				.then((res) => {
+					if (!res.ok) {
+						if (attempt < maxAttempts) {
+							// retry on 400 error, up to maxAttempts times
+							attempt++;
+							setTimeout(doFetch, 1000); // retry
+							return;
+						}
+					}
+					const contentType = res.headers.get('content-type');
+					if (contentType && contentType.startsWith('application/json')) {
+						res.json().then((parsedRes) => {
+							if (parsedRes.error) {
+								dispatch(setAIResponseError(componentId, parsedRes.error));
+							} else {
+								processJSONResponse(
+									dispatch,
+									componentId,
+									AIAnswerKey,
+									localCache,
+									parsedRes,
+									meta,
+								);
+							}
+						});
+					} else {
+						let metaInfoPromise;
+						if (shouldFetchMetaInfoUsingGET) {
+							metaInfoPromise = fetch(fetchUrl, {
+								...(requestOptions.headers
+									? { headers: requestOptions.headers }
+									: {}),
+								method: 'GET',
+							});
+						}
+						processStream(
+							res,
+							dispatch,
+							componentId,
+							AIAnswerKey,
+							meta,
+							question,
+							metaInfoPromise,
+						);
+					}
+				})
+				.catch((e) => {
+					// Ignore abort errors
+					if (e.name === 'AbortError') {
+						return;
+					}
+					dispatch(setAIResponseError(componentId, e, { sessionId: AIAnswerKey }));
+				});
+		};
+
+		doFetch();
+	};
+}
+
+export function createAISession(question = 'Reactivesearch') {
+	return (dispatch, getState) => {
+		const {
+			config: { url, credentials: configCredentials, endpoint },
+		} = getState();
+
+		const regex = /https:\/\/[^/]+/;
+		const urlObj = new URL(url.match(regex)[0]);
+
+		let credentials = configCredentials;
+		if (urlObj.username && urlObj.password) {
+			credentials = `${urlObj.username}:${urlObj.password}`;
+			urlObj.username = '';
+			urlObj.password = '';
+		}
+
+		const fetchUrl = `${urlObj.toString()}_ai`;
+
+		const headers = new Headers();
+		if (credentials) {
+			const encodedCredentials = btoa(credentials);
+			headers.append('Authorization', `Basic ${encodedCredentials}`);
+		} else if (endpoint && endpoint.headers && endpoint.headers.Authorization) {
+			headers.append('Authorization', endpoint.headers.Authorization);
+		}
+
+		const requestOptions = {
+			headers,
+			method: 'POST',
+			body: JSON.stringify({ question }),
+		};
+
+		return fetch(fetchUrl, { ...requestOptions })
+			.then(res => res.json())
+			.then(parsedRes => parsedRes)
+			.catch((e) => {
+				// Ignore abort errors
+				console.error('Error creating an AI session: ', e);
+			});
 	};
 }

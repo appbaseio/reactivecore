@@ -9,6 +9,7 @@ export const componentToTypeMap = {
 	[componentTypes.dataSearch]: queryTypes.search,
 	[componentTypes.categorySearch]: queryTypes.search,
 	[componentTypes.searchBox]: queryTypes.suggestion,
+	[componentTypes.AIAnswer]: queryTypes.search,
 	// term components
 	[componentTypes.singleList]: queryTypes.term,
 	[componentTypes.multiList]: queryTypes.term,
@@ -86,12 +87,38 @@ export const getRSQuery = (componentId, props, execute = true) => {
 		// dataField is a required field for components other than search
 		// TODO: Revisit this logic based on the Appbase version
 		// dataField is no longer a required field in RS API
-		if (!isSearchComponent(props.componentType) && !props.dataField) {
+		if (
+			props.componentType !== componentTypes.AIAnswer
+			&& !isSearchComponent(props.componentType)
+			&& !props.dataField
+		) {
 			return null;
 		}
 		let endpoint;
+		let compoundClause = props.compoundClause;
 		if (props.endpoint instanceof Object) {
 			endpoint = props.endpoint;
+		}
+		let featuredSuggestionsProps = {
+			enableFeaturedSuggestions: props.enableFeaturedSuggestions,
+			featuredSuggestionsConfig: props.featuredSuggestionsConfig,
+		};
+		let faqSuggestionsProps = {
+			enableFAQSuggestions: props.enableFAQSuggestions,
+			FAQSuggestionsConfig: props.FAQSuggestionsConfig,
+		};
+
+		if (props.enableFAQSuggestions && !props.searchboxId) {
+			faqSuggestionsProps = {};
+			console.error('Reactivesearch Error: You should also pass a searchboxId when passing enableFAQSuggestions as true.\nRefer to Searchbox component documentation specific to frontend frameworks.\n\nReact(https://docs.reactivesearch.io/docs/reactivesearch/react/search/searchbox/)\n\nVue(https://docs.reactivesearch.io/docs/reactivesearch/vue/search/SearchBox/).');
+		}
+		if (props.enableFeaturedSuggestions && !props.searchboxId) {
+			featuredSuggestionsProps = {};
+			console.error('Reactivesearch Error: You should also pass a searchboxId when passing enableFeaturedSuggestions.\nRefer to Searchbox component documentation specific to frontend frameworks.\n\nReact(https://docs.reactivesearch.io/docs/reactivesearch/react/search/searchbox/)\n\nVue(https://docs.reactivesearch.io/docs/reactivesearch/vue/search/SearchBox/).');
+		}
+		if (compoundClause && !['filter', 'must'].includes(compoundClause)) {
+			console.error("Reactivesearch Error: Invalid prop supplied - compoundClause. Prop can be one of ['filter', 'must']");
+			compoundClause = undefined;
 		}
 		return {
 			id: componentId,
@@ -132,6 +159,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			distinctField: props.distinctField,
 			distinctFieldConfig: props.distinctFieldConfig,
 			index: props.index,
+			compoundClause,
 			...(queryType === queryTypes.suggestion
 				? {
 					enablePopularSuggestions: props.enablePopularSuggestions,
@@ -142,9 +170,9 @@ export const getRSQuery = (componentId, props, execute = true) => {
 					applyStopwords: props.applyStopwords,
 					customStopwords: props.customStopwords,
 					enablePredictiveSuggestions: props.enablePredictiveSuggestions,
-					featuredSuggestionsConfig: props.featuredSuggestionsConfig,
 					indexSuggestionsConfig: props.indexSuggestionsConfig,
-					enableFeaturedSuggestions: props.enableFeaturedSuggestions,
+					...featuredSuggestionsProps,
+					...faqSuggestionsProps,
 					enableIndexSuggestions: props.enableIndexSuggestions,
 					...(props.searchboxId ? { searchboxId: props.searchboxId } : {}),
 				  }
@@ -152,6 +180,13 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			calendarInterval: props.calendarInterval,
 			endpoint,
 			range: props.range,
+			...(queryType !== queryTypes.suggestion && props.enableAI && execute
+				? {
+					enableAI: true,
+					...(props.AIConfig ? { AIConfig: props.AIConfig } : {}),
+					execute: true,
+				  }
+				: {}),
 		};
 	}
 	return null;
@@ -520,10 +555,17 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 			// Only include queries for that component that has `customQuery` or `value` defined
 			if (((calcValues && calcValues.value) || customQuery) && !finalQuery[component]) {
 				let execute = false;
-				if (Array.isArray(orderOfQueries) && orderOfQueries.includes(component)) {
+				const componentProps = store.props[component];
+				if (
+					Array.isArray(orderOfQueries)
+					&& orderOfQueries.includes(component)
+					&& !(
+						componentProps.componentType === componentTypes.searchBox
+						&& componentProps.enableAI
+					)
+				) {
 					execute = true;
 				}
-				const componentProps = store.props[component];
 				// build query
 				const dependentQuery = getRSQuery(
 					component,

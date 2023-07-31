@@ -35,6 +35,8 @@ export const componentTypes = {
 	reactiveMap: 'REACTIVE_MAP',
 	// chart components
 	reactiveChart: 'REACTIVE_CHART',
+	// ai component
+	AIAnswer: 'AI_ANSWER',
 };
 
 export const queryTypes = {
@@ -54,6 +56,7 @@ export const validProps = [
 	'distinctFieldConfig',
 	'index',
 	'aggregations',
+	'compoundClause',
 	// Specific to ReactiveList
 	'dataField',
 	'includeFields',
@@ -118,14 +121,18 @@ export const validProps = [
 	'recentSuggestionsConfig',
 	'indexSuggestionsConfig',
 	'featuredSuggestionsConfig',
+	'FAQSuggestionsConfig',
 	'enablePredictiveSuggestions',
 	'applyStopwords',
 	'customStopwords',
 	'enableIndexSuggestions',
 	'enableFeaturedSuggestions',
+	'enableFAQSuggestions',
 	'searchboxId',
 	'endpoint',
 	'enableEndpointSuggestions',
+	'enableAI',
+	'AIConfig',
 ];
 
 export const CLEAR_ALL = {
@@ -141,3 +148,17 @@ export const SEARCH_COMPONENTS_MODES = {
 };
 
 export const TREELIST_VALUES_PATH_SEPARATOR = '◐◑◒◓';
+
+export const AI_ROLES = {
+	USER: 'user',
+	SYSTEM: 'system',
+	ASSISTANT: 'assistant',
+};
+
+export const AI_LOCAL_CACHE_KEY = 'AISessions';
+
+export const AI_TRIGGER_MODES = {
+	QUESTION: 'question',
+	MANUAL: 'manual',
+	ALWAYS: 'always',
+};
