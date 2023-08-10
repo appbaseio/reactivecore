@@ -66,7 +66,7 @@ export const validProps = [
 	'sortBy',
 	'sortOptions',
 	'pagination',
-	// Specific to DataSearch
+	// Specific to SearchBox
 	'autoFocus',
 	'autosuggest',
 	'debounce',
@@ -122,15 +122,17 @@ export const validProps = [
 	'indexSuggestionsConfig',
 	'featuredSuggestionsConfig',
 	'FAQSuggestionsConfig',
+	'documentSuggestionsConfig',
 	'enablePredictiveSuggestions',
 	'applyStopwords',
 	'customStopwords',
 	'enableIndexSuggestions',
 	'enableFeaturedSuggestions',
 	'enableFAQSuggestions',
+	'enableDocumentSuggestions',
+	'enableEndpointSuggestions',
 	'searchboxId',
 	'endpoint',
-	'enableEndpointSuggestions',
 	'enableAI',
 	'AIConfig',
 ];

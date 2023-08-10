@@ -120,6 +120,8 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			console.error("Reactivesearch Error: Invalid prop supplied - compoundClause. Prop can be one of ['filter', 'must']");
 			compoundClause = undefined;
 		}
+
+
 		return {
 			id: componentId,
 			type: queryType || queryTypes.search,
@@ -171,6 +173,9 @@ export const getRSQuery = (componentId, props, execute = true) => {
 					customStopwords: props.customStopwords,
 					enablePredictiveSuggestions: props.enablePredictiveSuggestions,
 					indexSuggestionsConfig: props.indexSuggestionsConfig,
+					enableDocumentSuggestions: props.enableDocumentSuggestions,
+					documentSuggestionsConfig: props.enableDocumentSuggestions
+						? props.documentSuggestionsConfig : undefined,
 					...featuredSuggestionsProps,
 					...faqSuggestionsProps,
 					enableIndexSuggestions: props.enableIndexSuggestions,
