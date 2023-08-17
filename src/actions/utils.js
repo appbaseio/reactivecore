@@ -119,6 +119,7 @@ export const handleResponse = (
 							timestamp[component] === undefined
 							|| timestamp[component] < res._timestamp
 							|| (response.AISessionId
+								&& props[component].enableAI
 								&& props[component].componentType === componentTypes.searchBox)
 						) {
 							const promotedResults = response.promoted;

@@ -66,7 +66,7 @@ export const validProps = [
 	'sortBy',
 	'sortOptions',
 	'pagination',
-	// Specific to SearchBox
+	// Specific to DataSearch
 	'autoFocus',
 	'autosuggest',
 	'debounce',
@@ -114,7 +114,7 @@ export const validProps = [
 	'calendarInterval',
 	// Map components
 	'unit',
-	// Specific to searchBox
+	// Specific to SearchBox
 	'enablePopularSuggestions',
 	'enableRecentSuggestions',
 	'popularSuggestionsConfig',
