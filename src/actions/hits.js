@@ -1,6 +1,6 @@
 import { UPDATE_HITS, UPDATE_AGGS, UPDATE_COMPOSITE_AGGS } from '../constants';
 import { SET_QUERY_TO_HITS } from '../../lib/constants';
-import { setAIResponse, setError } from './misc';
+import { setAIResponse, setError, setRawData } from './misc';
 
 export function updateAggs(component, aggregations, append = false) {
 	return {
@@ -54,9 +54,13 @@ export function mockDataForTesting(component, data) {
 			// set hits
 			dispatch(updateHits(component, data, data.time || undefined));
 		}
+		if (data.hasOwnProperty('rawData')) {
+			dispatch(setRawData(component, data.rawData));
+		}
 		if (data.hasOwnProperty('AI_RESPONSE')) {
 			// set AI response
 			dispatch(setAIResponse(component, data.AI_RESPONSE));
+			// set rawData
 		}
 	};
 }
