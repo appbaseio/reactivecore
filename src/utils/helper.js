@@ -1130,15 +1130,19 @@ export const transformRequestUsingEndpoint = (request, endpointParam) => {
 // utils/localStorage.js
 
 export const setObjectInLocalStorage = (key, value) => {
-	if (!key || !value) {
-		throw new Error('Key and value are required for setObject');
-	}
+	 if (typeof localStorage !== 'undefined') {
+		if (!key || !value) {
+			throw new Error('Key and value are required for setObject');
+		}
 
-	try {
-		const serializedValue = JSON.stringify(value);
-		localStorage.setItem(key, serializedValue);
-	} catch (error) {
-		console.error('Error saving object to localStorage:', error);
+		try {
+			const serializedValue = JSON.stringify(value);
+			localStorage.setItem(key, serializedValue);
+		} catch (error) {
+			console.error('Error saving object to localStorage:', error);
+		}
+	 } else {
+		 console.warn('localstorage not available');
 	}
 };
 

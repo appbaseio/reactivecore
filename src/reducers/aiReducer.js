@@ -19,9 +19,9 @@ export default function aiReducer(state = {}, action) {
 				...(state[action.component] ? state[action.component] : {}),
 				response: {
 					...(state[action.component]
-						? state[action.component] && state[action.component].response
+						? state[action.component].response
 						: {}),
-					...action.payload,
+					 ...action.payload,
 				},
 				isLoading: false,
 				error: null,
