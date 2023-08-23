@@ -174,6 +174,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 					enablePredictiveSuggestions: props.enablePredictiveSuggestions,
 					indexSuggestionsConfig: props.indexSuggestionsConfig,
 					enableDocumentSuggestions: props.enableDocumentSuggestions,
+					showDistinctSuggestions: props.showDistinctSuggestions,
 					documentSuggestionsConfig: props.enableDocumentSuggestions
 						? props.documentSuggestionsConfig : undefined,
 					...featuredSuggestionsProps,

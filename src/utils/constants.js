@@ -135,6 +135,7 @@ export const validProps = [
 	'endpoint',
 	'enableAI',
 	'AIConfig',
+	'showDistinctSuggestions',
 ];
 
 export const CLEAR_ALL = {
