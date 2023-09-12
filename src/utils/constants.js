@@ -46,6 +46,8 @@ export const queryTypes = {
 	geo: 'geo',
 	suggestion: 'suggestion',
 };
+
+// Props that need to be passed to the query
 export const validProps = [
 	// common
 	'type',
@@ -85,6 +87,8 @@ export const validProps = [
 	'enableSynonyms',
 	'enableQuerySuggestions',
 	'queryString',
+	'vectorDataField',
+	'imageValue',
 	// Specific to Category Search
 	'categoryField',
 	'strictSelection',

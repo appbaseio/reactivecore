@@ -6,8 +6,6 @@ export default function aggsReducer(state = {}, action) {
 			const field = Object.keys(state[action.component])[0];
 			const { buckets: newBuckets, ...aggsData } = action.aggregations[field];
 			// console.log('received aggs', action.aggregations);
-			// eslint-disable-next-line
-			// debugger;
 			return {
 				...state,
 				[action.component]: {

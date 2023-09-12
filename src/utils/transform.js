@@ -81,6 +81,7 @@ export const isComponentUsesLabelAsValue = (componentType = '') =>
 export const hasPaginationSupport = (componentType = '') =>
 	listComponentsWithPagination.includes(componentType);
 
+// Research
 export const getRSQuery = (componentId, props, execute = true) => {
 	if (props && componentId) {
 		const queryType = props.type ? props.type : componentToTypeMap[props.componentType];
@@ -187,6 +188,12 @@ export const getRSQuery = (componentId, props, execute = true) => {
 					execute: true,
 				  }
 				: {}),
+			...(queryType !== queryTypes.suggestion
+				? {
+					   vectorDataField: getNormalizedField(props.vectorDataField),
+					   imageValue: props.imageValue,
+				   }
+					 : {}),
 		};
 	}
 	return null;
@@ -202,6 +209,7 @@ export const getValidInterval = (interval, range = {}) => {
 	return interval;
 };
 
+// Research
 export const extractPropsFromState = (store, component, customOptions) => {
 	const componentProps = store.props[component];
 	if (!componentProps) {
@@ -544,9 +552,12 @@ export function flatReactProp(reactProp, componentID) {
 	return flattenReact;
 }
 
+
+// Research
 export const getDependentQueries = (store, componentID, orderOfQueries = []) => {
 	const finalQuery = {};
 	const react = flatReactProp(store.dependencyTree[componentID], componentID);
+
 	react.forEach((componentObject) => {
 		const component = componentObject;
 		const customQuery = store.customQueries[component];
@@ -578,6 +589,10 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 										? { categoryValue: calcValues.category }
 										: { categoryValue: undefined }),
 									...(calcValues.value ? { value: calcValues.value } : {}),
+									...(calcValues.meta.imageValue
+										 ? {
+											imageValue: calcValues.meta.imageValue,
+										} : {}),
 								  }
 								: {}),
 							...(componentProps.componentType === componentTypes.categorySearch
@@ -591,6 +606,7 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 					}),
 					execute,
 				);
+
 
 				if (dependentQuery) {
 					finalQuery[component] = dependentQuery;

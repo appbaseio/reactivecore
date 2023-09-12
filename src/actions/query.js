@@ -198,6 +198,9 @@ function appbaseSearch({
 // latest request would be at the end
 let requestStack = [];
 
+/*
+*
+*/
 export function executeQuery(
 	componentId,
 	executeWatchList = false,
@@ -223,6 +226,7 @@ export function executeQuery(
 			queryList,
 			queryOptions,
 		} = getState();
+
 		let lockTime = config.initialQueriesSyncTime || 100;
 		let initialTimestamp = config.initialTimestamp;
 		const queryId = requestId || new Date().getTime();
@@ -282,7 +286,7 @@ export function executeQuery(
 						: null),
 				}),
 			);
-			// check if query or options are valid - non-empty
+			// check if query or options are non-empty
 			if (query && !!Object.keys(query).length) {
 				const currentQuery = query;
 				const oldQuery = queryLog[component];
