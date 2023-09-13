@@ -38,7 +38,15 @@ export function setValue(
 			componentTypes.reactiveMap,
 		].includes(props[component] && props[component].componentType);
 		const previousValue = selectedValues[component] && selectedValues[component].value;
-		if (!isEqual(previousValue, value) && props[component] && !isResultComponent) {
+		// Incase of searchbox .meta.imageValue can be modified although .value is not modified.
+		let isImageValueEqual = true;
+		if (componentType === componentTypes.searchBox) {
+			const previousImageValue = selectedValues[component] && selectedValues[component].meta
+			&& selectedValues[component].meta.imageValue;
+			isImageValueEqual = isEqual(previousImageValue, meta && meta.imageValue);
+		}
+		if ((!isEqual(previousValue, value) || !isImageValueEqual)
+			&& props[component] && !isResultComponent) {
 			let componentList = [component];
 			const watchList = watchMan[component] || [];
 			componentList = [...componentList, ...watchList];

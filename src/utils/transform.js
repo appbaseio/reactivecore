@@ -557,14 +557,16 @@ export function flatReactProp(reactProp, componentID) {
 export const getDependentQueries = (store, componentID, orderOfQueries = []) => {
 	const finalQuery = {};
 	const react = flatReactProp(store.dependencyTree[componentID], componentID);
-
 	react.forEach((componentObject) => {
 		const component = componentObject;
 		const customQuery = store.customQueries[component];
 		if (!isInternalComponent(component)) {
 			const calcValues = store.selectedValues[component] || store.internalValues[component];
-			// Only include queries for that component that has `customQuery` or `value` defined
-			if (((calcValues && calcValues.value) || customQuery) && !finalQuery[component]) {
+			const imageValue = calcValues.meta && calcValues.meta.imageValue;
+			// Only include queries for that component that has `customQuery` or `value` or
+			// `imageValue` incase of searchbox defined
+			if (((calcValues && (calcValues.value || imageValue)) || customQuery)
+				&& !finalQuery[component]) {
 				let execute = false;
 				const componentProps = store.props[component];
 				if (
@@ -589,9 +591,9 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 										? { categoryValue: calcValues.category }
 										: { categoryValue: undefined }),
 									...(calcValues.value ? { value: calcValues.value } : {}),
-									...(calcValues.meta.imageValue
+									...(imageValue
 										 ? {
-											imageValue: calcValues.meta.imageValue,
+											imageValue,
 										} : {}),
 								  }
 								: {}),
