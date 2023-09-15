@@ -115,7 +115,6 @@ export const handleResponse = (
 				.then((response) => {
 					if (response) {
 						const { timestamp, props } = getState();
-
 						if (
 							timestamp[component] === undefined
 							|| timestamp[component] < res._timestamp
