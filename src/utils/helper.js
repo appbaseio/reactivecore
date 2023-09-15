@@ -811,6 +811,7 @@ export const suggestionTypes = {
 	Promoted: 'promoted',
 	Featured: 'featured',
 	FAQ: 'faq',
+	Document: 'document',
 };
 
 export const featuredSuggestionsActionTypes = {

@@ -114,7 +114,7 @@ export const validProps = [
 	'calendarInterval',
 	// Map components
 	'unit',
-	// Specific to searchBox
+	// Specific to SearchBox
 	'enablePopularSuggestions',
 	'enableRecentSuggestions',
 	'popularSuggestionsConfig',
@@ -122,17 +122,20 @@ export const validProps = [
 	'indexSuggestionsConfig',
 	'featuredSuggestionsConfig',
 	'FAQSuggestionsConfig',
+	'documentSuggestionsConfig',
 	'enablePredictiveSuggestions',
 	'applyStopwords',
 	'customStopwords',
 	'enableIndexSuggestions',
 	'enableFeaturedSuggestions',
 	'enableFAQSuggestions',
+	'enableDocumentSuggestions',
+	'enableEndpointSuggestions',
 	'searchboxId',
 	'endpoint',
-	'enableEndpointSuggestions',
 	'enableAI',
 	'AIConfig',
+	'showDistinctSuggestions',
 ];
 
 export const CLEAR_ALL = {
