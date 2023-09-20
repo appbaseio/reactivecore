@@ -40,7 +40,8 @@ export function setValue(
 		const previousValue = selectedValues[component] && selectedValues[component].value;
 		// Incase of searchbox .meta.imageValue can be modified although .value is not modified.
 		let isImageValueEqual = true;
-		if (componentType === componentTypes.searchBox) {
+		// SelectedFilters may not have componentType but they need to clear the value
+		if (componentType === componentTypes.searchBox || componentType === undefined) {
 			const previousImageValue = selectedValues[component] && selectedValues[component].meta
 			&& selectedValues[component].meta.imageValue;
 			isImageValueEqual = isEqual(previousImageValue, meta && meta.imageValue);
