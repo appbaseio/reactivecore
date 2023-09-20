@@ -568,7 +568,7 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 		const customQuery = store.customQueries[component];
 		if (!isInternalComponent(component)) {
 			const calcValues = store.selectedValues[component] || store.internalValues[component];
-			const imageValue = calcValues.meta && calcValues.meta.imageValue;
+			const imageValue = calcValues && calcValues.meta && calcValues.meta.imageValue;
 			// Only include queries for that component that has `customQuery` or `value` or
 			// `imageValue` incase of searchbox defined
 			if (((calcValues && (calcValues.value || imageValue)) || customQuery)
