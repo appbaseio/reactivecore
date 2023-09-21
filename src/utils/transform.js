@@ -196,7 +196,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 				: {}),
 			...(queryType !== queryTypes.suggestion
 				? {
-					   vectorDataField: getNormalizedField(props.vectorDataField),
+					   vectorDataField: props.vectorDataField,
 					   imageValue: props.imageValue,
 				   }
 					 : {}),
