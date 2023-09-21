@@ -580,7 +580,8 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 					&& orderOfQueries.includes(component)
 					&& !(
 						componentProps.componentType === componentTypes.searchBox
-						&& componentProps.enableAI
+						&& (componentProps.enableAI
+						|| componentProps.autosuggest === false)
 					)
 				) {
 					execute = true;
@@ -614,7 +615,6 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 					}),
 					execute,
 				);
-
 
 				if (dependentQuery) {
 					finalQuery[component] = dependentQuery;
