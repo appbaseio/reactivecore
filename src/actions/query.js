@@ -283,7 +283,7 @@ export function executeQuery(
 						? {
 							from: metaOptions.from,
 							...(value && metaOptions.enableAI === true
-								? { enableAI: true, type: 'search' }
+								? { ...metaOptions, enableAI: true, type: 'search' }
 								: {}),
 						  }
 						: null),
@@ -592,6 +592,7 @@ export function updateQuery(
 						&& meta
 						&& typeof meta.enableAI === 'boolean'
 					? {
+						...meta,
 						enableAI: meta.enableAI,
 						  }
 					: undefined,

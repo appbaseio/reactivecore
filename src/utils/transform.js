@@ -580,6 +580,12 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 					&& orderOfQueries.includes(component)
 					&& !(
 						componentProps.componentType === componentTypes.searchBox
+						/**
+						 * We want to fire a search query,
+						 * 	when enableAI
+						 * 	OR
+						 * 	when autosuggest is false
+						 */
 						&& (componentProps.enableAI
 						|| componentProps.autosuggest === false)
 					)
