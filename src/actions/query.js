@@ -199,9 +199,6 @@ function appbaseSearch({
 // latest request would be at the end
 let requestStack = [];
 
-/*
-*
-*/
 export function executeQuery(
 	componentId,
 	executeWatchList = false,

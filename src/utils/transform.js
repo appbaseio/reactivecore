@@ -81,7 +81,7 @@ export const isComponentUsesLabelAsValue = (componentType = '') =>
 export const hasPaginationSupport = (componentType = '') =>
 	listComponentsWithPagination.includes(componentType);
 
-// Research
+
 export const getRSQuery = (componentId, props, execute = true) => {
 	if (props && componentId) {
 		const queryType = props.type ? props.type : componentToTypeMap[props.componentType];
@@ -215,7 +215,7 @@ export const getValidInterval = (interval, range = {}) => {
 	return interval;
 };
 
-// Research
+
 export const extractPropsFromState = (store, component, customOptions) => {
 	const componentProps = store.props[component];
 	if (!componentProps) {
@@ -559,7 +559,6 @@ export function flatReactProp(reactProp, componentID) {
 }
 
 
-// Research
 export const getDependentQueries = (store, componentID, orderOfQueries = []) => {
 	const finalQuery = {};
 	const react = flatReactProp(store.dependencyTree[componentID], componentID);
