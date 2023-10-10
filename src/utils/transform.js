@@ -196,8 +196,8 @@ export const getRSQuery = (componentId, props, execute = true) => {
 				: {}),
 			...(queryType !== queryTypes.suggestion
 				? {
-					   vectorDataField: props.vectorDataField,
-					   imageValue: props.imageValue,
+					   vectorDataField: props.vectorDataField || undefined,
+					   imageValue: props.imageValue || undefined,
 				   }
 					 : {}),
 		};
