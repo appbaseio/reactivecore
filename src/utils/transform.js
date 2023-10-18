@@ -81,6 +81,7 @@ export const isComponentUsesLabelAsValue = (componentType = '') =>
 export const hasPaginationSupport = (componentType = '') =>
 	listComponentsWithPagination.includes(componentType);
 
+
 export const getRSQuery = (componentId, props, execute = true) => {
 	if (props && componentId) {
 		const queryType = props.type ? props.type : componentToTypeMap[props.componentType];
@@ -193,6 +194,12 @@ export const getRSQuery = (componentId, props, execute = true) => {
 					execute: true,
 				  }
 				: {}),
+			...(queryType !== queryTypes.suggestion
+				? {
+					   vectorDataField: props.vectorDataField || undefined,
+					   imageValue: props.imageValue || undefined,
+				   }
+					 : {}),
 		};
 	}
 	return null;
@@ -207,6 +214,7 @@ export const getValidInterval = (interval, range = {}) => {
 	}
 	return interval;
 };
+
 
 export const extractPropsFromState = (store, component, customOptions) => {
 	const componentProps = store.props[component];
@@ -550,6 +558,7 @@ export function flatReactProp(reactProp, componentID) {
 	return flattenReact;
 }
 
+
 export const getDependentQueries = (store, componentID, orderOfQueries = []) => {
 	const finalQuery = {};
 	const react = flatReactProp(store.dependencyTree[componentID], componentID);
@@ -558,8 +567,11 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 		const customQuery = store.customQueries[component];
 		if (!isInternalComponent(component)) {
 			const calcValues = store.selectedValues[component] || store.internalValues[component];
-			// Only include queries for that component that has `customQuery` or `value` defined
-			if (((calcValues && calcValues.value) || customQuery) && !finalQuery[component]) {
+			const imageValue = calcValues && calcValues.meta && calcValues.meta.imageValue;
+			// Only include queries for that component that has `customQuery` or `value` or
+			// `imageValue` incase of searchbox defined
+			if (((calcValues && (calcValues.value || imageValue)) || customQuery)
+				&& !finalQuery[component]) {
 				let execute = false;
 				const componentProps = store.props[component];
 				if (
@@ -567,7 +579,14 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 					&& orderOfQueries.includes(component)
 					&& !(
 						componentProps.componentType === componentTypes.searchBox
-						&& componentProps.enableAI
+						/**
+						 * We want to fire a search query,
+						 * 	when enableAI
+						 * 	OR
+						 * 	when autosuggest is false
+						 */
+						&& (componentProps.enableAI
+						|| componentProps.autosuggest === false)
 					)
 				) {
 					execute = true;
@@ -584,6 +603,10 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 										? { categoryValue: calcValues.category }
 										: { categoryValue: undefined }),
 									...(calcValues.value ? { value: calcValues.value } : {}),
+									...(imageValue
+										 ? {
+											imageValue,
+										} : {}),
 								  }
 								: {}),
 							...(componentProps.componentType === componentTypes.categorySearch

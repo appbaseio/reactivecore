@@ -106,6 +106,7 @@ function appbaseSearch({
 			appbaseRef, config, headers, props,
 		} = getState();
 		let isAnalyticsEnabled = false;
+
 		if (config) {
 			if (isPropertyDefined(config.analytics)) {
 				isAnalyticsEnabled = config.analytics;
@@ -223,9 +224,11 @@ export function executeQuery(
 			queryList,
 			queryOptions,
 		} = getState();
+
 		let lockTime = config.initialQueriesSyncTime || 100;
 		let initialTimestamp = config.initialTimestamp;
 		const queryId = requestId || new Date().getTime();
+
 		// override logic for locking queries for a period of time
 		// The block only runs when setSearchState method of StateProvider sets the
 		// queryLockConfig property in then store
@@ -253,6 +256,7 @@ export function executeQuery(
 				queryList,
 				queryOptions,
 			);
+
 			if (!queryObj && !options) {
 				return;
 			}
@@ -276,19 +280,18 @@ export function executeQuery(
 						? {
 							from: metaOptions.from,
 							...(value && metaOptions.enableAI === true
-								? { enableAI: true, type: 'search' }
+								? { ...metaOptions, enableAI: true, type: 'search' }
 								: {}),
 						  }
 						: null),
 				}),
 			);
-			// check if query or options are valid - non-empty
+			// check if query or options are non-empty
 			if (query && !!Object.keys(query).length) {
 				const currentQuery = query;
 				const oldQuery = queryLog[component];
 				const componentProps = props[component];
 				const dependentQueries = getDependentQueries(getState(), component, orderOfQueries);
-
 				let queryToLog = {
 					...{ [component]: currentQuery },
 					...Object.keys(dependentQueries).reduce(
@@ -364,7 +367,9 @@ export function executeQuery(
 						// skip the query execution if the combined query [component + map Query]
 						// matches the logged combined query
 						const { combinedLog } = getState();
-						if (compareQueries(combinedLog[component], currentQuery)) return;
+						if (compareQueries(combinedLog[component], currentQuery)) {
+							return;
+						}
 
 						// log query after adding the map query,
 						// to separately support gatekeeping for combined map queries
@@ -412,7 +417,6 @@ export function executeQuery(
 			const isSuggestionsQuery
 				= isInternalComponent && suggestionsComponents.indexOf(componentType) !== -1;
 			const currentTime = new Date().getTime();
-
 			if (currentTime - initialTimestamp < lockTime) {
 				// set timeout if lock is not false
 				if (!lock || config.queryLockConfig) {
@@ -585,6 +589,7 @@ export function updateQuery(
 						&& meta
 						&& typeof meta.enableAI === 'boolean'
 					? {
+						...meta,
 						enableAI: meta.enableAI,
 						  }
 					: undefined,
