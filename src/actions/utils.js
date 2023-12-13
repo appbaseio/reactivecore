@@ -9,12 +9,17 @@ import {
 	setCustomData,
 	setTimestamp,
 	setLastUsedAppbaseQuery,
+	setAIResponse,
+	setAIResponseError,
 } from './misc';
 
 import { updateHits, updateAggs, updateCompositeAggs, saveQueryToHits } from './hits';
 import { getInternalComponentID } from '../utils/transform';
 import { componentTypes } from '../utils/constants';
 import { UPDATE_CONFIG } from '../constants';
+import { fetchAIResponse } from './query';
+import { AI_LOCAL_CACHE_KEY } from '../utils/constants';
+import { getObjectFromLocalStorage, setObjectInLocalStorage } from '../utils/helper';
 
 export const handleTransformResponse = (res = null, config = {}, component = '') => {
 	if (config.transformResponse && typeof config.transformResponse === 'function') {
@@ -74,6 +79,7 @@ export const handleResponse = (
 	const {
 		config, internalValues, lastUsedAppbaseQuery, analyticsRef,
 	} = getState();
+
 	const searchId = res._headers ? res._headers.get('X-Search-Id') : null;
 	if (searchId) {
 		if (isSuggestionsQuery) {
@@ -112,6 +118,9 @@ export const handleResponse = (
 						if (
 							timestamp[component] === undefined
 							|| timestamp[component] < res._timestamp
+							|| (response.AISessionId
+								&& props[component].enableAI
+								&& props[component].componentType === componentTypes.searchBox)
 						) {
 							const promotedResults = response.promoted;
 							if (promotedResults) {
@@ -125,9 +134,87 @@ export const handleResponse = (
 							}
 							// set raw response in rawData
 							dispatch(setRawData(component, response));
+
+							if (response.AIAnswer) {
+								if (response.AIAnswer.error) {
+									dispatch(setAIResponseError(component, {
+										message: response.AIAnswer.error,
+									}));
+									dispatch(setLoading(component, false));
+									return;
+								}
+								const input = response.AIAnswer;
+								// store direct answer returned from API call
+								const finalResponse = {
+									answer: {
+										documentIds: input.documentIds,
+										model: input.model,
+										text: input.choices[0].message.content,
+									},
+								};
+								const finalResponseObj = {
+									response: finalResponse,
+									meta: response.hits,
+									isTyping: false,
+								};
+								if (response.AISessionId) {
+									finalResponseObj.sessionId = response.AISessionId;
+								}
+								dispatch(setAIResponse(component, finalResponseObj));
+							} else if (response.AISessionId) {
+								const localCache = (getObjectFromLocalStorage(AI_LOCAL_CACHE_KEY)
+									|| {})[props.componentId];
+								if (
+									localCache
+									&& localCache.sessionId
+									&& localCache.sessionId === response.AISessionId
+								) {
+									// hydrate the store from cache
+									dispatch(setAIResponse(component, localCache));
+								} else {
+									// delete localCache
+									setObjectInLocalStorage('AISessions', {
+										[component]: {},
+									});
+
+									// rely on trigger from within the component
+									// to fetch initial result for AIAnswer component
+									if (
+										props[component].componentType === componentTypes.AIAnswer
+									) {
+										dispatch(setAIResponse(component, {
+											sessionId: response.AISessionId,
+											meta: {
+												hits: response.hits || {},
+											},
+										}));
+									} else {
+										// fetch initial AIResponse
+										dispatch(fetchAIResponse(
+											response.AISessionId,
+											component,
+											'',
+											{
+												hits: response.hits || {},
+											},
+											props[component].componentType
+													=== componentTypes.searchBox
+													|| props[component].componentType
+														=== componentTypes.AIAnswer, // make extra GET call to fetch meta info
+										));
+									}
+								}
+							}
+
 							// Update custom data
 							dispatch(setCustomData(response.customData, component));
-							if (response.hits) {
+							if (
+								response.hits
+								&& !(
+									(response.AIAnswer || response.AISessionId)
+									&& props[component].componentType === componentTypes.searchBox
+								)
+							) {
 								dispatch(setTimestamp(component, res._timestamp));
 								// store last used query for REACTIVE_LIST only
 

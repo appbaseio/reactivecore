@@ -68,6 +68,7 @@ const types = {
 	bool,
 	boolRequired: bool.isRequired,
 	components: arrayOf(string),
+	compoundClause: oneOf(['filter', 'must']),
 	children: any,
 	data: arrayOf(object),
 	dataFieldArray: oneOfType([string, arrayOf(string)]).isRequired,
@@ -193,6 +194,14 @@ const types = {
 		headers: object,
 		body: object,
 		/* eslint-enable react/forbid-prop-types */
+	}),
+	AIConfig: shape({
+		docTemplate: string,
+		queryTemplate: string,
+		maxTokens: number,
+		systemPrompt: string,
+		temperature: number,
+		topDocsForContext: number,
 	}),
 };
 

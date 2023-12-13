@@ -35,6 +35,8 @@ export const componentTypes = {
 	reactiveMap: 'REACTIVE_MAP',
 	// chart components
 	reactiveChart: 'REACTIVE_CHART',
+	// ai component
+	AIAnswer: 'AI_ANSWER',
 };
 
 export const queryTypes = {
@@ -44,6 +46,8 @@ export const queryTypes = {
 	geo: 'geo',
 	suggestion: 'suggestion',
 };
+
+// Props that need to be passed to the query
 export const validProps = [
 	// common
 	'type',
@@ -54,6 +58,7 @@ export const validProps = [
 	'distinctFieldConfig',
 	'index',
 	'aggregations',
+	'compoundClause',
 	// Specific to ReactiveList
 	'dataField',
 	'includeFields',
@@ -82,6 +87,8 @@ export const validProps = [
 	'enableSynonyms',
 	'enableQuerySuggestions',
 	'queryString',
+	'vectorDataField',
+	'imageValue',
 	// Specific to Category Search
 	'categoryField',
 	'strictSelection',
@@ -111,21 +118,28 @@ export const validProps = [
 	'calendarInterval',
 	// Map components
 	'unit',
-	// Specific to searchBox
+	// Specific to SearchBox
 	'enablePopularSuggestions',
 	'enableRecentSuggestions',
 	'popularSuggestionsConfig',
 	'recentSuggestionsConfig',
 	'indexSuggestionsConfig',
 	'featuredSuggestionsConfig',
+	'FAQSuggestionsConfig',
+	'documentSuggestionsConfig',
 	'enablePredictiveSuggestions',
 	'applyStopwords',
 	'customStopwords',
 	'enableIndexSuggestions',
 	'enableFeaturedSuggestions',
+	'enableFAQSuggestions',
+	'enableDocumentSuggestions',
+	'enableEndpointSuggestions',
 	'searchboxId',
 	'endpoint',
-	'enableEndpointSuggestions',
+	'enableAI',
+	'AIConfig',
+	'showDistinctSuggestions',
 ];
 
 export const CLEAR_ALL = {
@@ -142,11 +156,16 @@ export const SEARCH_COMPONENTS_MODES = {
 
 export const TREELIST_VALUES_PATH_SEPARATOR = '◐◑◒◓';
 
-export default {
-	componentTypes,
-	queryTypes,
-	validProps,
-	CLEAR_ALL,
-	SEARCH_COMPONENTS_MODES,
-	TREELIST_VALUES_PATH_SEPARATOR,
+export const AI_ROLES = {
+	USER: 'user',
+	SYSTEM: 'system',
+	ASSISTANT: 'assistant',
+};
+
+export const AI_LOCAL_CACHE_KEY = 'AISessions';
+
+export const AI_TRIGGER_MODES = {
+	QUESTION: 'question',
+	MANUAL: 'manual',
+	ALWAYS: 'always',
 };

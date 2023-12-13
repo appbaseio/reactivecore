@@ -810,6 +810,8 @@ export const suggestionTypes = {
 	Recent: 'recent',
 	Promoted: 'promoted',
 	Featured: 'featured',
+	FAQ: 'faq',
+	Document: 'document',
 };
 
 export const featuredSuggestionsActionTypes = {
@@ -1125,3 +1127,86 @@ export const transformRequestUsingEndpoint = (request, endpointParam) => {
 	}
 	return request;
 };
+
+// utils/localStorage.js
+
+export const setObjectInLocalStorage = (key, value) => {
+	 if (typeof localStorage !== 'undefined') {
+		if (!key || !value) {
+			throw new Error('Key and value are required for setObject');
+		}
+
+		try {
+			const serializedValue = JSON.stringify(value);
+			localStorage.setItem(key, serializedValue);
+		} catch (error) {
+			console.error('Error saving object to localStorage:', error);
+		}
+	 } else {
+		 console.warn('localstorage not available');
+	}
+};
+
+export const getObjectFromLocalStorage = (key) => {
+	if (!key) {
+		throw new Error('Key is required for getObject');
+	}
+
+	try {
+		const serializedValue = localStorage.getItem(key);
+		if (serializedValue === null) {
+			return null;
+		}
+		return JSON.parse(serializedValue);
+	} catch (error) {
+		console.error('Error retrieving object from localStorage:', error);
+		return null;
+	}
+};
+
+// handle converting to valid color strings in hex, rgb, rgba, hsl, and hsla formats
+// useful for styles impl. using darken function from 'polished' package
+
+const isHex = color => /^#([A-Fa-f0-9]{3,4}){1,2}$/.test(color);
+const isRgb = color => /^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/.test(color);
+const isRgba = color =>
+	/^rgba\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3}),\s*(0|1|0\.\d{1,2})\)$/.test(color);
+const isHsl = color => /^hsl\(\d{1,3},\s*[\d.]+%,\s*[\d.]+%\)$/.test(color);
+const isHsla = color => /^hsla\(\d{1,3},\s*[\d.]+%,\s*[\d.]+%,\s*(0|1|0\.\d{1,2})\)$/.test(color);
+
+export const hexToRGBA = (colorParam) => {
+	if (isRgb(colorParam) || isRgba(colorParam) || isHsl(colorParam) || isHsla(colorParam)) {
+		return colorParam;
+	}
+
+	if (!isHex(colorParam)) {
+		return null;
+	}
+
+	const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])([a-f\d])?$/i;
+	const color = colorParam.replace(
+		shorthandRegex,
+		(m, r, g, b, a) => r + r + g + g + b + b + (a ? a + a : ''),
+	);
+
+	const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})?$/i.exec(color);
+	if (!result) {
+		return null;
+	}
+
+	const r = parseInt(result[1], 16);
+	const g = parseInt(result[2], 16);
+	const b = parseInt(result[3], 16);
+	const a = result[4] ? parseInt(result[4], 16) / 255 : 1;
+
+	return `rgba(${r}, ${g}, ${b}, ${a})`;
+};
+
+// Just for debuggin
+// Call this function inside the function for which
+// a stack trace is needed
+export function getStackTrace() {
+	const error = new Error();
+	// eslint-disable-next-line no-console
+	console.log(error.stack);
+}

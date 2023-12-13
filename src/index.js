@@ -1,6 +1,7 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import thunk from 'redux-thunk';
 import rootReducer from './reducers';
+import { aiResponseMiddleware } from './utils/middlewares';
 import { STORE_KEY } from './constants';
 import * as Actions from './actions';
 import * as helper from './utils/helper';
@@ -32,7 +33,7 @@ const composeEnhancers
 		? window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({})
 		: compose;
 
-const enhancer = composeEnhancers(applyMiddleware(thunk));
+const enhancer = composeEnhancers(applyMiddleware(thunk, aiResponseMiddleware));
 
 export default function configureStore(initialState) {
 	const finalInitialState = {

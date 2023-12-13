@@ -37,6 +37,7 @@ import recentSearchesReducer from './recentSearches';
 import googleMapScriptReducer from './googleMapScriptReducer';
 import analyticsRefReducer from './analyticsRefReducer';
 import registeredComponentReducer from './registeredComponentReducer';
+import aiReducer from './aiReducer';
 
 export default combineReducers({
 	components: componentsReducer,
@@ -77,4 +78,5 @@ export default combineReducers({
 	googleMapScriptStatus: googleMapScriptReducer,
 	lastUsedAppbaseQuery: appbaseQueryReducer,
 	registeredComponentsTimestamps: registeredComponentReducer,
+	AIResponses: aiReducer,
 });

@@ -253,3 +253,57 @@ export function recordImpressions(queryId, impressions = []) {
 		}
 	};
 }
+
+export function recordAISessionUsefulness(sessionId, otherInfo) {
+	return (dispatch, getState) => {
+		const { analyticsRef: analyticsInstance, config } = getState();
+		if (!config || !config.analyticsConfig || !config.analyticsConfig.recordAnalytics) {
+			console.warn('ReactiveSearch: Unable to record usefulness of session. To enable analytics, make sure to include the following prop on your <ReactiveBase> component: reactivesearchAPIConfig={{ recordAnalytics: true }}');
+			return;
+		}
+
+		const userID = config && config.analyticsConfig && config.analyticsConfig.userId;
+		if (!sessionId) {
+			console.warn('ReactiveSearch: AI sessionID is required to record the usefulness of session.');
+			return;
+		}
+		// Save session usefulness
+		analyticsInstance.saveSessionUsefulness(
+			sessionId,
+			{
+				...otherInfo,
+				userID,
+			},
+			(err, res) => {
+				// eslint-disable-next-line no-console
+
+				res._bodyBlob
+					.text()
+					.then((textData) => {
+						try {
+							const parsedErrorRes = JSON.parse(textData);
+							if (parsedErrorRes.error) {
+								const errorCode = parsedErrorRes.error.code;
+								const errorMessage = parsedErrorRes.error.message;
+
+								let finalErrorMessage
+									= 'There was an error recording the usefulness of the session. \n\n';
+								if (errorCode) {
+									finalErrorMessage += errorCode;
+								}
+								if (errorMessage) {
+									finalErrorMessage += `${errorCode ? ': ' : ''}${errorMessage}`;
+								}
+								console.error(finalErrorMessage);
+							}
+						} catch (error) {
+							console.error('There was an error recording the usefulness of the session. \n\n');
+						}
+					})
+					.catch((error) => {
+						console.error('Error reading  component error text data:', error);
+					});
+			},
+		);
+	};
+}

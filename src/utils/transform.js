@@ -9,6 +9,7 @@ export const componentToTypeMap = {
 	[componentTypes.dataSearch]: queryTypes.search,
 	[componentTypes.categorySearch]: queryTypes.search,
 	[componentTypes.searchBox]: queryTypes.suggestion,
+	[componentTypes.AIAnswer]: queryTypes.search,
 	// term components
 	[componentTypes.singleList]: queryTypes.term,
 	[componentTypes.multiList]: queryTypes.term,
@@ -80,19 +81,48 @@ export const isComponentUsesLabelAsValue = (componentType = '') =>
 export const hasPaginationSupport = (componentType = '') =>
 	listComponentsWithPagination.includes(componentType);
 
+
 export const getRSQuery = (componentId, props, execute = true) => {
 	if (props && componentId) {
 		const queryType = props.type ? props.type : componentToTypeMap[props.componentType];
 		// dataField is a required field for components other than search
 		// TODO: Revisit this logic based on the Appbase version
 		// dataField is no longer a required field in RS API
-		if (!isSearchComponent(props.componentType) && !props.dataField) {
+		if (
+			props.componentType !== componentTypes.AIAnswer
+			&& !isSearchComponent(props.componentType)
+			&& !props.dataField
+		) {
 			return null;
 		}
 		let endpoint;
+		let compoundClause = props.compoundClause;
 		if (props.endpoint instanceof Object) {
 			endpoint = props.endpoint;
 		}
+		let featuredSuggestionsProps = {
+			enableFeaturedSuggestions: props.enableFeaturedSuggestions,
+			featuredSuggestionsConfig: props.featuredSuggestionsConfig,
+		};
+		let faqSuggestionsProps = {
+			enableFAQSuggestions: props.enableFAQSuggestions,
+			FAQSuggestionsConfig: props.FAQSuggestionsConfig,
+		};
+
+		if (props.enableFAQSuggestions && !props.searchboxId) {
+			faqSuggestionsProps = {};
+			console.error('Reactivesearch Error: You should also pass a searchboxId when passing enableFAQSuggestions as true.\nRefer to Searchbox component documentation specific to frontend frameworks.\n\nReact(https://docs.reactivesearch.io/docs/reactivesearch/react/search/searchbox/)\n\nVue(https://docs.reactivesearch.io/docs/reactivesearch/vue/search/SearchBox/).');
+		}
+		if (props.enableFeaturedSuggestions && !props.searchboxId) {
+			featuredSuggestionsProps = {};
+			console.error('Reactivesearch Error: You should also pass a searchboxId when passing enableFeaturedSuggestions.\nRefer to Searchbox component documentation specific to frontend frameworks.\n\nReact(https://docs.reactivesearch.io/docs/reactivesearch/react/search/searchbox/)\n\nVue(https://docs.reactivesearch.io/docs/reactivesearch/vue/search/SearchBox/).');
+		}
+		if (compoundClause && !['filter', 'must'].includes(compoundClause)) {
+			console.error("Reactivesearch Error: Invalid prop supplied - compoundClause. Prop can be one of ['filter', 'must']");
+			compoundClause = undefined;
+		}
+
+
 		return {
 			id: componentId,
 			type: queryType || queryTypes.search,
@@ -132,6 +162,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			distinctField: props.distinctField,
 			distinctFieldConfig: props.distinctFieldConfig,
 			index: props.index,
+			compoundClause,
 			...(queryType === queryTypes.suggestion
 				? {
 					enablePopularSuggestions: props.enablePopularSuggestions,
@@ -142,9 +173,13 @@ export const getRSQuery = (componentId, props, execute = true) => {
 					applyStopwords: props.applyStopwords,
 					customStopwords: props.customStopwords,
 					enablePredictiveSuggestions: props.enablePredictiveSuggestions,
-					featuredSuggestionsConfig: props.featuredSuggestionsConfig,
 					indexSuggestionsConfig: props.indexSuggestionsConfig,
-					enableFeaturedSuggestions: props.enableFeaturedSuggestions,
+					enableDocumentSuggestions: props.enableDocumentSuggestions,
+					showDistinctSuggestions: props.showDistinctSuggestions,
+					documentSuggestionsConfig: props.enableDocumentSuggestions
+						? props.documentSuggestionsConfig : undefined,
+					...featuredSuggestionsProps,
+					...faqSuggestionsProps,
 					enableIndexSuggestions: props.enableIndexSuggestions,
 					...(props.searchboxId ? { searchboxId: props.searchboxId } : {}),
 				  }
@@ -152,6 +187,19 @@ export const getRSQuery = (componentId, props, execute = true) => {
 			calendarInterval: props.calendarInterval,
 			endpoint,
 			range: props.range,
+			...(queryType !== queryTypes.suggestion && props.enableAI && execute
+				? {
+					enableAI: true,
+					...(props.AIConfig ? { AIConfig: props.AIConfig } : {}),
+					execute: true,
+				  }
+				: {}),
+			...(queryType !== queryTypes.suggestion
+				? {
+					   vectorDataField: props.vectorDataField || undefined,
+					   imageValue: props.imageValue || undefined,
+				   }
+					 : {}),
 		};
 	}
 	return null;
@@ -166,6 +214,7 @@ export const getValidInterval = (interval, range = {}) => {
 	}
 	return interval;
 };
+
 
 export const extractPropsFromState = (store, component, customOptions) => {
 	const componentProps = store.props[component];
@@ -509,6 +558,7 @@ export function flatReactProp(reactProp, componentID) {
 	return flattenReact;
 }
 
+
 export const getDependentQueries = (store, componentID, orderOfQueries = []) => {
 	const finalQuery = {};
 	const react = flatReactProp(store.dependencyTree[componentID], componentID);
@@ -517,13 +567,30 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 		const customQuery = store.customQueries[component];
 		if (!isInternalComponent(component)) {
 			const calcValues = store.selectedValues[component] || store.internalValues[component];
-			// Only include queries for that component that has `customQuery` or `value` defined
-			if (((calcValues && calcValues.value) || customQuery) && !finalQuery[component]) {
+			const imageValue = calcValues && calcValues.meta && calcValues.meta.imageValue;
+			// Only include queries for that component that has `customQuery` or `value` or
+			// `imageValue` incase of searchbox defined
+			if (((calcValues && (calcValues.value || imageValue)) || customQuery)
+				&& !finalQuery[component]) {
 				let execute = false;
-				if (Array.isArray(orderOfQueries) && orderOfQueries.includes(component)) {
+				const componentProps = store.props[component];
+				if (
+					Array.isArray(orderOfQueries)
+					&& orderOfQueries.includes(component)
+					&& !(
+						componentProps.componentType === componentTypes.searchBox
+						/**
+						 * We want to fire a search query,
+						 * 	when enableAI
+						 * 	OR
+						 * 	when autosuggest is false
+						 */
+						&& (componentProps.enableAI
+						|| componentProps.autosuggest === false)
+					)
+				) {
 					execute = true;
 				}
-				const componentProps = store.props[component];
 				// build query
 				const dependentQuery = getRSQuery(
 					component,
@@ -536,6 +603,10 @@ export const getDependentQueries = (store, componentID, orderOfQueries = []) => 
 										? { categoryValue: calcValues.category }
 										: { categoryValue: undefined }),
 									...(calcValues.value ? { value: calcValues.value } : {}),
+									...(imageValue
+										 ? {
+											imageValue,
+										} : {}),
 								  }
 								: {}),
 							...(componentProps.componentType === componentTypes.categorySearch
