@@ -169,3 +169,4 @@ export const AI_TRIGGER_MODES = {
 	MANUAL: 'manual',
 	ALWAYS: 'always',
 };
+export default true;
