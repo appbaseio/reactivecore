@@ -4,7 +4,7 @@
 
 if (!Array.prototype.find) {
 	Object.defineProperty(Array.prototype, 'find', {
-		value: function(predicate) {
+		value: function (predicate) {
 			// 1. Let O be ? ToObject(this value).
 			if (this == null) {
 				throw new TypeError('"this" is null or not defined');
@@ -49,7 +49,7 @@ if (!Array.prototype.find) {
 }
 
 if (!String.prototype.endsWith) {
-	String.prototype.endsWith = function(pattern) {
+	String.prototype.endsWith = function (pattern) {
 		var d = this.length - pattern.length;
 		return d >= 0 && this.lastIndexOf(pattern) === d;
 	};
@@ -66,3 +66,5 @@ if (typeof Event !== 'function') {
 		window.Event = Event;
 	}
 }
+
+export default true;

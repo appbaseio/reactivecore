@@ -1,19 +1,19 @@
 {
 	"name": "@appbaseio/reactivecore",
-	"version": "10.2.1",
+	"version": "10.3.0",
 	"description": "Core architecture of reactive UI libraries",
 	"main": "lib/index.js",
+	"module": "lib/index.mjs",
 	"files": [
 		"lib/"
 	],
 	"scripts": {
 		"lint": "eslint .",
-		"start": "yarn run build -w",
-		"build": "babel --ignore __tests__ src --out-dir lib",
+		"start": "rollup -c -w",
+		"build": "rollup -c",
 		"precommit": "eslint .",
 		"prepublishOnly": "yarn run build",
 		"version-upgrade": "nps upgrade-core -c ../../package-scripts.js",
-		"postpublish": "yarn run version-upgrade",
 		"test": "../../node_modules/jest/bin/jest.js --watch --env node"
 	},
 	"repository": {
@@ -34,7 +34,10 @@
 		"redux-thunk": "^2.3.0"
 	},
 	"devDependencies": {
-		"babel-cli": "^6.24.1",
+		"@rollup/plugin-babel": "^6.0.3",
+		"@rollup/plugin-commonjs": "^24.1.0",
+		"@rollup/plugin-json": "^6.0.0",
+		"@rollup/plugin-node-resolve": "^15.0.2",
 		"babel-eslint": "^7.2.3",
 		"babel-preset-react-native": "^4.0.0",
 		"eslint": "^4.4.0",
@@ -44,9 +47,13 @@
 		"eslint-plugin-jest": "^21.12.2",
 		"eslint-plugin-jsx-a11y": "^6.0.3",
 		"eslint-plugin-react": "^7.5.1",
+		"glob": "^10.2.1",
 		"husky": "^0.14.3",
 		"jest": "^22.4.2",
-		"nps": "^5.9.5"
+		"nps": "^5.9.5",
+		"rollup": "^3.20.7",
+		"rollup-plugin-babel": "^4.4.0",
+		"rollup-plugin-terser": "^7.0.2"
 	},
 	"engines": {
 		"node": ">=10.16.0"

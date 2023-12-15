@@ -39,8 +39,8 @@ import {
 	getHistogramComponentID,
 	componentToTypeMap,
 	isSearchComponent,
+	getInternalComponentID,
 } from '../utils/transform';
-import { getInternalComponentID } from '../../lib/utils/transform';
 
 export function loadPopularSuggestions(componentId) {
 	return (dispatch, getState) => {

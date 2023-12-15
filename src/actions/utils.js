@@ -14,11 +14,10 @@ import {
 } from './misc';
 
 import { updateHits, updateAggs, updateCompositeAggs, saveQueryToHits } from './hits';
-import { getInternalComponentID } from '../../lib/utils/transform';
-import { componentTypes } from '../../lib/utils/constants';
+import { getInternalComponentID } from '../utils/transform';
 import { UPDATE_CONFIG } from '../constants';
 import { fetchAIResponse } from './query';
-import { AI_LOCAL_CACHE_KEY } from '../utils/constants';
+import { AI_LOCAL_CACHE_KEY, componentTypes } from '../utils/constants';
 import { getObjectFromLocalStorage, setObjectInLocalStorage } from '../utils/helper';
 
 export const handleTransformResponse = (res = null, config = {}, component = '') => {

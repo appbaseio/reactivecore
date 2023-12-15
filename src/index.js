@@ -26,7 +26,7 @@ const Reducers = {
 	dependencyTreeReducer,
 	propsReducer,
 };
-export { helper, causes, suggestions, Actions, storeKey, polyfills, Reducers, constants };
+export { helper, causes, suggestions, Actions, storeKey, Reducers, constants, polyfills };
 
 const composeEnhancers
 	= typeof window === 'object' && window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__
