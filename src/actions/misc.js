@@ -203,12 +203,13 @@ export function resetStoreForComponent(componentId) {
 	return (dispatch) => {
 		dispatch(setRawData(componentId, null));
 		dispatch(setCustomData(null, componentId));
-		dispatch(setPromotedResults([], componentId));
-		dispatch(setPopularSuggestions([], componentId));
-		dispatch(setDefaultPopularSuggestions([], componentId));
+		// dispatch(setPromotedResults([], componentId));
+		// dispatch(setPopularSuggestions([], componentId));
+		// dispatch(setDefaultPopularSuggestions([], componentId));
 		dispatch(updateAggs(componentId, null));
 		dispatch(updateCompositeAggs(componentId, {}));
 		dispatch(updateHits(componentId, { hits: [], total: 0 }, 0));
+		dispatch(logQuery(componentId, null));
 	};
 }
 
