@@ -91,7 +91,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 		if (
 			props.componentType !== componentTypes.AIAnswer
 			&& !isSearchComponent(props.componentType)
-			&& !props.dataField
+			&& !props.dataField && !props.vectorDataField
 		) {
 			return null;
 		}
@@ -198,6 +198,7 @@ export const getRSQuery = (componentId, props, execute = true) => {
 				? {
 					   vectorDataField: props.vectorDataField || undefined,
 					   imageValue: props.imageValue || undefined,
+					   candidates: props.candidates || props.size || undefined,
 				   }
 					 : {}),
 		};

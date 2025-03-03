@@ -64,6 +64,7 @@ export const validProps = [
 	'includeFields',
 	'excludeFields',
 	'size',
+	'candidates',
 	'from',
 	'sortBy',
 	'sortOptions',
